@@ -4,22 +4,27 @@ import sys, os
 import shutil
 import threading
 from glob import glob
-from time import sleep
+from time import sleep, time
 import subprocess as sp
 import multiprocessing as mp
 import shlex
 import argparse
 import string
 import json
+from runUtils import checkProxy, checkTokens, getSystem, getHeplxPublicFolder
 
 def main():
 
     parser = argparse.ArgumentParser()
     parser.add_argument('-s', dest='sample', help='Sample to run over', type=str, metavar = 'SAMPLE', default = "")
     parser.add_argument('-v', dest='version', help='Version of ntuples.', type=str, metavar = 'VERSION', default = 'v1')
-    parser.add_argument('-c', dest='channel', help='Dataset channel',choices = ['mt','et','tt'], default = 'mt')
-    parser.add_argument('-e', dest='shift', help='Uncert shift of energy scale',choices = ['t0u','t1u','t10u','t0d','t1d','t10d','m0u','m1u','m10u','m0d','m1d','m10d','e0u','e1u','e10u','e0d','e1d','e10d'], default = '')
-    parser.add_argument('-j', dest='jobs', help='If set to NJOBS > 0: Run NJOBS in parallel on heplx. Otherwise submit to batch.', type=int, default = 0)
+    parser.add_argument('-c', dest='channel', help='Dataset channel',choices = ['mt','et','tt','all'], default = 'mt')
+    parser.add_argument('-e', dest='shift', help='Uncert shift of energy scale',choices = ['t0u','t1u','t10u','t0d','t1d','t10d','t0','t1','t10','t'
+                                                                                           'm0u','m1u','m10u','m0d','m1d','m10d','m0','m1','m10','m'
+                                                                                           'e0u','e1u','e10u','e0d','e1d','e10d','e0','e1','e10','e'], default = '')
+    parser.add_argument('-t', dest='submit', help='Where to submit the job',choices = ['batch','local'], default = 'local')
+    parser.add_argument('-j', dest='jobs', help='If set to NJOBS > 0: Run NJOBS in parallel on heplx. Otherwise submit to batch.', type=int, default = 8)
+    # parser.add_argument('-o', dest='outdir', help='Where to write output when running on batch.', type=str, default = '/afs/cern.ch/work/m/mspanrin/nano_test')
     parser.add_argument('-o', dest='outdir', help='Where to write output when running on batch.', type=str, default = '/afs/hephy.at/data/higgs01')
     parser.add_argument('-m', dest='merge', help='Merge sample in outputfolder of batch', action = "store_true")
     parser.add_argument('-d', dest='debug', help='Debug', action = "store_true")
@@ -31,26 +36,91 @@ def main():
 
     #2017 sync
     # sample = 'VBFHToTauTau_M125_13TeV_powheg_pythia8'
+    if not checkProxy(): sys.exit()
+    if not checkTokens(): sys.exit()
+    if not os.environ.get("CMSSW_BASE", False):
+        print "You forgot to source cmssw"
+        sys.exit()
+
 
     if not args.merge:
-        print 'Channel:',args.channel
-        SNP = SteerNanoProduction(args.channel, args.shift, args.outdir, args.jobs, args.debug, args.event, args.cert)
-        # print SNP.makeConfigBalls(args.sample)
-        SNP.runOneSample(args.sample)
+
+        SNP = SteerNanoProduction(args.outdir, args.submit, args.jobs, args.debug, args.event, args.cert)
+        for cmd in makeSubmitList(args.channel, args.shift, args.sample):
+
+            print "\033[1m" +  "_"*100 + "\033[0m"
+            print 'Channel:',cmd[1]
+            print 'Sample:', cmd[0]
+            print 'Shift:', cmd[2]
+            print "\033[1m" +  "_"*100 + "\033[0m"
+
+            SNP.runOneSample( *cmd )
 
     else:
         mergeSample(args.version, args.outdir,args.sample)
 
+def makeSubmitList(channel, shift, sample):
+    #Oh god this is ugly...
+
+    if channel == "all": channels = ["et","mt","tt"]
+    else: channels = [channel]
+
+    if shift == "t": shifts = ['t0u','t1u','t10u','t0d','t1d','t10d']
+    elif shift == "m": shifts = ['m0u','m1u','m10u','m0d','m1d','m10d']
+    elif shift == "e": shifts = ['e0u','e1u','e10u','e0d','e1d','e10d']
+    elif shift == "t0": shifts = ['t0u','t0d']
+    elif shift == "m0": shifts = ['m0u','m0d']
+    elif shift == "e0": shifts = ['e0u','e0d']
+    elif shift == "t1": shifts = ['t1u','t1d']
+    elif shift == "m1": shifts = ['m1u','m1d']
+    elif shift == "e1": shifts = ['e1u','e1d']
+    elif shift == "t10": shifts = ['t10u','t10d']
+    elif shift == "m10": shifts = ['m10u','m10d']
+    elif shift == "e10": shifts = ['e10u','e10d']
+    else: shifts = [shift]
+
+    if os.path.exists(sample): samples = [sample]
+    else:
+        if sample == "mc": samples = glob("samples/mc/*/*")
+        if sample == "data": samples = glob("samples/data/*/*")
+        if sample == "dy": samples = glob("samples/mc/dy/*")
+        if sample == "diboson": samples = glob("samples/mc/diboson/*")
+        if sample == "ewk": samples = glob("samples/mc/ewk/*")
+        if sample == "signal": samples = glob("samples/mc/signal/*")
+        if sample == "st": samples = glob("samples/mc/st/*")
+        if sample == "tt": samples = glob("samples/mc/tt/*")
+        if sample == "w": samples = glob("samples/mc/w/*")
+
+    submitlist = []
+    for c in channels:
+        for s in samples:
+            for sh in shifts:
+                if "/data/" in s and sh != "": continue
+                if c == "et" and not "/mc/" in s and not "samples/data/SingleElectron" in s: continue
+                if c == "mt" and not "/mc/" in s and not "samples/data/SingleMuon" in s: continue
+                if c == "tt" and not "/mc/" in s and not "samples/data/Tau" in s: continue
+
+                submitlist.append( (s,c,sh) )
+
+    return submitlist
+
+
+
 class SteerNanoProduction():
 
-    def __init__(self, channel, shift, outdir='', nthreads=6, debug=False, event = 0, cert = ""):
+    def __init__(self, outdir='', submit='local', nthreads=8, debug=False, event = 0, cert = ""):
 
         self.basedir = os.getcwd()
         self.outdir = outdir
-        self.channel = channel
         self.svfit = False
         self.recoil = False
 
+        cell = getSystem()
+        if submit == "batch":
+            if cell == "cern.ch": self.submit = "lxbatch"
+            if cell == "hephy.at": self.submit = "hephybatch"
+
+        else: self.submit = submit
 
         self.debug = debug
         self.event = event
@@ -63,7 +133,7 @@ class SteerNanoProduction():
             self.nthreads = nthreads
             self.nevents = -1
 
-        shifts={'t0u' : 'TES1p0p0Up',
+        self.shifts={'t0u' : 'TES1p0p0Up',
                 't1u' : 'TES1p1p0Up',
                 't10u': 'TES3p0p0Up',
                 't0d' : 'TES1p0p0Down',
@@ -83,29 +153,40 @@ class SteerNanoProduction():
                 'e10d': 'EES3p0p0Down'
         }
 
-        if shift:
-            self.systShift = shifts.get(shift,'NOMINAL')
-        else:
-            self.systShift = "NOMINAL"
+
 
         self.certJson = cert
 
-    def runOneSample(self, sample, version="v1"):
+    def runOneSample(self, sample, channel, shift, version="v1"):
         threads = []
+        os.chdir(self.basedir)
+
+        self.channel = channel
+        if shift:
+            self.systShift = self.shifts.get(shift,'NOMINAL')
+        else:
+            self.systShift = "NOMINAL"        
 
         assert sample
         sample = sample.split("/")[-1].replace(".txt","")
 
-        with open("submit_on_hephybatch.sh") as FSO:
-            templ = string.Template( FSO.read() )
+        # with open("submit_on_hephybatch.sh") as FSO:
+        if not self.submit == "local":
+            with open("submit_on_{0}.sh".format(self.submit) ) as FSO:
+                templ = string.Template( FSO.read() )
 
-        runpath = "/".join([self.basedir,"out", version ,sample, 'rundir_'+self.channel+'_' ])
-        outdir = "/".join([self.outdir, version, sample])
+        runpath = "/".join([self.basedir,"out", sample, 'rundir_{0}_{1}_'.format(self.channel,self.systShift) ])
+        outdir = "/".join([self.outdir, sample])
         if not os.path.exists(outdir):
             os.makedirs(outdir)
 
         print "Submitting: ", sample
+        if not self.debug and not self.submit == "local":
+            if not self.writeSubmitLog( sample, self.systShift ):
+                print "Sample seems to be running... Make sure you know what you are doing"
+                return 
 
+        sleeping = 0
         for idx,configBall in enumerate( self.makeConfigBalls(sample) ):
             file = configBall["file"]
 
@@ -113,7 +194,7 @@ class SteerNanoProduction():
 
             rundir = runpath+str(idx+1)
 
-            ##### Create rundir. Overwrite if it already exists
+            ##### Create rundir. Overwrite if it already exists... Well, actually delete it and make it new. 
             if not os.path.exists(rundir):
                 os.makedirs(rundir)
             else:
@@ -122,11 +203,10 @@ class SteerNanoProduction():
 
 
             os.chdir(self.basedir)
-            self.prepareRunDir(rundir)
-            self.throwConfigBall(configBall, rundir)
+            self.prepareRunDir(rundir, configBall)
 
             # Run local
-            if self.nthreads > 0:
+            if self.submit == "local":
                 t = threading.Thread(target=self.runOneFileLocal, args=(rundir,file,) )
                 threads.append(t)
 
@@ -136,22 +216,34 @@ class SteerNanoProduction():
                 if not self.event: sleep(5)
             # Run on batch system
             else:
-                runscript = templ.substitute(rundir = rundir,
+                if sleeping > 10: sleeping = 0
+                jobname = "{0}+{1}-{2}_{3}".format( sample, self.channel, configBall["systShift"], file.split("/")[-1] )
+
+                runscript = templ.substitute(samplename = jobname,
+                                             rundir = rundir,
                                              outdir = outdir,
-                                             sleeping = idx*10,
+                                             cell = getSystem(inverse = True),
+                                             sleeping = sleeping*10,
                                              channel = self.channel)
+                sleeping += 1
 
                 os.chdir(rundir )
                 with open("submit.sh","w") as FSO:
                     FSO.write( runscript )
-                os.system( "sbatch submit.sh" )
+                os.chmod("submit.sh", 0777)
 
-        if self.nthreads > 0:
+                if self.submit == "hephybatch":
+                    os.system( "sbatch submit.sh" )
+
+                if self.submit == "lxbatch":
+                    os.system( " bsub -q 1nd -J {0} submit.sh".format( jobname ) )
+
+        if self.submit == "local":
             for x in threads:
                 x.join()
 
             if not self.debug:
-                os.chdir( "/".join([ self.basedir, "out", version ,sample ]) )
+                os.chdir( "/".join([ self.basedir, "out", sample ]) )
                 os.system('hadd -f -O '+'{0}_all.root rundir_{1}_*/{0}_*root'.format("-".join([self.channel, self.systShift]), self.channel ) )
 
     def runOneFileLocal(self, rundir ,file):
@@ -182,24 +274,51 @@ class SteerNanoProduction():
 
         print "\033[92mdone\033[0m Job {0}: ".format(njob)  + file.split("/")[-1]
 
+    def prepareRunDir(self, rundir, configBall):
 
-    def prepareRunDir(self, rundir):
+        self.throwConfigBall(configBall, rundir)
+        shutil.copytree("proxy", "/".join([rundir,"proxy"]))
+        shutil.copytree("kerberos", "/".join([rundir,"kerberos"]))
 
-        headerfiles = glob("*.h*")
-        Cfiles = glob("*.c*") + glob("*.C")
-        addFiles =['convertNanoParallel.py']
+        if not self.submit == "lxbatch":
+            headerfiles = glob("*.h*")
+            Cfiles = glob("*.c*") + glob("*.C")
+            addFiles =['convertNanoParallel.py','validateAndCopy.py']
 
-        shutil.copytree("utils", "/".join([rundir,"utils"]))
-        for f in headerfiles + Cfiles + addFiles:
-            shutil.copyfile("/".join([self.basedir,f]), "/".join([rundir,f]) )
+            shutil.copytree("utils", "/".join([rundir,"utils"]))
+            for f in headerfiles + Cfiles + addFiles:
+                shutil.copyfile("/".join([self.basedir,f]), "/".join([rundir,f]) )
+                os.chmod("/".join([rundir,f]), 0777)
 
-            os.chmod("/".join([rundir,f]), 0777)
+    def writeSubmitLog(self, sample, shift):
+
+        log = {}
+
+        logpath = "/".join([ getHeplxPublicFolder(),"submit_log.log" ])
+        if os.path.exists(logpath):
+            with open(logpath,"r") as FSO:
+                log = json.load(FSO)
+
+        if not log.get(sample,False): log[sample] = {}
+        if not log[sample].get(self.channel,False): log[sample][self.channel] = {}
+        if not log[sample][self.channel].get(shift,False): log[sample][self.channel][shift] =  {"submit_time": None, "status":"" }
+
+        if not log[sample][self.channel][shift]["status"] == "NEW":
+            log[sample][self.channel][shift]["submit_time"] = int(time())
+            log[sample][self.channel][shift]["status"] = "NEW"
+            log[sample][self.channel][shift]["site"] = self.submit
+
+            with open(logpath,"w") as FSO:
+                json.dump(log, FSO, indent=4)
+            return True
+
+        return False
 
     def makeConfigBalls(self,sample):
         configBalls = []
         samples_avail = glob("samples/*/*/*")
         for sa in samples_avail:
-            if sample in sa:
+            if sample + ".txt" in sa:
                 files = self.getFiles(sa)
                 parts = sa.split("/")
 
@@ -211,18 +330,20 @@ class SteerNanoProduction():
             configBall["file"]        = file
 
             configBall["sample"]      = parts[2]
+            configBall["samplename"]  = sample
             configBall["channel"]     = self.channel
             configBall["systShift"]   = self.systShift
             configBall["svfit"]       = self.svfit
             configBall["recoil"]      = self.recoil
+            configBall["system"]      = self.submit
             configBall["nevents"]     = int(self.nevents)
             configBall["check_event"] = int(self.event)
             if  parts[1] == "mc":
                 configBall["isMC"]        = True
                 configBall["certJson"] = ""
-                configBall["puTag"]    = puTag[ sample.replace(".txt","") ][0]
-                configBall["xsec"]     = puTag[ sample.replace(".txt","") ][1]
-                configBall["genNEvents"]  = puTag[ sample.replace(".txt","") ][2]
+                configBall["puTag"]    = puTag[ sample ]["putag"]
+                configBall["xsec"]     = puTag[ sample ]["xsec"]
+                configBall["genNEvents"]  = puTag[ sample ]["nevents"]
 
             else:
                 configBall["isMC"]        = False
@@ -244,8 +365,7 @@ class SteerNanoProduction():
 
         with open( "{0}/{1}".format(self.basedir, sample) ) as FSO:
             buf = FSO.read()
-        return buf.splitlines()
-
+        return buf.splitlines()    
 
 def mergeSample(version, outdir, single_sample=""):
 
@@ -277,6 +397,30 @@ def mergeSample(version, outdir, single_sample=""):
 
             types[t]["chain"].Merge( "/".join([sample, t+"_all.root"]) )
 
+def checkProxy():
+    proxy_path = glob("/tmp/x509*_u{0}".format( os.getuid() ) )
+    if len(proxy_path) == 1 and os.path.exists( proxy_path[0] ):
+
+        p = sp.Popen( shlex.split("voms-proxy-info --timeleft"), stdout=sp.PIPE, stderr=sp.PIPE )
+        (out,err) =  p.communicate()
+
+
+        if err:
+            print err
+            return False
+        if out:
+            if int(out) > 0:
+                if not os.path.exists("proxy"):
+                    os.mkdir("proxy")
+                shutil.copyfile(proxy_path[0], "proxy/x509_proxy")
+                return True
+            else:
+                print "Proxy not valid! Get a new one with 'voms-proxy-init --voms cms'"
+                return False
+
+    
+    print "No proxy found! Get a new one with 'voms-proxy-init --voms cms'" 
+    return False
     
 
 

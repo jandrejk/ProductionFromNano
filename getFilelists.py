@@ -1,10 +1,17 @@
 import subprocess as sp
 import shlex
 import json
+import shutil
 import os 
-
+from runUtils import checkProxy
 
 def main():
+
+    if not checkProxy(): sys.exit()
+
+    if os.path.exists("samples"):
+        shutil.rmtree("samples")
+
     with open("sample_collection.json","r") as FSO:
         config = json.load(FSO)
 
@@ -22,10 +29,8 @@ def main():
                     filename = buildFileName( link, run, r["creation"] )
                     content = getDASquery(link)
 
-                    if "Vienna" in getDASquery(link,"site"):
-                        content = content.replace("/store/","root://hephyse.oeaw.ac.at//store/")
-                    else:
-                        content = content.replace("/store/","root://xrootd-cms.infn.it//store/")
+                    content = content.replace("/store/","root://cms-xrd-global.cern.ch//store/")
+
 
                     writeFile(content, filename, folder)
                     # print getDASquery(link,"file")

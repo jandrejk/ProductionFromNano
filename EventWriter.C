@@ -90,10 +90,13 @@ void EventWriter::fill(HTTEvent *ev, HTTJetCollection jets, std::vector<HTTParti
 
     extramuon_veto=ev->checkSelectionBit(SelectionBitsEnum::extraMuonVeto);
     extraelec_veto=ev->checkSelectionBit(SelectionBitsEnum::extraElectronVeto);
-    passesDiMuonVeto=!( ev->checkSelectionBit(SelectionBitsEnum::diMuonVeto) );
-    passesDiElectronVeto=!( ev->checkSelectionBit(SelectionBitsEnum::diElectronVeto) );
+    diMuonVeto= ev->checkSelectionBit(SelectionBitsEnum::diMuonVeto);
+    diElectronVeto= ev->checkSelectionBit(SelectionBitsEnum::diElectronVeto);
 
-    dilepton_veto=!(passesDiMuonVeto && passesDiElectronVeto);
+    passesDiMuonVeto=!diMuonVeto;
+    passesDiElectronVeto=!diElectronVeto;
+
+    dilepton_veto= diMuonVeto || diElectronVeto ;
     passesThirdLepVeto=!( extramuon_veto && extraelec_veto );
 
 
@@ -217,33 +220,37 @@ void EventWriter::fillLeg1Branches()
     else if (pdg1==13) iso_1=leg1.getProperty( HTTEvent::usePropertyFor.at("muonIsolation") );
     else if (pdg1==11) iso_1=leg1.getProperty( HTTEvent::usePropertyFor.at("electronIsolation") );;
 
-    bitmask=leg1.getProperty(PropertyEnum::idAntiEle);
-    againstElectronVLooseMVA6_1 =(bitmask & 0x1 )>0;
-    againstElectronLooseMVA6_1  =(bitmask & 0x2 )>0;
-    againstElectronMediumMVA6_1 =(bitmask & 0x4 )>0;
-    againstElectronTightMVA6_1  =(bitmask & 0x8 )>0;
-    againstElectronVTightMVA6_1 =(bitmask & 0x10)>0;
+    // bitmask=leg1.getProperty(PropertyEnum::idAntiEle);
 
-    bitmask=leg1.getProperty(PropertyEnum::idAntiMu);
-    againstMuonLoose3_1=(bitmask & 0x1)>0;
-    againstMuonTight3_1=(bitmask & 0x2)>0;
+    againstElectronMVA6_1 = leg1.getProperty(PropertyEnum::idAntiEle);
+    againstElectronVLooseMVA6_1 =(againstElectronMVA6_1 & 0x1 )>0;
+    againstElectronLooseMVA6_1  =(againstElectronMVA6_1 & 0x2 )>0;
+    againstElectronMediumMVA6_1 =(againstElectronMVA6_1 & 0x4 )>0;
+    againstElectronTightMVA6_1  =(againstElectronMVA6_1 & 0x8 )>0;
+    againstElectronVTightMVA6_1 =(againstElectronMVA6_1 & 0x10)>0;
+
+    againstMuon3_1=leg1.getProperty(PropertyEnum::idAntiMu);
+    againstMuonLoose3_1=(againstMuon3_1 & 0x1)>0;
+    againstMuonTight3_1=(againstMuon3_1 & 0x2)>0;
 
     byCombinedIsolationDeltaBetaCorrRaw3Hits_1=leg1.getProperty(PropertyEnum::rawIso);
     byLooseCombinedIsolationDeltaBetaCorr3Hits_1=DEF; //not in nanoAOD
     byMediumCombinedIsolationDeltaBetaCorr3Hits_1=DEF; //not in nanoAOD
     byTightCombinedIsolationDeltaBetaCorr3Hits_1=DEF; //not in nanoAOD
     // byIsolationMVA3newDMwoLTraw_1=DEF;
-    byIsolationMVArun2017v2DBoldDMwLTraw2017_1=leg1.getProperty(HTTEvent::usePropertyFor.at("tauID"));
     // byIsolationMVA3newDMwLTraw_1=DEF;
     byIsolationMVA3oldDMwLTraw_1 =leg1.getProperty(HTTEvent::usePropertyFor.at("tauID")); //same as above!?
 
-    bitmask=leg1.getProperty(HTTEvent::usePropertyFor.at("tauID"));
-    byVVLooseIsolationMVArun2017v2DBoldDMwLT2017_1 = (bitmask & 0x1)>0;
-    byVLooseIsolationMVArun2017v2DBoldDMwLT2017_1  = (bitmask & 0x2)>0;
-    byLooseIsolationMVArun2017v2DBoldDMwLT2017_1   = (bitmask & 0x4)>0;;
-    byMediumIsolationMVArun2017v2DBoldDMwLT2017_1  = (bitmask & 0x8)>0;
-    byTightIsolationMVArun2017v2DBoldDMwLT2017_1   = (bitmask & 0x10)>0;
-    byVTightIsolationMVArun2017v2DBoldDMwLT2017_1  = (bitmask & 0x20)>0;
+    byIsolationMVArun2017v2DBoldDMwLTraw2017_1=leg1.getProperty(HTTEvent::usePropertyFor.at("tauIsolation")); // Raw value
+    byIsolationMVArun2017v2DBoldDMwLT2017_1=leg1.getProperty(HTTEvent::usePropertyFor.at("tauID"));    // Bitmask
+
+    byVVLooseIsolationMVArun2017v2DBoldDMwLT2017_1 = (byIsolationMVArun2017v2DBoldDMwLT2017_1 & 0x1)>0;
+    byVLooseIsolationMVArun2017v2DBoldDMwLT2017_1  = (byIsolationMVArun2017v2DBoldDMwLT2017_1 & 0x2)>0;
+    byLooseIsolationMVArun2017v2DBoldDMwLT2017_1   = (byIsolationMVArun2017v2DBoldDMwLT2017_1 & 0x4)>0;;
+    byMediumIsolationMVArun2017v2DBoldDMwLT2017_1  = (byIsolationMVArun2017v2DBoldDMwLT2017_1 & 0x8)>0;
+    byTightIsolationMVArun2017v2DBoldDMwLT2017_1   = (byIsolationMVArun2017v2DBoldDMwLT2017_1 & 0x10)>0;
+    byVTightIsolationMVArun2017v2DBoldDMwLT2017_1  = (byIsolationMVArun2017v2DBoldDMwLT2017_1 & 0x20)>0;
+    byVVTightIsolationMVArun2017v2DBoldDMwLT2017_1  = (byIsolationMVArun2017v2DBoldDMwLT2017_1 & 0x40)>0;
 
     // byVLooseIsolationMVArun2v1DBnewDMwLT_1=DEF;
     // byLooseIsolationMVArun2v1DBnewDMwLT_1=DEF;
@@ -299,33 +306,36 @@ void EventWriter::fillLeg2Branches()
     else if (pdg2==13) iso_2=leg2.getProperty( HTTEvent::usePropertyFor.at("muonIsolation") );
     else if (pdg2==11) iso_2=leg2.getProperty( HTTEvent::usePropertyFor.at("electronIsolation") );;
 
-    bitmask=leg2.getProperty(PropertyEnum::idAntiEle);
-    againstElectronVLooseMVA6_2 = (bitmask & 0x1)>0;
-    againstElectronLooseMVA6_2  = (bitmask & 0x2)>0;
-    againstElectronMediumMVA6_2 = (bitmask & 0x4)>0;
-    againstElectronTightMVA6_2  = (bitmask & 0x8)>0;
-    againstElectronVTightMVA6_2 = (bitmask & 0x10)>0;
 
-    bitmask=leg2.getProperty(PropertyEnum::idAntiMu);
-    againstMuonLoose3_2=(bitmask & 0x1)>0;
-    againstMuonTight3_2=(bitmask & 0x2)>0;
+    againstElectronMVA6_2=leg2.getProperty(PropertyEnum::idAntiEle);
+    againstElectronVLooseMVA6_2 = (againstElectronMVA6_2 & 0x1)>0;
+    againstElectronLooseMVA6_2  = (againstElectronMVA6_2 & 0x2)>0;
+    againstElectronMediumMVA6_2 = (againstElectronMVA6_2 & 0x4)>0;
+    againstElectronTightMVA6_2  = (againstElectronMVA6_2 & 0x8)>0;
+    againstElectronVTightMVA6_2 = (againstElectronMVA6_2 & 0x10)>0;
+
+    againstMuon3_2=leg2.getProperty(PropertyEnum::idAntiMu);
+    againstMuonLoose3_2=(againstMuon3_2 & 0x1)>0;
+    againstMuonTight3_2=(againstMuon3_2 & 0x2)>0;
 
     byCombinedIsolationDeltaBetaCorrRaw3Hits_2=leg2.getProperty(PropertyEnum::rawIso);
     byLooseCombinedIsolationDeltaBetaCorr3Hits_2=DEF; //not in nanoAOD
     byMediumCombinedIsolationDeltaBetaCorr3Hits_2=DEF; //not in nanoAOD
     byTightCombinedIsolationDeltaBetaCorr3Hits_2=DEF; //not in nanoAOD
     // byIsolationMVA3newDMwoLTraw_2=DEF;
-    byIsolationMVArun2017v2DBoldDMwLTraw2017_2=leg2.getProperty(PropertyEnum::rawMVAoldDM2017v2);
     // byIsolationMVA3newDMwLTraw_2=DEF;
     byIsolationMVA3oldDMwLTraw_2 =leg2.getProperty(PropertyEnum::rawMVAoldDM2017v2); //same as above!?
 
-    bitmask=leg2.getProperty(PropertyEnum::idMVAoldDM2017v2);
-    byVVLooseIsolationMVArun2017v2DBoldDMwLT2017_2 = (bitmask & 0x1)>0;
-    byVLooseIsolationMVArun2017v2DBoldDMwLT2017_2  = (bitmask & 0x2)>0;
-    byLooseIsolationMVArun2017v2DBoldDMwLT2017_2   = (bitmask & 0x4)>0;;
-    byMediumIsolationMVArun2017v2DBoldDMwLT2017_2  = (bitmask & 0x8)>0;
-    byTightIsolationMVArun2017v2DBoldDMwLT2017_2   = (bitmask & 0x10)>0;
-    byVTightIsolationMVArun2017v2DBoldDMwLT2017_2  = (bitmask & 0x20)>0;
+    byIsolationMVArun2017v2DBoldDMwLTraw2017_2=leg2.getProperty( HTTEvent::usePropertyFor.at("tauIsolation") ); // Raw value
+    byIsolationMVArun2017v2DBoldDMwLT2017_2=leg2.getProperty( HTTEvent::usePropertyFor.at("tauID") );     // Bitmask
+
+    byVVLooseIsolationMVArun2017v2DBoldDMwLT2017_2 = (byIsolationMVArun2017v2DBoldDMwLT2017_2 & 0x1)>0;
+    byVLooseIsolationMVArun2017v2DBoldDMwLT2017_2  = (byIsolationMVArun2017v2DBoldDMwLT2017_2 & 0x2)>0;
+    byLooseIsolationMVArun2017v2DBoldDMwLT2017_2   = (byIsolationMVArun2017v2DBoldDMwLT2017_2 & 0x4)>0;;
+    byMediumIsolationMVArun2017v2DBoldDMwLT2017_2  = (byIsolationMVArun2017v2DBoldDMwLT2017_2 & 0x8)>0;
+    byTightIsolationMVArun2017v2DBoldDMwLT2017_2   = (byIsolationMVArun2017v2DBoldDMwLT2017_2 & 0x10)>0;
+    byVTightIsolationMVArun2017v2DBoldDMwLT2017_2  = (byIsolationMVArun2017v2DBoldDMwLT2017_2 & 0x20)>0;
+    byVVTightIsolationMVArun2017v2DBoldDMwLT2017_2  = (byIsolationMVArun2017v2DBoldDMwLT2017_2 & 0x40)>0;
 
     // byVLooseIsolationMVArun2v1DBnewDMwLT_2=DEF;
     // byLooseIsolationMVArun2v1DBnewDMwLT_2=DEF;
@@ -544,14 +554,21 @@ void EventWriter::fillAdditionalLeptons( std::vector<HTTParticle> leptons, HTTPa
         if( i == indexLeg1 || i == indexLeg2 || !leptons[i].isAdditionalLepton() ) continue;
 
         int lepPDGId = leptons[i].getPDGid();
+        if( std::abs(lepPDGId) == 15 &&  channel == HTTAnalysis::TauTau ) continue;
 
         addlepton_p4.push_back( leptons[i].getP4() );
+        addlepton_pt.push_back( leptons[i].getP4().Pt() );
+        addlepton_eta.push_back( leptons[i].getP4().Eta() );
+        addlepton_phi.push_back( leptons[i].getP4().Phi() );
+        addlepton_m.push_back( leptons[i].getP4().M() );        
         addlepton_pdgId.push_back( leptons[i].getPDGid()*(-1) );
         addlepton_mc_match.push_back( leptons[i].getProperty(PropertyEnum::mc_match) );
 
+        addlepton_tauAntiEle.push_back( (int)leptons[i].getProperty(PropertyEnum::idAntiEle) );
+        addlepton_tauAntiMu.push_back( (int)leptons[i].getProperty(PropertyEnum::idAntiMu)  );
+
         addlepton_d0.push_back( leptons[i].getProperty(PropertyEnum::dxy) );
         addlepton_dZ.push_back( leptons[i].getProperty(PropertyEnum::dz) );
-
         addlepton_mt.push_back( leptons[i].getMT( pair->getMET() ) );
 
         if( std::abs(lepPDGId) == 13 )
@@ -571,8 +588,6 @@ void EventWriter::fillAdditionalLeptons( std::vector<HTTParticle> leptons, HTTPa
             addlepton_tauID.push_back( 0. );
             addlepton_tauDM.push_back( -1. );
             addlepton_tauCombIso.push_back( 0. );
-            addlepton_tauAntiEle.push_back( 0. );
-            addlepton_tauAntiMu.push_back( 0. );
 
         }else if( std::abs(lepPDGId) == 11 )
         {
@@ -591,10 +606,9 @@ void EventWriter::fillAdditionalLeptons( std::vector<HTTParticle> leptons, HTTPa
             addlepton_tauID.push_back( 0. );
             addlepton_tauDM.push_back( -1. );
             addlepton_tauCombIso.push_back( 0. );
-            addlepton_tauAntiEle.push_back( 0. );
-            addlepton_tauAntiMu.push_back( 0. );
 
-        }else if( std::abs(lepPDGId) == 15 && !( channel == HTTAnalysis::TauTau) )
+
+        }else if( std::abs(lepPDGId) == 15 )
         {
             nadditionalTau++;
             addtau_pt.push_back( leptons[i].getP4().Pt() );
@@ -605,24 +619,18 @@ void EventWriter::fillAdditionalLeptons( std::vector<HTTParticle> leptons, HTTPa
             addtau_byIsolationMVArun2v1DBoldDMwLTraw.push_back(leptons[i].getProperty( HTTEvent::usePropertyFor.at("tauIsolation") ));
             addtau_gen_match.push_back( leptons[i].getProperty(PropertyEnum::mc_match) );
 
-
-
             bitmask = leptons[i].getProperty(PropertyEnum::idAntiEle);
             bool antiEle = ( bitmask & 0x8) > 0;
-
             bitmask = leptons[i].getProperty(PropertyEnum::idAntiMu);
             bool antiMu  = (bitmask & 0x1 ) > 0;
-
             addtau_passesTauLepVetos.push_back( antiEle & antiMu );
 
             addtau_decayMode.push_back( leptons[i].getProperty(PropertyEnum::decayMode) );
             addtau_d0.push_back( leptons[i].getProperty(PropertyEnum::dxy) );
             addtau_dZ.push_back( leptons[i].getProperty(PropertyEnum::dz) );
 
-
             addtau_mt.push_back( leptons[i].getMT( pair->getMET() ) );
             addtau_mvis.push_back( ( leg1P4 + leptons[i].getP4() ).M() );
-
 
             addtau_byCombinedIsolationDeltaBetaCorrRaw3Hits.push_back( leptons[i].getProperty(PropertyEnum::rawIso) );
 
@@ -635,14 +643,11 @@ void EventWriter::fillAdditionalLeptons( std::vector<HTTParticle> leptons, HTTPa
             addtau_byVTightIsolationMVArun2v1DBoldDMwLT.push_back( (bitmask & 0x20)>0 );
 
             addlepton_iso.push_back( leptons[i].getProperty( HTTEvent::usePropertyFor.at("tauIsolation") ) );
-            addlepton_tauCombIso.push_back( leptons[i].getProperty(PropertyEnum::rawIso) );
-
-            addlepton_tauID.push_back(      (int)leptons[i].getProperty(HTTEvent::usePropertyFor.at("tauID")) );
-            addlepton_tauDM.push_back(      (int)leptons[i].getProperty(PropertyEnum::decayMode) );
-            addlepton_tauAntiEle.push_back( (int)leptons[i].getProperty(PropertyEnum::idAntiEle) );
-            addlepton_tauAntiMu.push_back(  (int)leptons[i].getProperty(PropertyEnum::idAntiMu) );
-
             addlepton_mvis.push_back( ( leg1P4 + leptons[i].getP4() ).M() );
+
+            addlepton_tauID.push_back(  (int)leptons[i].getProperty(HTTEvent::usePropertyFor.at("tauID")) );
+            addlepton_tauDM.push_back(  (int)leptons[i].getProperty(PropertyEnum::decayMode) );
+            addlepton_tauCombIso.push_back( leptons[i].getProperty(PropertyEnum::rawIso) );
 
 
         }
@@ -1161,8 +1166,8 @@ void EventWriter::setDefault(){
     passesLepIsoCuts=DEF;
     passesTauLepVetos=DEF;
     passesThirdLepVeto=DEF;
-    passesDiMuonVeto=DEF;
-    passesDiElectronVeto=DEF;
+    diMuonVeto=DEF;
+    diElectronVeto=DEF;
     //////////////////////////////////////////////////////////////////
     dilepton_veto=DEF;
     extramuon_veto=DEF;
@@ -1193,6 +1198,10 @@ void EventWriter::setDefault(){
     //////////////////////////////////////////////////////////////////
 
     addlepton_p4.clear();
+    addlepton_pt.clear();
+    addlepton_eta.clear();
+    addlepton_phi.clear();
+    addlepton_m.clear();    
     addlepton_iso.clear();
     addlepton_pdgId.clear();
     addlepton_mc_match.clear();
@@ -1397,11 +1406,13 @@ void EventWriter::initTree(TTree *t, bool isMC_, bool isSync_){
     t->Branch("mt_1", &mt_1);
     t->Branch("pfmt_1", &pfmt_1);
     t->Branch("iso_1", &iso_1);
+    t->Branch("againstElectronMVA6_1", &againstElectronMVA6_1);
     t->Branch("againstElectronLooseMVA6_1", &againstElectronLooseMVA6_1);
     t->Branch("againstElectronMediumMVA6_1", &againstElectronMediumMVA6_1);
     t->Branch("againstElectronTightMVA6_1", &againstElectronTightMVA6_1);
     t->Branch("againstElectronVLooseMVA6_1", &againstElectronVLooseMVA6_1);
     t->Branch("againstElectronVTightMVA6_1", &againstElectronVTightMVA6_1);
+    t->Branch("againstMuon3_1", &againstMuon3_1);    
     t->Branch("againstMuonLoose3_1", &againstMuonLoose3_1);
     t->Branch("againstMuonTight3_1", &againstMuonTight3_1);
     t->Branch("byCombinedIsolationDeltaBetaCorrRaw3Hits_1", &byCombinedIsolationDeltaBetaCorrRaw3Hits_1);
@@ -1412,11 +1423,15 @@ void EventWriter::initTree(TTree *t, bool isMC_, bool isSync_){
     t->Branch("byIsolationMVA3oldDMwoLTraw_1", &byIsolationMVA3oldDMwoLTraw_1);
     t->Branch("byIsolationMVA3newDMwLTraw_1", &byIsolationMVA3newDMwLTraw_1);
     t->Branch("byIsolationMVA3oldDMwLTraw_1", &byIsolationMVA3oldDMwLTraw_1);
+    t->Branch("byIsolationMVArun2017v2DBoldDMwLTraw2017_1", &byIsolationMVArun2017v2DBoldDMwLTraw2017_1);
+    t->Branch("byIsolationMVArun2017v2DBoldDMwLT2017_1", &byIsolationMVArun2017v2DBoldDMwLT2017_1);   
+    t->Branch("byVVLooseIsolationMVArun2017v2DBoldDMwLT2017_1", &byVVLooseIsolationMVArun2017v2DBoldDMwLT2017_1);
     t->Branch("byVLooseIsolationMVArun2017v2DBoldDMwLT2017_1", &byVLooseIsolationMVArun2017v2DBoldDMwLT2017_1);
     t->Branch("byLooseIsolationMVArun2017v2DBoldDMwLT2017_1", &byLooseIsolationMVArun2017v2DBoldDMwLT2017_1);
     t->Branch("byMediumIsolationMVArun2017v2DBoldDMwLT2017_1", &byMediumIsolationMVArun2017v2DBoldDMwLT2017_1);
     t->Branch("byTightIsolationMVArun2017v2DBoldDMwLT2017_1", &byTightIsolationMVArun2017v2DBoldDMwLT2017_1);
     t->Branch("byVTightIsolationMVArun2017v2DBoldDMwLT2017_1", &byVTightIsolationMVArun2017v2DBoldDMwLT2017_1);
+    t->Branch("byVVTightIsolationMVArun2017v2DBoldDMwLT2017_1", &byVVTightIsolationMVArun2017v2DBoldDMwLT2017_1);
     // t->Branch("byVLooseIsolationMVArun2v1DBnewDMwLT_1", &byVLooseIsolationMVArun2v1DBnewDMwLT_1);
     // t->Branch("byLooseIsolationMVArun2v1DBnewDMwLT_1", &byLooseIsolationMVArun2v1DBnewDMwLT_1);
     // t->Branch("byMediumIsolationMVArun2v1DBnewDMwLT_1", &byMediumIsolationMVArun2v1DBnewDMwLT_1);
@@ -1459,11 +1474,13 @@ void EventWriter::initTree(TTree *t, bool isMC_, bool isSync_){
     t->Branch("mt_2", &mt_2);
     t->Branch("pfmt_2", &pfmt_2);
     t->Branch("iso_2", &iso_2);
+    t->Branch("againstElectronMVA6_2", &againstElectronMVA6_2);
     t->Branch("againstElectronLooseMVA6_2", &againstElectronLooseMVA6_2);
     t->Branch("againstElectronMediumMVA6_2", &againstElectronMediumMVA6_2);
     t->Branch("againstElectronTightMVA6_2", &againstElectronTightMVA6_2);
     t->Branch("againstElectronVLooseMVA6_2", &againstElectronVLooseMVA6_2);
     t->Branch("againstElectronVTightMVA6_2", &againstElectronVTightMVA6_2);
+    t->Branch("againstMuon3_2", &againstMuon3_2);    
     t->Branch("againstMuonLoose3_2", &againstMuonLoose3_2);
     t->Branch("againstMuonTight3_2", &againstMuonTight3_2);
     t->Branch("byCombinedIsolationDeltaBetaCorrRaw3Hits_2", &byCombinedIsolationDeltaBetaCorrRaw3Hits_2);
@@ -1474,11 +1491,15 @@ void EventWriter::initTree(TTree *t, bool isMC_, bool isSync_){
     t->Branch("byIsolationMVA3oldDMwoLTraw_2", &byIsolationMVA3oldDMwoLTraw_2);
     t->Branch("byIsolationMVA3newDMwLTraw_2", &byIsolationMVA3newDMwLTraw_2);
     t->Branch("byIsolationMVA3oldDMwLTraw_2", &byIsolationMVA3oldDMwLTraw_2);
+    t->Branch("byIsolationMVArun2017v2DBoldDMwLTraw2017_2", &byIsolationMVArun2017v2DBoldDMwLTraw2017_2);
+    t->Branch("byIsolationMVArun2017v2DBoldDMwLT2017_2", &byIsolationMVArun2017v2DBoldDMwLT2017_2);
+    t->Branch("byVVLooseIsolationMVArun2017v2DBoldDMwLT2017_2", &byVVLooseIsolationMVArun2017v2DBoldDMwLT2017_2);
     t->Branch("byVLooseIsolationMVArun2017v2DBoldDMwLT2017_2", &byVLooseIsolationMVArun2017v2DBoldDMwLT2017_2);
     t->Branch("byLooseIsolationMVArun2017v2DBoldDMwLT2017_2", &byLooseIsolationMVArun2017v2DBoldDMwLT2017_2);
     t->Branch("byMediumIsolationMVArun2017v2DBoldDMwLT2017_2", &byMediumIsolationMVArun2017v2DBoldDMwLT2017_2);
     t->Branch("byTightIsolationMVArun2017v2DBoldDMwLT2017_2", &byTightIsolationMVArun2017v2DBoldDMwLT2017_2);
     t->Branch("byVTightIsolationMVArun2017v2DBoldDMwLT2017_2", &byVTightIsolationMVArun2017v2DBoldDMwLT2017_2);
+    t->Branch("byVVTightIsolationMVArun2017v2DBoldDMwLT2017_2", &byVVTightIsolationMVArun2017v2DBoldDMwLT2017_2);
     // t->Branch("byVLooseIsolationMVArun2v1DBnewDMwLT_2", &byVLooseIsolationMVArun2v1DBnewDMwLT_2);
     // t->Branch("byLooseIsolationMVArun2v1DBnewDMwLT_2", &byLooseIsolationMVArun2v1DBnewDMwLT_2);
     // t->Branch("byMediumIsolationMVArun2v1DBnewDMwLT_2", &byMediumIsolationMVArun2v1DBnewDMwLT_2);
@@ -1519,6 +1540,8 @@ void EventWriter::initTree(TTree *t, bool isMC_, bool isSync_){
     t->Branch("passesThirdLepVeto", &passesThirdLepVeto);
     t->Branch("passesDiMuonVeto", &passesDiMuonVeto);
     t->Branch("passesDiElectronVeto", &passesDiElectronVeto);
+    t->Branch("diMuonVeto", &diMuonVeto);
+    t->Branch("diElectronVeto", &diElectronVeto);    
 
     t->Branch("dilepton_veto", &dilepton_veto);
     t->Branch("extraelec_veto", &extraelec_veto);
@@ -1616,6 +1639,10 @@ void EventWriter::initTree(TTree *t, bool isMC_, bool isSync_){
         t->Branch("sphericity", &sphericity);
 
         t->Branch("addlepton_p4", &addlepton_p4);
+        t->Branch("addlepton_pt", &addlepton_pt);
+        t->Branch("addlepton_eta", &addlepton_eta);
+        t->Branch("addlepton_phi", &addlepton_phi);
+        t->Branch("addlepton_m", &addlepton_m);
         t->Branch("addlepton_iso", &addlepton_iso);
         t->Branch("addlepton_pdgId", &addlepton_pdgId);
         t->Branch("addlepton_mc_match", &addlepton_mc_match);
