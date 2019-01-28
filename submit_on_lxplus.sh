@@ -1,6 +1,5 @@
+#!/bin/bash
 export X509_USER_PROXY=${rundir}/proxy/x509_proxy
-export KRB5CCNAME=${rundir}/kerberos/krb5_token
-aklog -d ${cell}
 
 echo "---------------------"
 echo "Grid certificate 1"
@@ -32,7 +31,7 @@ git clone https://github.com/MarkusSpanring/ProductionFromNano.git WawTools/Nano
 cat FWCore/MessageLogger/interface/MessageDrop.h | sed s#CMS_THREAD_SAFE##g > FWCore/MessageLogger/interface/MessageDrop.h2
 mv FWCore/MessageLogger/interface/MessageDrop.h2 FWCore/MessageLogger/interface/MessageDrop.h 
 # compile
-scram b -j 4
+scram b 
 cd WawTools/NanoAODTools
 cp ${rundir}/configBall.json .
 
@@ -42,6 +41,10 @@ ls -l
 echo "---------------------"
 
 ./convertNanoParallel.py
+if [ $$? -ne 0 ]; then
+    echo "Problem during running"
+    exit 1
+fi
 
 echo "---------------------"
 echo "Current dir: `pwd`"
@@ -49,4 +52,10 @@ ls -l
 echo "---------------------"
 chmod 777 ${channel}*root
 
+export KRB5CCNAME=${rundir}/kerberos/krb5_token_hephy.at
+aklog -d ${cell}
+
 python validateAndCopy.py ${channel} ${outdir} ${rundir}
+RC=$$?
+echo $$RC
+exit $$RC

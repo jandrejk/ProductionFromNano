@@ -1,4 +1,5 @@
 #include "HTTEvent.h"
+#include "HTXSClassification.h"
 #include "TTree.h"
 #include "TLorentzVector.h"
 //#include "TMatrixD.h"
@@ -17,18 +18,16 @@
 class EventWriter
 {
 
- static const unsigned Njecshifts = 28;
-
  public:
-
   //ClassDef(EventWriter,0);
 
   HTTParticle leg1, leg2;
   HTTAnalysis::finalState channel;
   TLorentzVector leg1P4, leg2P4;
 
-  int isSync;
-  int isMC;
+  bool isSync;
+  bool isMC;
+  bool applyRecoil;
 
   Float_t lumiWeight;
   Int_t run_syncro;
@@ -71,13 +70,31 @@ class EventWriter
   float idisoweight_1;
   float anti_idisoweight_1;
   float idisoweight_2;
-  float trk_sf;
-  float reco_sf;
   float effweight;
+  float NNLO_ggH_weight;
+  float THU_ggH_Mu;
+  float THU_ggH_Res;
+  float THU_ggH_Mig01;
+  float THU_ggH_Mig12;
+  float THU_ggH_VBF2j;
+  float THU_ggH_VBF3j;
+  float THU_ggH_PT60;
+  float THU_ggH_PT120;
+  float THU_ggH_qmtop;
+
+  float sf_trk;
+  float sf_reco;
+  float sf_SingleOrCrossTrigger;
+  float sf_SingleXorCrossTrigger;
+  float sf_SingleTrigger;
+  float sf_DoubleTauTight;
+  float sf_DoubleTauVTight;
+
   float stitchedWeight;
-  float topWeight;
-  float topWeight_run1;
-  float ZWeight;
+  float topPtReweightWeightRun1;
+  float topPtReweightWeightRun2;
+  float zPtReweightWeight;
+  float zPtReweightWeight1D;
   float zpt_weight_nom;
   float zpt_weight_esup;
   float zpt_weight_esdown;
@@ -103,19 +120,24 @@ class EventWriter
   int genJet_match_1;
   int genJet_match_2;
   //////////////////////////////////////////////////////////////////  
-  int trg_singlemuon;
-  int trg_singlemuon_lowpt;
-  int trg_muontau_lowptmu;
-  int trg_singleelectron;
-  int trg_singleelectron_lowpt;
-  int trg_singletau;
-  int trg_doubletau;
-  int trg_doubletau_mediso;
-  int trg_doubletau_lowpt;
+  int trg_singletau_leading;
+  int trg_singletau_trailing;
+  int trg_singlemuon_27;
+  int trg_singlemuon_24;
+  int trg_crossmuon_mu20tau27;
+  int trg_singleelectron_35;
+  int trg_singleelectron_32;
+  int trg_singleelectron_27;
+  int trg_crossele_ele24tau30;
+  int trg_doubletau_40_tightiso;
+  int trg_doubletau_40_mediso_tightid;
+  int trg_doubletau_35_tightiso_tightid;
   int trg_muonelectron; //fires HLT_Mu8_TrkIsoVVL_Ele23_CaloIdL_TrackIdL_IsoVL or HLT_Mu23_TrkIsoVVL_Ele12_CaloIdL_TrackIdL_IsoVL
   int flagMETFilter;
+  int Flag_METFilters;
   int Flag_goodVertices;
   int Flag_globalTightHalo2016Filter;
+  int Flag_globalSuperTightHalo2016Filter;
   int Flag_HBHENoiseFilter;
   int Flag_HBHENoiseIsoFilter;
   int Flag_EcalDeadCellTriggerPrimitiveFilter;
@@ -138,7 +160,6 @@ class EventWriter
   int q_1;
   float d0_1;
   float dZ_1;
-  float mt_1;
   float iso_1;
   int againstElectronMVA6_1;  
   int againstElectronLooseMVA6_1;
@@ -205,7 +226,6 @@ class EventWriter
   int q_2;
   float d0_2;
   float dZ_2;
-  float mt_2;
   float iso_2;
   int againstElectronMVA6_2;  
   int againstElectronLooseMVA6_2;
@@ -255,62 +275,45 @@ class EventWriter
   int decayMode_2;
   //////////////////////////////////////////////////////////////////
 
-  // Testing for later
-  float jpt_1_arr[Njecshifts];
-  float jpt_2_arr[Njecshifts];
-
-  int nbtag;
-  int njets;
-  int njetsUp;
-  int njetsDown;
-  int njetspt20;
-  float mjj;
-  float mjjUp;
-  float mjjDown;
-  float jdeta;
-  float jdetaUp;
-  float jdetaDown;
-  int njetingap;
-  int njetingap20;
-  float dijetpt;
-  float dijetphi;
-  float jdphi;
-  float jpt_1;
-  float jptUp_1;
-  float jptDown_1;
-  float jeta_1;
-  float jphi_1;
+  int njets[56];
+  int njetspt20[56];
+  int njetingap[56];
+  int njetingap20[56];
+  float mjj[56];
+  float jdeta[56];
+  float dijetpt[56];
+  float dijetphi[56];
+  float jdphi[56];
+  float jpt_1[56];
+  float jpt_2[56];
+  float jeta_1[56];
+  float jeta_2[56];
+  float jphi_1[56];
+  float jphi_2[56];
   float jm_1;
+  float jm_2;  
   float jrawf_1;
+  float jrawf_2;  
   float jmva_1;
+  float jmva_2;  
   float jcsv_1;
-  float jpt_2;
-  float jptUp_2;
-  float jptDown_2;
-  float jeta_2;
-  float jphi_2;
-  float jm_2;
-  float jrawf_2;
-  float jmva_2;
   float jcsv_2;
-  float bpt_1;
-  float beta_1;
-  float bphi_1;
-  float brawf_1;
-  float bmva_1;
-  float bcsv_1;
-  float bpt_2;
-  float beta_2;
-  float bphi_2;
-  float brawf_2;
-  float bmva_2;
-  float bcsv_2;
+
+  int nbtag[5];
+  float bpt_1[5];
+  float bpt_2[5];
+  float beta_1[5];
+  float beta_2[5];
+  float bphi_1[5];
+  float bphi_2[5];
+  float brawf_1[5];
+  float brawf_2[5];
+  float bmva_1[5];
+  float bmva_2[5];
+  float bcsv_1[5];
+  float bcsv_2[5];
   //////////////////////////////////////////////////////////////////
-  float met;
-  float uncorrmet;
-  float met_ex;
-  float met_ey;
-  float metphi;
+  float uncorrmet;  
   float corrmet;
   float corrmet_ex;
   float corrmet_ey;
@@ -331,8 +334,23 @@ class EventWriter
   float metcov01;
   float metcov10;
   float metcov11;
-  float m_sv;
-  float pt_sv;
+  //////////////////////////////////////////////////////////////////
+  float met[56];
+  float met_ex[56];
+  float met_ey[56];
+  float metphi[56];
+  float mt_1[56];
+  float mt_2[56];
+  float mt_tot[56];
+  float m_sv[56];
+  float pt_sv[56];
+  float pt_tt[56];
+  float pt_ttjj[56];
+  float m_ttjj[56];
+  float pt_sum[56];
+  int htxs_reco_ggf[56];
+  int htxs_reco_vbf[56];
+  int htxs_stage1cat;
   //////////////////////////////////////////////////////////////////
   float eleTauFakeRateWeight;
   float muTauFakeRateWeight;
@@ -355,10 +373,8 @@ class EventWriter
   float pzetamiss;
   float dzeta;
   //////////////////////////////////////////////////////////////////
-  float pt_tt;
   float pt_vis;
   float mt_3;
-  float mt_tot;
   float pfpt_tt;
   float m_vis;
   float m_coll;
@@ -367,7 +383,6 @@ class EventWriter
   float pfmt_1;
   float pfmt_2;
   float pfpt_sum;
-  float pt_sum;
   float dr_leptau;
   float jeta1eta2;
   float met_centrality;
@@ -382,26 +397,32 @@ class EventWriter
   ~EventWriter(){}  
 
   void setDefault();
-  void fill(HTTEvent *ev, HTTJetCollection jets, std::vector<HTTParticle> leptons, HTTPair *pair);
-  void initTree(TTree *t, bool isMC_, bool isSync_);
+  void fill(HTTEvent *ev, HTTJetCollection *jets, std::vector<HTTParticle> leptons, HTTPair *pair);
+  void initTree(TTree *t, vector< pair< string, pair<string,bool> > >jecShifts_, bool isMC_, bool isSync_, vector< pair< string, pair< MEtSys::SysType, MEtSys::SysShift > > > metShifts);
 
   double calcSphericity(std::vector<TLorentzVector> p);
   double calcSphericityFromMatrix(TMatrixD M);
 
-  int getGenMatch_jetId(TLorentzVector selObj, HTTJetCollection jets);
+  int getGenMatch_jetId(TLorentzVector selObj, HTTJetCollection *jets);
 
   double calcDR(double eta1, double phi1, double eta2, double phi2);
 
-  RooWorkspace *w;
-  TauTriggerSFs2017 *tauTrigSF;
+
   void fillScalefactors();
   void fillLeptonFakeRateWeights();
+  void fillStitchingWeight(HTTEvent::sampleTypeEnum sampleType);
   void fillLeg1Branches();
   void fillLeg2Branches();
-  void fillJetBranches(HTTJetCollection jets);
-  void fillPairBranches(HTTPair *pair);
+  void fillJetBranches(HTTJetCollection *jets);
+  void fillPairBranches(HTTPair *pair, HTTJetCollection *jets);
   void fillAdditionalLeptons( std::vector<HTTParticle> leptons, HTTPair *pair);
 
+  RooWorkspace *w;
+  TauTriggerSFs2017 *tauTrigSFTight;
+  TauTriggerSFs2017 *tauTrigSFVTight;
+  vector< pair< string, pair<string,bool> > > jecShifts;
+  vector< string > metShifts;
+  vector< pair< string, pair<string, string> > >  btagShifts;
 
   vector<TLorentzVector> addlepton_p4;
   vector<double> addlepton_pt;

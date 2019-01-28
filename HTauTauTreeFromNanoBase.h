@@ -24,6 +24,7 @@
 #include "Math/LorentzVector.h"
 
 #include "HTTEvent.h"
+#include <string.h>
 #include <vector>
 #include <iostream>
 #include "json.hpp"
@@ -31,8 +32,6 @@
 #include "TauAnalysis/ClassicSVfit/interface/ClassicSVfit.h"
 #include "TauAnalysis/ClassicSVfit/interface/MeasuredTauLepton.h"
 #include "TauAnalysis/ClassicSVfit/interface/svFitHistogramAdapter.h"
-
-#include "HTT-utilities/RecoilCorrections/interface/RecoilCorrector.h"
 
 #include "CondFormats/JetMETObjects/interface/JetCorrectorParameters.h"
 #include "CondFormats/JetMETObjects/interface/JetCorrectionUncertainty.h"
@@ -61,7 +60,6 @@ public :
   };
 
   virtual void initHTTTree(const TTree *tree, std::string prefix="HTT");
-  void initJecUnc(std::string correctionFile);
   void debugWayPoint(std::string description, std::vector<double> dbls = {}, std::vector<int> ints = {}, vector<string> descr = {""});
   void fillEvent(unsigned int bestPairIndex = 9999);
   virtual bool buildPairs();
@@ -69,7 +67,7 @@ public :
   virtual void fillJets(unsigned int bestPairIndex);
   virtual void fillLeptons();
   virtual void fillGenLeptons();
-  void applyMetRecoilCorrections();
+  void applyMetRecoilCorrections(HTTPair &aPair);
   virtual bool thirdLeptonVeto(unsigned int signalLeg1Index, unsigned int signalLeg2Index, int leptonPdg, double dRmin=-1);
   virtual bool extraMuonVeto(unsigned int signalLeg1Index, unsigned int signalLeg2Index, double dRmin=-1);
   virtual bool extraElectronVeto(unsigned int signalLeg1Index, unsigned int signalLeg2Index, double dRmin=-1);
@@ -79,7 +77,7 @@ public :
   bool failsGlobalSelection();
   virtual bool pairSelection(unsigned int index);
   virtual unsigned int bestPair(std::vector<unsigned int> &pairIndexes);
-  void computeSvFit(HTTPair &aPair, HTTAnalysis::sysEffects type=HTTAnalysis::NOMINAL);
+  void computeSvFit(HTTPair &aPair);
   TLorentzVector runSVFitAlgo(const std::vector<classic_svFit::MeasuredTauLepton> & measuredTauLeptons,
 			      const TVector2 &aMET, const TMatrixD &covMET);
   bool jetSelection(unsigned int index, unsigned int bestPairIndex);
@@ -106,7 +104,11 @@ public :
   void writePropertiesHeader(const std::vector<std::string> & propertiesList);
   void writeTriggersHeader(const std::vector<TriggerData> &triggerBits);
   void writeFiltersHeader(const std::vector<std::string> &filterBits);
-  double getJecUnc(unsigned int index, std::string name="Total", bool up=true);
+
+  void initJecUnc(std::string correctionFile);
+  double getJecUnc(unsigned int index, unsigned int isrc, bool up=true);
+  std::map<string, double> getValuesAfterJecSplitting(unsigned int iJet);
+
   static bool compareLeptons(const HTTParticle& i, const HTTParticle& j);
   static bool comparePairs(const HTTPair& i, const HTTPair& j);
   //int isGenPartDaughterPdgId(int index, unsigned int aPdgId);
@@ -132,19 +134,27 @@ public :
   std::unique_ptr<HTTEvent> httEvent;
   TH1D* puweights_histo;
   TH1F* hStats;
-  TH2F* zptmass_histo, *zptmass_histo_SUSY;
-  
+  TH2D* zptmass_histo;  
 
+  vector< pair< string, pair< MEtSys::SysType, MEtSys::SysShift > > > metShifts;
+  
   std::unique_ptr<ClassicSVfit> svFitAlgo_;
   std::unique_ptr<RecoilCorrector> recoilCorrector_;
-  std::unique_ptr<TFile> zPtReweightFile, zPtReweightSUSYFile, puweights;
+  std::unique_ptr<MEtSys> metSys_;
+  std::unique_ptr<TFile> zPtReweightFile, zPtReweightSUSYFile, puweights, nnlo_ggh_graphs;
+  TGraphErrors* NNLOPSratio_pt_powheg_0jet;
+  TGraphErrors* NNLOPSratio_pt_powheg_1jet;
+  TGraphErrors* NNLOPSratio_pt_powheg_2jet;
+  TGraphErrors* NNLOPSratio_pt_powheg_3jet;
+  
   TLorentzVector p4SVFit, p4Leg1SVFit, p4Leg2SVFit;   
 
   std::vector<edm::LuminosityBlockRange> jsonVector;
 
   bool firstWarningOccurence_; // used to print warnings only at first occurnece in the event loop
-  bool tweak_nano;
   bool isMC;
+  bool isSync;
+  bool applyRecoil;
   int passMask_;
   unsigned int check_event_number;
   unsigned int bestPairIndex_;
@@ -152,7 +162,6 @@ public :
 
   std::vector<std::string> leptonPropertiesList, genLeptonPropertiesList, jecUncertList;
   std::vector<JetCorrectionUncertainty*> jecUncerts;
-  std::vector<string> jecSources_;
 
   json Settings;
 

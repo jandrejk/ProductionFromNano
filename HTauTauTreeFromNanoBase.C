@@ -13,11 +13,6 @@
 #include <algorithm>
 
 //move these two to the configuration
-bool isSync=0;
-
-
-
-//const bool tweak_nano=true;
 
 HTauTauTreeFromNanoBase::HTauTauTreeFromNanoBase(TTree *tree, std::vector<edm::LuminosityBlockRange> lumiBlocks, std::string prefix) : NanoEventsSkeleton(tree)
 {
@@ -26,9 +21,9 @@ HTauTauTreeFromNanoBase::HTauTauTreeFromNanoBase(TTree *tree, std::vector<edm::L
     Settings = json::parse(S);
 
     isMC = Settings["isMC"].get<bool>();
+    isSync = Settings["isSync"].get<bool>();
 
-    tweak_nano=false; //this adjusts "by hand" pt/eta values from NanoAOD events to get the same result as from MiniAODs (since NanoAOD precision is smaller, e.g. some
-                     //events may have pt_2=29.9999 while in miniAOD pt_2=30.00001
+    httJetCollection.initCollection(isMC, isSync);
 
     ///Init HTT ntuple
     initHTTTree(tree, prefix);
@@ -41,9 +36,6 @@ HTauTauTreeFromNanoBase::HTauTauTreeFromNanoBase(TTree *tree, std::vector<edm::L
         std::cout<<"[HTauTauTreeFromNanoBase]: Run w/ SVFit"<<std::endl;
         unsigned int verbosity = 0;//Set the debug level to 3 for testing
         svFitAlgo_ = std::unique_ptr<ClassicSVfit>(new ClassicSVfit(verbosity) );
-        svFitAlgo_->setHistogramAdapter(new classic_svFit::DiTauSystemHistogramAdapter());//needed?
-        svFitAlgo_->setDiTauMassConstraint(-1);//argument>0 constraints di-tau mass to its value
-
     } else
     {
         std::cout<<"[HTauTauTreeFromNanoBase]: Run w/o SVFit"<<std::endl;
@@ -51,11 +43,12 @@ HTauTauTreeFromNanoBase::HTauTauTreeFromNanoBase(TTree *tree, std::vector<edm::L
     }
 
     ///Initialization of RecoilCorrector
-    if( Settings["recoil"].get<bool>() )
+    if( applyRecoil )
     {
         std::cout<<"[HTauTauTreeFromNanoBase]: Apply MET recoil corrections"<<std::endl;
-        std::string correctionFile = "HTT-utilities/RecoilCorrections/data/TypeI-PFMet_Run2016BtoH.root";
+        std::string correctionFile = "HTT-utilities/RecoilCorrections/data/Type1_PFMET_2017.root";
         recoilCorrector_= std::unique_ptr<RecoilCorrector>( new RecoilCorrector(correctionFile) );
+        metSys_         = std::unique_ptr<MEtSys>( new MEtSys("HTT-utilities/RecoilCorrections/data/MEtSys.root") );
 
     } else
     {
@@ -64,22 +57,39 @@ HTauTauTreeFromNanoBase::HTauTauTreeFromNanoBase(TTree *tree, std::vector<edm::L
     }
 
     ///Get files with weights
-    zPtReweightFile = std::unique_ptr<TFile>( new TFile("utils/zptweight/zpt_weights_2016_BtoH.root") );  
+    zPtReweightFile = std::unique_ptr<TFile>( new TFile("utils/zptweight/zpt_weights_2017.root") );  
     if(!zPtReweightFile) std::cout<<"Z pt reweight file zpt_weights.root is missing."<<std::endl;
-    zptmass_histo = (TH2F*)zPtReweightFile->Get("zptmass_histo");
-
-    zPtReweightSUSYFile = std::unique_ptr<TFile>( new TFile("utils/zptweight/zpt_weights_summer2016.root") );  
-    if(!zPtReweightSUSYFile) std::cout<<"SUSY Z pt reweight file zpt_weights.root is missing."<<std::endl;
-    zptmass_histo_SUSY = (TH2F*)zPtReweightSUSYFile->Get("zptmass_histo");
+    zptmass_histo = (TH2D*)zPtReweightFile->Get("zptmass_histo");
 
     puweights = std::unique_ptr<TFile>( new TFile("utils/puweight/puweights.root") );  
-    if(!zPtReweightSUSYFile) std::cout<<"puweights.root is missing."<<std::endl;
+    if(!puweights) std::cout<<"puweights.root is missing."<<std::endl;
     // puweights_histo = (TH1D*)puweights->Get("#VBFHToTauTau_M125_13TeV_powheg_pythia8#RunIIFall17MiniAODv2-PU2017_12Apr2018_94X_mc2017_realistic_v14-v1#MINIAODSIM");   
     puweights_histo = (TH1D*)puweights->Get( Settings["puTag"].get<string>().c_str() );   
 
-    ///Instantiate JEC uncertainty sources
-    ///https://twiki.cern.ch/twiki/bin/viewauth/CMS/JECDataMC
-    if(isMC) initJecUnc("utils/jec_uncert/Fall17_17Nov2017_V6_MC_UncertaintySources_AK4PF.txt");
+
+    if(isMC)
+    {
+        ///https://twiki.cern.ch/twiki/bin/viewauth/CMS/JECDataMC
+        std::cout<<"[HTauTauTreeFromNanoBase]: Instantiate JEC uncertainty sources"<<std::endl;
+        initJecUnc("utils/jec_uncert/Fall17_17Nov2017_V6_MC_UncertaintySources_AK4PFchs.txt");
+
+        std::cout<<"[HTauTauTreeFromNanoBase]: Load files and init for promote-demote"<<std::endl;
+        httJetCollection.initForPromoteDemote();
+    }
+
+    if(httEvent->getSampleType() == HTTEvent::h)
+    {
+        nnlo_ggh_graphs = std::unique_ptr<TFile>( new TFile("utils/NNLO_ggH/NNLOPS_reweight.root") );
+        NNLOPSratio_pt_powheg_0jet = (TGraphErrors*)nnlo_ggh_graphs->Get("gr_NNLOPSratio_pt_powheg_0jet");
+        NNLOPSratio_pt_powheg_1jet = (TGraphErrors*)nnlo_ggh_graphs->Get("gr_NNLOPSratio_pt_powheg_1jet");
+        NNLOPSratio_pt_powheg_2jet = (TGraphErrors*)nnlo_ggh_graphs->Get("gr_NNLOPSratio_pt_powheg_2jet");
+        NNLOPSratio_pt_powheg_3jet = (TGraphErrors*)nnlo_ggh_graphs->Get("gr_NNLOPSratio_pt_powheg_3jet");
+    }
+    else
+    {
+        nnlo_ggh_graphs=nullptr;
+    }
+    
 
     firstWarningOccurence_=true;
 
@@ -105,6 +115,39 @@ void HTauTauTreeFromNanoBase::initHTTTree(const TTree *tree, std::string prefix)
     std::string fileName = prefix+filePath.substr(location,filePath.size());
     httFile = std::unique_ptr<TFile>( new TFile(fileName.c_str(),"RECREATE") );
     httEvent = std::unique_ptr<HTTEvent>(new HTTEvent() );
+    httEvent->setSampleType( Settings["sample"].get<string>() );
+
+    metShifts.clear();
+    if( httEvent->getSampleType() == HTTEvent::TTbar 
+        || httEvent->getSampleType() == HTTEvent::ST
+        || httEvent->getSampleType() == HTTEvent::Diboson
+        || !isMC )
+    {
+        applyRecoil = false;
+
+    }else
+    {
+        applyRecoil = Settings["recoil"].get<bool>() ;       
+    }
+
+    if(applyRecoil)
+    {
+        // Don't judge me... Not very nice way to implement met uncerts
+        // TODO: Put it in a smart container that calculates shifts and has knowledge of shift names
+        metShifts.push_back( make_pair("",                                       make_pair(MEtSys::SysType::Response,   MEtSys::SysShift::Up ) ) ); // Dummy shifts for nominal
+
+        metShifts.push_back( make_pair("CMS_scale_met_unclustered_13TeVUp",      make_pair(MEtSys::SysType::Response,   MEtSys::SysShift::Up ) ) );    // SysType is dummy
+        metShifts.push_back( make_pair("CMS_scale_met_unclustered_13TeVDown",    make_pair(MEtSys::SysType::Response,   MEtSys::SysShift::Down ) ) );  // SysType is dummy
+
+        metShifts.push_back( make_pair("CMS_htt_boson_reso_met_13TeVUp",         make_pair(MEtSys::SysType::Response,   MEtSys::SysShift::Up ) ) );
+        metShifts.push_back( make_pair("CMS_htt_boson_reso_met_13TeVDown",       make_pair(MEtSys::SysType::Response,   MEtSys::SysShift::Down ) ) );
+
+        metShifts.push_back( make_pair("CMS_htt_boson_scale_met_13TeVUp",        make_pair(MEtSys::SysType::Resolution, MEtSys::SysShift::Up ) ) );
+        metShifts.push_back( make_pair("CMS_htt_boson_scale_met_13TeVDown",      make_pair(MEtSys::SysType::Resolution, MEtSys::SysShift::Down ) ) );
+
+    }
+    
+
     //  httTree = new TTree("HTauTauTree","");
     //  httTree->SetDirectory(httFile);
 
@@ -113,226 +156,180 @@ void HTauTauTreeFromNanoBase::initHTTTree(const TTree *tree, std::string prefix)
 
     t_TauCheck=new TTree("TauCheck","TauCheck");
     evtWriter = std::unique_ptr<EventWriter>( new EventWriter() );
-    evtWriter->initTree(t_TauCheck, isMC, isSync);
-
-    leptonPropertiesList.push_back("pdgId");
-    leptonPropertiesList.push_back("charge");
-    leptonPropertiesList.push_back("dxy");
-    leptonPropertiesList.push_back("dz");
-    leptonPropertiesList.push_back("sip3d");
-    leptonPropertiesList.push_back("pfRelIso03_all");//R=0.4 used for mu?
-    leptonPropertiesList.push_back("genPartFlav");
-    leptonPropertiesList.push_back("isGoodTriggerType");
-    leptonPropertiesList.push_back("FilterFired");
-    leptonPropertiesList.push_back("mc_match");
-
-    leptonPropertiesList.push_back("Tau_decayMode");
-    leptonPropertiesList.push_back("Tau_rawIso");
-    leptonPropertiesList.push_back("Tau_photonsOutsideSignalCone");
-    leptonPropertiesList.push_back("Tau_rawMVAoldDM2017v1");
-    leptonPropertiesList.push_back("Tau_rawMVAoldDM2017v2");
-    leptonPropertiesList.push_back("Tau_idMVAoldDM2017v1");
-    leptonPropertiesList.push_back("Tau_idMVAoldDM2017v2");
-    leptonPropertiesList.push_back("Tau_rawAntiEleCat");
-    leptonPropertiesList.push_back("Tau_idDecayMode");
-    leptonPropertiesList.push_back("Tau_idAntiEle");//bits: 1-VL, 2-L, 4-M, 8-T, 16-VT 
-    leptonPropertiesList.push_back("Tau_idAntiMu");//bits: 1-L, 2-T
-    leptonPropertiesList.push_back("Tau_leadTkPtOverTauPt");
-    leptonPropertiesList.push_back("Tau_chargedIso");
-    leptonPropertiesList.push_back("Tau_neutralIso");
-    leptonPropertiesList.push_back("Tau_puCorr");
-
-    leptonPropertiesList.push_back("Muon_softId");
-    leptonPropertiesList.push_back("Muon_mediumId");
-    leptonPropertiesList.push_back("Muon_tightId");
-    leptonPropertiesList.push_back("Muon_highPtId");
-    leptonPropertiesList.push_back("Muon_pfRelIso04_all");//R=0.4 used for mu?
-
-    leptonPropertiesList.push_back("Electron_cutBased");
-    leptonPropertiesList.push_back("Electron_mvaFall17Iso_WP80");
-    leptonPropertiesList.push_back("Electron_mvaFall17Iso_WP90");
-    leptonPropertiesList.push_back("Electron_deltaEtaSC");
-    leptonPropertiesList.push_back("Electron_lostHits");
-    leptonPropertiesList.push_back("Electron_convVeto");
-
-
-    leptonPropertiesList.push_back("Jet_rawFactor");//was rawPt is rawFactor=rawPt/corrPt
-    leptonPropertiesList.push_back("Jet_area");
-    leptonPropertiesList.push_back("Jet_puId");
-    leptonPropertiesList.push_back("Jet_partonFlavour");
-    leptonPropertiesList.push_back("Jet_btagCSVV2");
-    leptonPropertiesList.push_back("Jet_btagCMVA");
-    leptonPropertiesList.push_back("Jet_jetId");//bit1=L,bit2=T
-    ////////////////////////////////////////////////////////////
-    ///Gen Lepton properties MUST be synchronized with lepton properties
-    ///since the branches name are not uniform, we need a second names vector.
-    genLeptonPropertiesList.push_back("genpart_pdg");//needed?
-    genLeptonPropertiesList.push_back("genpart_TauGenDetailedDecayMode");//needed?
+    evtWriter->initTree(t_TauCheck, httJetCollection.getNeededJECShifts(), isMC, isSync, metShifts);
+    
+    leptonPropertiesList = leptonProperties; // Defined in PropertyEnum.h
 
     ////////////////////////////////////////////////////////////
     HTTEvent::usePropertyFor["electronIsolation"]  = PropertyEnum::pfRelIso03_all;
-    HTTEvent::usePropertyFor["electronIDWP80"]     = PropertyEnum::mvaFall17Iso_WP80;
-    HTTEvent::usePropertyFor["electronIDWP90"]     = PropertyEnum::mvaFall17Iso_WP90;
-    HTTEvent::usePropertyFor["electronIDCutBased"] = PropertyEnum::cutBased;
+    HTTEvent::usePropertyFor["electronIDWP80"]     = PropertyEnum::mvaFall17noIso_WP80_v2;
+    HTTEvent::usePropertyFor["electronIDWP90"]     = PropertyEnum::mvaFall17noIso_WP90_v2;
+    HTTEvent::usePropertyFor["electronIDCutBased"] = PropertyEnum::cutBased_v2;
     HTTEvent::usePropertyFor["muonIsolation"]      = PropertyEnum::pfRelIso04_all;
     HTTEvent::usePropertyFor["muonID"]             = PropertyEnum::mediumId;
     HTTEvent::usePropertyFor["tauIsolation"]       = PropertyEnum::rawMVAoldDM2017v2;
     HTTEvent::usePropertyFor["tauID"]              = PropertyEnum::idMVAoldDM2017v2;
 
     ///Trigger bits to check
+    /// Must be aligned with TriggerEnum.h
     ///FIXME: is there a nicer way to define trigger list, e.g. a cfg file?
     TriggerData aTrgData;
 
     // 2017 94X  Filter
 
     // Electron
-    // 0 CaloIdL_TrackIdL_IsoVL                CaloIdLTrackIdLIsoVL*TrackIso*Filter
-    // 1 WPLoose                               hltEle*WPTight*TrackIsoFilter*
-    // 2 WPTight                               hltEle*WPLoose*TrackIsoFilter
-    // 3 OverlapFilter PFTau                   *OverlapFilterIsoEle*PFTau*
+    // 0 = *CaloIdLTrackIdLIsoVL*TrackIso*Filter
+    // 1 = hltEle*WPTight*TrackIsoFilter*
+    // 2 = hltEle*WPLoose*TrackIsoFilter
+    // 3 = *OverlapFilterIsoEle*PFTau*
+    // 4 = hltEle*Ele*CaloIdLTrackIdLIsoVL*Filter
+    // 5 = hltMu*TrkIsoVVL*Ele*CaloIdLTrackIdLIsoVL*Filter*
+    // 6 = *OverlapFilterIsoEle*PFTau*
+    // 7 = hltEle*Ele*Ele*CaloIdLTrackIdLDphiLeg*Filter
+    // 8 = max(filter('hltL3fL1Mu*DoubleEG*Filtered*'),filter('hltMu*DiEle*CaloIdLTrackIdLElectronleg*Filter'))
+    // 9 = max(filter('hltL3fL1DoubleMu*EG*Filter*'),filter('hltDiMu*Ele*CaloIdLTrackIdLElectronleg*Filter'))
+            
 
     // Muon
-    // 0 = TrkIsoVVL                           RelTrkIsoVVLFiltered0p4
-    // 1 = Iso                                 hltL3crIso*Filtered0p07
-    // 2 = OverlapFilter PFTau                 *OverlapFilterIsoMu*PFTau*
+    // 0 = *RelTrkIsoVVLFiltered0p4
+    // 1 = hltL3crIso*Filtered0p07
+    // 2 = *OverlapFilterIsoMu*PFTau*
+    // 3 = max(filter('hltL3crIsoL1*SingleMu*Filtered0p07'),filter('hltL3crIsoL1sMu*Filtered0p07'))
+    // 4 = hltDiMuon*Filtered*
+    // 5 = hltMu*TrkIsoVVL*Ele*CaloIdLTrackIdLIsoVL*Filter*
+    // 6 = hltOverlapFilterIsoMu*PFTau*
+    // 7 = hltL3fL1TripleMu*
+    // 8 = max(filter('hltL3fL1DoubleMu*EG*Filtered*'),filter('hltDiMu*Ele*CaloIdLTrackIdLElectronleg*Filter'))
+    // 9 = max(filter('hltL3fL1Mu*DoubleEG*Filtered*'),filter('hltMu*DiEle*CaloIdLTrackIdLElectronleg*Filter'))
+            
 
     // Tau
-    // 0 = LooseChargedIso                     LooseChargedIso*
-    // 1 = MediumChargedIso                    *MediumChargedIso*
-    // 2 = TightChargedIso                     *TightChargedIso*
-    // 3 = TightID OOSC photons                *TightOOSCPhotons*
-    // 4 = L2p5 pixel iso                      hltL2TauIsoFilter
-    // 5 = OverlapFilter IsoMu                 *OverlapFilterIsoMu*
-    // 6 = OverlapFilter IsoEle                *OverlapFilterIsoEle*
-    // 7 = L1-HLT matched                      *L1HLTMatched*
-    // 8 = Dz                                  *Dz02*
+    // 0 = *LooseChargedIso*
+    // 1 = *MediumChargedIso*
+    // 2 = *TightChargedIso*
+    // 3 = *TightOOSCPhotons*
+    // 4 = *Hps*
+    // 5 = hltSelectedPFTau*MediumChargedIsolationL1HLTMatched*
+    // 6 = hltDoublePFTau*TrackPt1*ChargedIsolation*Dz02Reg
+    // 7 = hltOverlapFilterIsoEle*PFTau*
+    // 8 = hltOverlapFilterIsoMu*PFTau*
+    // 9 = hltDoublePFTau*TrackPt1*ChargedIsolation*
+            
 
 
     triggerBits_.push_back(aTrgData);
     triggerBits_.back().path_name="HLT_IsoMu24";
     triggerBits_.back().leg1Id=13;
-    triggerBits_.back().leg1BitMask=(1<<1);
-    triggerBits_.back().leg1Pt=24;
-    triggerBits_.back().leg1L1Pt=22;
-    //triggerBits_.back().leg1L1Pt=-1;
-    triggerBits_.back().leg1OfflinePt=23;
+    triggerBits_.back().leg1BitMask=(1<<3);
+    // triggerBits_.back().leg1Pt=24;
+    // triggerBits_.back().leg1L1Pt=22;
+    // triggerBits_.back().leg1OfflinePt=25;
 
     triggerBits_.push_back(aTrgData);
     triggerBits_.back().path_name="HLT_IsoMu27";
     triggerBits_.back().leg1Id=13;
-    triggerBits_.back().leg1BitMask=(1<<1);
-    triggerBits_.back().leg1Pt=27;
-    triggerBits_.back().leg1L1Pt=22; //22 or 25...
-    //triggerBits_.back().leg1L1Pt=-1;
-    triggerBits_.back().leg1OfflinePt=23;
+    triggerBits_.back().leg1BitMask=(1<<3);
+    // triggerBits_.back().leg1Pt=27;
+    // triggerBits_.back().leg1L1Pt=22; //22 or 25...
+    // triggerBits_.back().leg1OfflinePt=28;
 
     // Mu tauh triggers
-    ///2nd mu bit (1<<1) for IsoMuon (not sure if correctly encoded in NanoAOD for 80X)
-    ///3rd mu bit (1<<2) for mu-tau overlap (should be OK)
-    ///6th tau bit(1<<5) for mu-tau overlap  (is OK for all 80X triggers?)
     triggerBits_.push_back(aTrgData);
     triggerBits_.back().path_name="HLT_IsoMu20_eta2p1_LooseChargedIsoPFTau27_eta2p1_CrossL1";
     triggerBits_.back().leg1Id=13;
-    triggerBits_.back().leg1BitMask=(1<<1)+(1<<2); //iso+OL
-    triggerBits_.back().leg1Pt=20;
-    triggerBits_.back().leg1Eta=2.1;
+    triggerBits_.back().leg1BitMask=(1<<1) + (1<<2); //iso+OL
+    // triggerBits_.back().leg1Pt=20;
+    // triggerBits_.back().leg1Eta=2.1;
     triggerBits_.back().leg1L1Pt=-1;
     //  triggerBits_.back().leg1L1Pt=18;
-    triggerBits_.back().leg1OfflinePt=20;
+    // triggerBits_.back().leg1OfflinePt=20;
     triggerBits_.back().leg2Id=15;
-    triggerBits_.back().leg2BitMask=(1<<1)+(1<<2); //looseChargedIso+OL
-    triggerBits_.back().leg2Pt=27;
-    triggerBits_.back().leg2Eta=2.1;
+    triggerBits_.back().leg2BitMask=(1<<0) + (1<<8); //looseChargedIso+OL
+    // triggerBits_.back().leg2Pt=27;
+    // triggerBits_.back().leg2Eta=2.1;
     //  triggerBits_.back().leg2L1Pt=20;
     triggerBits_.back().leg2L1Pt=-1;
 
     //Single e triggers
     triggerBits_.push_back(aTrgData);
-    //  triggerBits_.back().path_name="HLT_Ele25_eta2p1_WPTight_Gsf";
+    triggerBits_.back().path_name="HLT_Ele27_WPTight_Gsf";
+    triggerBits_.back().leg1Id=11;
+    triggerBits_.back().leg1BitMask=(1<<1);
+    // triggerBits_.back().leg1Pt=27;
+    triggerBits_.back().leg1L1Pt=-1;
+
+    triggerBits_.push_back(aTrgData);
     triggerBits_.back().path_name="HLT_Ele32_WPTight_Gsf";
     triggerBits_.back().leg1Id=11;
     triggerBits_.back().leg1BitMask=(1<<1);
-    triggerBits_.back().leg1Pt=32;
+    // triggerBits_.back().leg1Pt=32;
     triggerBits_.back().leg1L1Pt=-1;
-    triggerBits_.back().leg1OfflinePt=26;
 
     triggerBits_.push_back(aTrgData);
-    //  triggerBits_.back().path_name="HLT_Ele25_eta2p1_WPTight_Gsf";
     triggerBits_.back().path_name="HLT_Ele35_WPTight_Gsf";
     triggerBits_.back().leg1Id=11;
     triggerBits_.back().leg1BitMask=(1<<1);
-    triggerBits_.back().leg1Pt=35;
+    // triggerBits_.back().leg1Pt=35;
     triggerBits_.back().leg1L1Pt=-1;
-    triggerBits_.back().leg1OfflinePt=26;
+
+
+    triggerBits_.push_back(aTrgData);
+    triggerBits_.back().path_name="HLT_Ele24_eta2p1_WPTight_Gsf_LooseChargedIsoPFTau30_eta2p1_CrossL1";
+    triggerBits_.back().leg1Id=11;
+    triggerBits_.back().leg1BitMask=(1<<1)+(1<<3);
+    // triggerBits_.back().leg1Pt=24;
+    // triggerBits_.back().leg1Eta=2.1;
+    triggerBits_.back().leg2Id=15;
+    triggerBits_.back().leg2BitMask=(1<<0) + (1<<7); 
+    // triggerBits_.back().leg2Pt=30;
+    // triggerBits_.back().leg2Eta=2.1;
+
 
     // Single tauh triggers
+    triggerBits_.push_back(aTrgData);
+    triggerBits_.back().path_name="HLT_MediumChargedIsoPFTau180HighPtRelaxedIso_Trk50_eta2p1";
+    triggerBits_.back().leg1Id=15;
+    triggerBits_.back().leg1BitMask=2;
 
     // tauh tauh triggers
     ///9th tau bit(1<<8) for di-tau dz filter  (should be OK 80X triggers)
     triggerBits_.push_back(aTrgData);
     triggerBits_.back().path_name="HLT_DoubleTightChargedIsoPFTau35_Trk1_TightID_eta2p1_Reg";
     triggerBits_.back().leg1Id=15;
-    triggerBits_.back().leg1BitMask=(1<<2)+(1<<3)+(1<<8); //TightChargedIso+photons+dz
-    triggerBits_.back().leg1Pt=35;
-    triggerBits_.back().leg1Eta=2.1;
-    triggerBits_.back().leg1L1Pt=-1;
-    triggerBits_.back().leg1OfflinePt=30;
+    triggerBits_.back().leg1BitMask= (1<<2) + (1<<3) + (1<<6); //TightChargedIso+photons+dz
+    // triggerBits_.back().leg1Pt=35;
+    // triggerBits_.back().leg1Eta=2.1;
     triggerBits_.back().leg2Id=15;
-    triggerBits_.back().leg2BitMask=(1<<2)+(1<<3)+(1<<8);
-    triggerBits_.back().leg2Pt=35;
-    triggerBits_.back().leg2Eta=2.1;
-    triggerBits_.back().leg2L1Pt=-1;
-    triggerBits_.back().leg2OfflinePt=30;
+    triggerBits_.back().leg2BitMask= (1<<2) + (1<<3) + (1<<6);
+    // triggerBits_.back().leg2Pt=35;
+    // triggerBits_.back().leg2Eta=2.1;
 
     triggerBits_.push_back(aTrgData);
     triggerBits_.back().path_name="HLT_DoubleMediumChargedIsoPFTau40_Trk1_TightID_eta2p1_Reg";
     triggerBits_.back().leg1Id=15;
-    triggerBits_.back().leg1BitMask=(1<<1)+(1<<3)+(1<<8); //MediumChargedIso+photons+dz
-    triggerBits_.back().leg1Pt=40;
-    triggerBits_.back().leg1Eta=2.1;
-    triggerBits_.back().leg1L1Pt=-1;
-    triggerBits_.back().leg1OfflinePt=30;    
+    triggerBits_.back().leg1BitMask=(1<<1) + (1<<3) + (1<<6); //MediumChargedIso+photons+dz
+    // triggerBits_.back().leg1Pt=40;
+    // triggerBits_.back().leg1Eta=2.1;
     triggerBits_.back().leg2Id=15;
-    triggerBits_.back().leg2BitMask=(1<<1)+(1<<3)+(1<<8);
-    triggerBits_.back().leg2Pt=40;
-    triggerBits_.back().leg2Eta=2.1;
-    triggerBits_.back().leg2L1Pt=-1;
-    triggerBits_.back().leg2OfflinePt=30;    
+    triggerBits_.back().leg2BitMask=(1<<1) + (1<<3) + (1<<6);
+    // triggerBits_.back().leg2Pt=40;
+    // triggerBits_.back().leg2Eta=2.1;
 
     triggerBits_.push_back(aTrgData);
     triggerBits_.back().path_name="HLT_DoubleTightChargedIsoPFTau40_Trk1_eta2p1_Reg";
     triggerBits_.back().leg1Id=15;
-    triggerBits_.back().leg1BitMask=(1<<2)+(1<<8); //TightChargedIso+dz
-    triggerBits_.back().leg1Pt=40;
-    triggerBits_.back().leg1Eta=2.1;
-    triggerBits_.back().leg1L1Pt=-1;
-    triggerBits_.back().leg1OfflinePt=30;    
+    triggerBits_.back().leg1BitMask=(1<<2) + (1<<6);; //TightChargedIso+dz
+    // triggerBits_.back().leg1Pt=40;
+    // triggerBits_.back().leg1Eta=2.1;
     triggerBits_.back().leg2Id=15;
-    triggerBits_.back().leg2BitMask=(1<<2)+(1<<8);
-    triggerBits_.back().leg2Pt=40;
-    triggerBits_.back().leg2Eta=2.1;
-    triggerBits_.back().leg2L1Pt=-1;
-    triggerBits_.back().leg2OfflinePt=30;    
-
+    triggerBits_.back().leg2BitMask=(1<<2) + (1<<6);;
+    // triggerBits_.back().leg2Pt=40;
+    // triggerBits_.back().leg2Eta=2.1;
     ////////////////////////////////////////////////////////////
     ///Filter bits to check
-
-    filterBits_.push_back("Flag_goodVertices");
-    filterBits_.push_back("Flag_globalTightHalo2016Filter");
-    filterBits_.push_back("Flag_HBHENoiseFilter");
-    filterBits_.push_back("Flag_HBHENoiseIsoFilter");
-    filterBits_.push_back("Flag_EcalDeadCellTriggerPrimitiveFilter");
-    filterBits_.push_back("Flag_BadPFMuonFilter");
-    filterBits_.push_back("Flag_BadChargedCandidateFilter");
-    filterBits_.push_back("Flag_eeBadScFilter");
-    filterBits_.push_back("Flag_ecalBadCalibFilter");
-
-    ////////////////////////////////////////////////////////////
-    ///JEC uncertainty sources
-
-    for(auto jec : JecUncertNames)
-        jecSources_.push_back(jec);
-
+    for(auto filter : FilterNames) // Defined in FilterEnum.h
+        filterBits_.push_back(filter);
+    
     return;
 }
 /////////////////////////////////////////////////
@@ -346,7 +343,11 @@ void HTauTauTreeFromNanoBase::Loop(Long64_t nentries_max, unsigned int sync_even
 
     Long64_t nentries = fChain->GetEntries();
     Long64_t nentries_use=nentries;
-    if (nentries_max>0 && nentries_max < nentries) nentries_use=nentries_max;
+    if (nentries_max>0 && nentries_max < nentries)
+    {
+        nentries_use=nentries_max;
+        check_event_number = 2038471; // Usefull event in mutau for debug in 2017
+    }
 
     Long64_t nbytes = 0, nb = 0;
     int entry=0;
@@ -358,7 +359,7 @@ void HTauTauTreeFromNanoBase::Loop(Long64_t nentries_max, unsigned int sync_even
         if (ientry < 0) break;
         nb = fChain->GetEntry(jentry);   nbytes += nb;
 
-        if (check_event_number>0 && event!=check_event_number) continue;
+        // if (check_event_number>0 && event!=check_event_number) continue;
         httEvent->clear();
         evtWriter->setDefault();
 
@@ -393,17 +394,25 @@ void HTauTauTreeFromNanoBase::Loop(Long64_t nentries_max, unsigned int sync_even
             ///Call pairSelection again to set selection bits for the selected pair.
             pairSelection(bestPairIndex);
 
+            // Throw away a lot of events if not producing sync ntuples.
+            if(!isSync && !httEvent->checkSelectionBit(SelectionBitsEnum::antiLeptonId) ) continue;
+
             fillJets(bestPairIndex);
             fillGenLeptons();
             fillPairs(bestPairIndex);
-            applyMetRecoilCorrections();//should be done after the best pair is found and thus full event (jets) is defined. Therefore, corrected Met (and releted eg. mT) cannot be used to select the best pair
+            fillEvent(bestPairIndex);
 
             HTTPair & bestPair = httPairCollection[0];
+            applyMetRecoilCorrections(bestPair); // Adds met to pair 
 
-            computeSvFit(bestPair, HTTParticle::corrType);
+            if( !httEvent->checkSelectionBit(SelectionBitsEnum::thirdLeptonVeto)
+                && !httEvent->checkSelectionBit(SelectionBitsEnum::diLeptonVeto)
+            ){
+                computeSvFit(bestPair);
+            }
 
-            fillEvent(bestPairIndex);
-            evtWriter->fill(httEvent.get(),httJetCollection, httLeptonCollection, &bestPair);
+
+            evtWriter->fill(httEvent.get(), &httJetCollection, httLeptonCollection, &bestPair);
             evtWriter->entry=entry++;
             evtWriter->fileEntry=jentry;
             t_TauCheck->Fill();
@@ -553,7 +562,7 @@ void HTauTauTreeFromNanoBase::fillEvent(unsigned int bestPairIndex)
 
     TVector2 metPF;
     metPF.SetMagPhi(MET_pt, MET_phi);
-    httEvent->setMET(metPF); //initial, recoil corrections if flag is set applied later on
+    httEvent->setMET(metPF);
     httEvent->setMET_uncorr(metPF);
 
     std::vector<Int_t> aFilters = getFilters(filterBits_);
@@ -563,6 +572,8 @@ void HTauTauTreeFromNanoBase::fillEvent(unsigned int bestPairIndex)
 
     if( isMC )//Assume that all those are filled for MC
     {
+
+        httEvent->setStage1Cat( GenHiggs_stage1PtJet30 );
 
         httEvent->setMCWeight( sgn(genWeight) );
         httEvent->setXsec( Settings["xsec"].get<float>() );
@@ -576,205 +587,58 @@ void HTauTauTreeFromNanoBase::fillEvent(unsigned int bestPairIndex)
         httEvent->setNPU(Pileup_nTrueInt); //??Pileup_nPU or Pileup_nTrueInt
         httEvent->setPUWeight( puweights_histo->GetBinContent( puweights_histo->GetXaxis()->FindBin(Pileup_nTrueInt) ) );
 
+        // Zpt reweighting
         TLorentzVector genBosonP4, genBosonVisP4;
         float zPtReWeight = 1.;
-        float zPtReWeightSusy = 1.;
         if( findBosonP4(genBosonP4,genBosonVisP4) )
         {
             httEvent->setGenBosonP4(genBosonP4,genBosonVisP4);
 
-            zPtReWeight = getZPtReweight(genBosonP4);
-            zPtReWeightSusy = getZPtReweight(genBosonP4,true);
+            if( ( httEvent->getSampleType() == HTTEvent::DY || httEvent->getSampleType() == HTTEvent::DYLowM ) )
+            {
+                zPtReWeight = getZPtReweight(genBosonP4);
+            }
         }
         httEvent->setZPtReWeight(zPtReWeight);
-        httEvent->setZPtReWeightSUSY(zPtReWeightSusy);
+        /////////////////////////////////////////////////////////////////////////////////////////////////////
 
         ///TT reweighting according to
         ///https://twiki.cern.ch/twiki/bin/view/CMS/TopSystematics#pt_top_Reweighting
         TLorentzVector topP4, antitopP4;
         double topPtReWeight = 1.;
         double topPtReWeight_r1 = 1.;
-        if( findTopP4(topP4, antitopP4) )
+        if( findTopP4(topP4, antitopP4)  )
         {
             httEvent->setTopP4(topP4, antitopP4);
+            if( httEvent->getSampleType() == HTTEvent::TTbar)
+            {
+                double topPt     = topP4.Perp()      > 400 ? 400 : topP4.Perp() ;
+                double antitopPt = antitopP4.Perp()  > 400 ? 400 : antitopP4.Perp();
 
-            double topPt     = topP4.Perp()      > 400 ? 400 : topP4.Perp() ;
-            double antitopPt = antitopP4.Perp()  > 400 ? 400 : antitopP4.Perp();
+                double weightTop = exp(0.0615-0.0005*topPt);
+                double weightAntitop= exp(0.0615-0.0005*antitopPt);
 
-            double weightTop = exp(0.0615-0.0005*topPt);
-            double weightAntitop= exp(0.0615-0.0005*antitopPt);
+                double weightTop_r1 = exp(0.156-0.00137*topPt);
+                double weightAntitop_r1= exp(0.156-0.00137*antitopPt);
 
-            double weightTop_r1 = exp(0.156-0.00137*topPt);
-            double weightAntitop_r1= exp(0.156-0.00137*antitopPt);
-
-            topPtReWeight = sqrt(weightTop*weightAntitop);
-            topPtReWeight_r1 = sqrt(weightTop_r1*weightAntitop_r1);
+                topPtReWeight = sqrt(weightTop*weightAntitop);
+                topPtReWeight_r1 = sqrt(weightTop_r1*weightAntitop_r1);
+            }
         }
         httEvent->setTopPtReWeight(topPtReWeight);
         httEvent->setTopPtReWeightR1(topPtReWeight_r1);
+        /////////////////////////////////////////////////////////////////////////////////////////////////////
+        if(nnlo_ggh_graphs)
+        {
+            if      (GenHiggs_njets30==0)      httEvent->setNNLO_ggH_weight( NNLOPSratio_pt_powheg_0jet->Eval( GenHiggs_pt > 125.0 ? 125.0 : GenHiggs_pt ) );
+            else if (GenHiggs_njets30==1)      httEvent->setNNLO_ggH_weight( NNLOPSratio_pt_powheg_1jet->Eval( GenHiggs_pt > 625.0 ? 625.0 : GenHiggs_pt ) );
+            else if (GenHiggs_njets30==2)      httEvent->setNNLO_ggH_weight( NNLOPSratio_pt_powheg_2jet->Eval( GenHiggs_pt > 800.0 ? 800.0 : GenHiggs_pt ) );
+            else if (GenHiggs_njets30>=3)      httEvent->setNNLO_ggH_weight( NNLOPSratio_pt_powheg_3jet->Eval( GenHiggs_pt > 925.0 ? 925.0 : GenHiggs_pt ) );
+            else                               httEvent->setNNLO_ggH_weight( 1.0 );
 
-
-        // for(unsigned int iGenPart=0;iGenPart<nGenPart;++iGenPart)
-        // {
-        //     int absPDGId = std::abs(GenPart_pdgId[iGenPart]);
-        //     if(absPDGId == 25 || absPDGId == 23 || absPDGId == 35 || absPDGId == 36)
-        //     {
-        //         std::vector<unsigned int> daughterIndexes;
-        //         if(!getDirectDaughterIndexes(daughterIndexes,(int)iGenPart)) continue;
-        //         int ntau = 0, nele = 0, nmu = 0;
-        //         for(unsigned int idx=0; idx<daughterIndexes.size(); ++idx)
-        //         {
-        //             int pdg_id = std::abs(GenPart_pdgId[daughterIndexes[idx]]);
-
-        //             if(pdg_id == 11) nele++;
-        //             else if(pdg_id == 13) nmu++;
-        //             else if(pdg_id == 15){
-        //                 ntau++;
-        //                 unsigned int tauIdx = findFinalCopy(daughterIndexes[idx]);
-        //                 std::vector<unsigned int> tauDaughterIndexes;
-        //                 if(!getDirectDaughterIndexes(tauDaughterIndexes,tauIdx))
-        //                   std::cout<<"isNotFinal, pt1="<<GenPart_pt[(int)daughterIndexes[idx]]
-        //                            <<",  pt2="<<GenPart_pt[(int)daughterIndexes[tauIdx]]
-        //                            <<", #dau1="<<tauDaughterIndexes.size()<<std::endl;
-        //                 //get DM and then translate it on the basics DM
-        //                 int dm = genTauDecayMode(tauDaughterIndexes);
-        //                 switch ( dm )
-        //                 {
-        //                     case HTTAnalysis::tauDecayMuon :
-        //                       nmu++;
-        //                       break;
-        //                     case HTTAnalysis::tauDecaysElectron :
-        //                       nele++;
-        //                       break;
-        //                     default :
-        //                       break;
-        //                 }
-        //             }
-        //         }
-        //         // determine H/Z decay mode
-        //         int hzDecay = 8;//other
-        //         if (ntau == 0)
-        //         {
-        //             if(nele == 0 && nmu == 2) hzDecay = 7;
-        //             else if(nele == 2 && nmu == 0) hzDecay = 6;
-        //             else hzDecay = 8;
-        //         }
-        //         else if(ntau == 2) {
-        //             if(nmu == 0 && nele == 0) hzDecay = 2;    
-        //             else if(nmu == 0 && nele == 1) hzDecay = 1;    
-        //             else if(nmu == 0 && nele == 2) hzDecay = 4;    
-        //             else if(nmu == 1 && nele == 0) hzDecay = 0;    
-        //             else if(nmu == 1 && nele == 1) hzDecay = 5;    
-        //             else if(nmu == 2 && nele == 0) hzDecay = 3;    
-        //         }
-        //         httEvent->setDecayModeBoson(hzDecay);
-        //     }
-        //     else if(absPDGId == 24) {
-        //         std::vector<unsigned int> daughterIndexes;
-        //         if(!getDirectDaughterIndexes(daughterIndexes,(int)iGenPart)) continue;
-        //         int ntau = 0, nele = 0, nmu = 0, nquark = 0;
-        //         for(unsigned int idx=0; idx<daughterIndexes.size(); ++idx)
-        //         {
-        //             int pdg_id = std::abs(GenPart_pdgId[daughterIndexes[idx]]);
-        //             if(pdg_id < 5 ) nquark++;
-        //             else if(pdg_id == 11) nele++;
-        //             else if(pdg_id == 13) nmu++;
-        //             else if(pdg_id == 15) {
-        //                 ntau++;
-        //                 unsigned int tauIdx = findFinalCopy(daughterIndexes[idx]);
-        //                 std::vector<unsigned int> tauDaughterIndexes;
-        //                 if(!getDirectDaughterIndexes(tauDaughterIndexes,tauIdx))
-        //                   std::cout<<"isNotFinal, pt1="<<GenPart_pt[(int)daughterIndexes[idx]]
-        //                            <<",  pt2="<<GenPart_pt[(int)daughterIndexes[tauIdx]]
-        //                            <<", #dau1="<<tauDaughterIndexes.size()<<std::endl;
-        //                 //get DM and then translate it on the basics DM
-        //                 int dm = genTauDecayMode(tauDaughterIndexes);
-        //                 switch ( dm )
-        //                 {
-        //                     case HTTAnalysis::tauDecayMuon :
-        //                       nmu++;
-        //                       break;
-        //                     case HTTAnalysis::tauDecaysElectron :
-        //                       nele++;
-        //                       break;
-        //                 }
-        //             }
-        //         }
-        //         // determine W decay mode
-        //         int wDecay = 6;//other
-        //         if(nquark == 2 && (nmu+nele+ntau)==0) wDecay = 0;
-        //         else if(nquark ==0 && ntau == 0) {
-        //             if(nele == 0 && nmu == 1) wDecay = 1;
-        //             else if(nele == 1 && nmu == 0) wDecay = 2;
-        //             else wDecay = 6;
-        //         }
-        //         else if(nquark==0 && ntau == 1) {
-        //             if(nmu == 0 && nele == 0) wDecay = 5;    
-        //             if(nmu == 0 && nele == 1) wDecay = 4;    
-        //             if(nmu == 1 && nele == 0) wDecay = 3;
-        //             else wDecay = 6;
-        //         }
-        //         httEvent->setDecayModeBoson(10+wDecay);
-        //     }
-        //     else if(GenPart_pdgId[iGenPart]==15){
-        //         TLorentzVector p4;
-        //         p4.SetPtEtaPhiM(GenPart_pt[iGenPart],
-        //                         GenPart_eta[iGenPart],
-        //                         GenPart_phi[iGenPart],
-        //                         1.777);//should use pdg mass as masses below 10GeV are zeroed
-        //         //do not consider low momentum candidates??
-        //         if( !(p4.P()>10) ) continue;
-        //         //find direct daughters
-        //         std::vector<unsigned int> daughterIndexes;
-        //         if(!getDirectDaughterIndexes(daughterIndexes,(int)iGenPart)) continue;
-        //         //get DM and then translate it on the basics DM
-        //         int dm = genTauDecayMode(daughterIndexes);
-        //         switch ( dm )
-        //         {
-        //             case HTTAnalysis::tauDecayMuon ://0
-        //               httEvent->setDecayModeMinus(0);
-        //               break;
-        //             case HTTAnalysis::tauDecaysElectron ://1
-        //               httEvent->setDecayModeMinus(1);
-        //               break;
-        //             default: //2
-        //               httEvent->setDecayModeMinus(2);
-        //               break;
-        //         }
-        //     }
-        //     if(GenPart_pdgId[iGenPart]==-15)
-        //     {
-        //         TLorentzVector p4;
-        //         p4.SetPtEtaPhiM(GenPart_pt[iGenPart],
-        //                         GenPart_eta[iGenPart],
-        //                         GenPart_phi[iGenPart],
-        //                         1.777);//should use pdg mass as masses below 10GeV are zeroed
-        //         //do not consider low momentum candidates??
-        //         if( !(p4.P()>10) ) continue;
-        //         //find direct daughters
-        //         std::vector<unsigned int> daughterIndexes;
-        //         if(!getDirectDaughterIndexes(daughterIndexes,(int)iGenPart)) continue;
-        //         //get DM and then translate it on the basics DM
-        //         int dm = genTauDecayMode(daughterIndexes);
-        //         switch ( dm )
-        //         {
-        //             case HTTAnalysis::tauDecayMuon ://0
-        //               httEvent->setDecayModePlus(0);
-        //               break;
-        //             case HTTAnalysis::tauDecaysElectron ://1
-        //               httEvent->setDecayModePlus(1);
-        //               break;
-        //             default: //2
-        //               httEvent->setDecayModePlus(2);
-        //               break;
-        //         }
-        //     }      
-        // }
+            httEvent->setTHU_uncertainties(GenHiggs_njets30, GenHiggs_pt, GenHiggs_stage1PtJet30);
+        }
     }
-
-    std::string fileName(fChain->GetCurrentFile()->GetName());
-    HTTEvent::sampleTypeEnum aType = HTTEvent::DUMMY;
-    httEvent->setSampleType(aType);
 
 }
 /////////////////////////////////////////////////
@@ -784,7 +648,7 @@ void HTauTauTreeFromNanoBase::initJecUnc(std::string correctionFile)
 
     for(unsigned int isrc = 0; isrc < (unsigned int)JecUncertEnum::NONE; isrc++)
     {
-        JetCorrectorParameters *p = new JetCorrectorParameters(correctionFile, jecSources_[isrc]);
+        JetCorrectorParameters *p = new JetCorrectorParameters(correctionFile, JecUncertNames[isrc]);
         JetCorrectionUncertainty *unc = new JetCorrectionUncertainty(*p);
         jecUncerts.push_back(unc);
         // outputFile<<jecSources_[isrc]<<" = "<<isrc<<", "<<std::endl;
@@ -792,27 +656,35 @@ void HTauTauTreeFromNanoBase::initJecUnc(std::string correctionFile)
 }
 /////////////////////////////////////////////////
 /////////////////////////////////////////////////
-double HTauTauTreeFromNanoBase::getJecUnc(unsigned int index, std::string name, bool up)
+double HTauTauTreeFromNanoBase::getJecUnc(unsigned int index, unsigned int isrc, bool up)
 {
     if(b_nGenPart==nullptr) return 0;//MB: do not check it for data
     double result = 0;
     double jetpt = Jet_pt[index];
     double jeteta =  Jet_eta[index];
-    for(unsigned int isrc = 0; isrc < (unsigned int)JecUncertEnum::NONE; isrc++) 
-    {
-        if(jecSources_[isrc]==name)
-        {
-            JetCorrectionUncertainty *unc = jecUncerts[isrc];
-            unc->setJetPt(jetpt);
-            unc->setJetEta(jeteta);
-            result = unc->getUncertainty(up);
-            break;
-        }
-    }
-    return result;
+
+    JetCorrectionUncertainty *unc = jecUncerts[isrc];
+    unc->setJetPt(jetpt);
+    unc->setJetEta(jeteta);
+    return unc->getUncertainty(up);
 }
 /////////////////////////////////////////////////
 /////////////////////////////////////////////////
+map<string,double> HTauTauTreeFromNanoBase::getValuesAfterJecSplitting(unsigned int iJet)
+{   
+    map<string,double> values = { {"", 0.} };
+    for(auto uncert : JecAfterSplitting)
+    {   
+        double uncertSum = 0.;
+        for(auto source : uncert.second)
+        {
+            uncertSum = sqrt( uncertSum*uncertSum +  pow( getJecUnc(iJet, (unsigned int)source, true), 2 )  );
+        }
+        values[uncert.first] = uncertSum ;
+    }
+    return values;
+}
+
 bool HTauTauTreeFromNanoBase::jetSelection(unsigned int index, unsigned int bestPairIndex)
 {
 
@@ -834,6 +706,7 @@ bool HTauTauTreeFromNanoBase::jetSelection(unsigned int index, unsigned int best
                          && aP4.DeltaR(leg2P4) > 0.5;
     }
 
+    if( 2.65 < std::abs( aP4.Eta() ) && std::abs( aP4.Eta() ) <  3.139 && aP4.Pt() < 50) return false; // removal of jets from EE noise
     return passSelection;
 }
 /////////////////////////////////////////////////
@@ -852,27 +725,16 @@ void HTauTauTreeFromNanoBase::fillJets(unsigned int bestPairIndex)
 
 
         HTTJet aJet;
-
-        TLorentzVector p4;
-        p4.SetPtEtaPhiM(Jet_pt[iJet],
+        aJet.SetPtEtaPhiM(Jet_pt[iJet],
                         Jet_eta[iJet],
                         Jet_phi[iJet],
                         Jet_mass[iJet]);
 
 
         ///JEC uncertaintes
-        // Up
-        for(unsigned int iUnc=0; iUnc<(unsigned int)JecUncertEnum::NONE; ++iUnc)
-            aJet.setJecUncertSourceValue(iUnc, getJecUnc(iJet, jecSources_[iUnc] ,true), true  );
-        // Down
-        for(unsigned int iUnc=0; iUnc<(unsigned int)JecUncertEnum::NONE; ++iUnc)
-            aJet.setJecUncertSourceValue(iUnc, getJecUnc(iJet, jecSources_[iUnc] ,false), false  );
+        aJet.setJecUncertValues( getValuesAfterJecSplitting(iJet) );
 
-        aJet.setP4(p4);
-        if(aJet.getMaxPt() < 20 ) continue;
-        debugWayPoint("[fillJets] max pt shift larger than 20",{(double)aJet.getP4().Pt(), (double)aJet.getMaxPt()},{},{"pt","MaxPt"});
-
-        std::vector<Double_t> aProperties = getProperties(leptonPropertiesList, iJet, p4, "Jet");
+        std::vector<Double_t> aProperties = getProperties(leptonPropertiesList, iJet, aJet.P4(), "Jet");
         ///Set jet PDG id by hand
         aProperties[(unsigned int)PropertyEnum::pdgId] = 98.0;
 
@@ -880,9 +742,10 @@ void HTauTauTreeFromNanoBase::fillJets(unsigned int bestPairIndex)
         httJetCollection.addJet(aJet);
         
     }
+    //Set Jet collection to unshifted jets
+    httJetCollection.fillCurrentCollections();
+
 }
-/////////////////////////////////////////////////
-/////////////////////////////////////////////////
 int HTauTauTreeFromNanoBase::muonSelection(HTTParticle aLepton)
 {
     int bitmask = 0;
@@ -900,7 +763,7 @@ int HTauTauTreeFromNanoBase::muonSelection(HTTParticle aLepton)
         if(muonPt > LeptonCuts::Baseline.Muon.pt
            && muonEta < LeptonCuts::Baseline.Muon.eta
            && muonID
-        ) bitmask += LeptonCuts::Baseline.bitmask;
+        ) bitmask |= LeptonCuts::Baseline.bitmask;
 
         
         if(muonIso)
@@ -908,19 +771,19 @@ int HTauTauTreeFromNanoBase::muonSelection(HTTParticle aLepton)
             // Passes ilepton cuts
             if(muonPt > LeptonCuts::Di.Muon.pt
                && muonEta < LeptonCuts::Di.Muon.eta
-            ) bitmask += LeptonCuts::Di.bitmask; 
+            ) bitmask |= LeptonCuts::Di.bitmask; 
 
             if(muonID)
             {
                 // Passes extra lepton cuts
                 if(muonPt > LeptonCuts::Extra.Muon.pt
                    && muonEta < LeptonCuts::Extra.Muon.eta
-                ) bitmask += LeptonCuts::Extra.bitmask;
+                ) bitmask |= LeptonCuts::Extra.bitmask;
 
                 // Passes additional lepton cuts
                 if(muonPt > LeptonCuts::Additional.Muon.pt
                    && muonEta < LeptonCuts::Additional.Muon.eta
-                ) bitmask += LeptonCuts::Additional.bitmask;
+                ) bitmask |= LeptonCuts::Additional.bitmask;
             }
         }
 
@@ -964,29 +827,29 @@ int HTauTauTreeFromNanoBase::electronSelection(HTTParticle aLepton)
             && eleEta < LeptonCuts::Di.Electron.eta
             && eleIso
             && eleIDCB
-        ) bitmask += LeptonCuts::Di.bitmask;
+        ) bitmask |= LeptonCuts::Di.bitmask;
 
         if(convVeto && lostHits)
         {
             // Passes baseline cuts
             if(elePt >  LeptonCuts::Baseline.Electron.pt
                 && eleEta < LeptonCuts::Baseline.Electron.eta
-                && eleIDWP80
-            ) bitmask += LeptonCuts::Baseline.bitmask;
+                && eleIDWP90
+            ) bitmask |= LeptonCuts::Baseline.bitmask;
 
             // Passes additional lepton cuts
             if(elePt >  LeptonCuts::Additional.Electron.pt
                 && eleEta < LeptonCuts::Additional.Electron.eta
-                && eleIDWP80
+                && eleIDWP90
                 && eleIso
-            ) bitmask += LeptonCuts::Additional.bitmask;
+            ) bitmask |= LeptonCuts::Additional.bitmask;
 
             // Passes extra lepton cuts
             if(elePt >  LeptonCuts::Extra.Electron.pt
                 && eleEta < LeptonCuts::Extra.Electron.eta
                 && eleIDWP90
                 && eleIso
-            ) bitmask += LeptonCuts::Extra.bitmask;
+            ) bitmask |= LeptonCuts::Extra.bitmask;
         }
 
     }
@@ -1065,7 +928,7 @@ void HTauTauTreeFromNanoBase::fillLeptons()
                                       } );
 
         if( !(Muon_pt[iMu] > loosestMuonPtCut ) ) continue;
-        debugWayPoint("[fillLeptons] Muon passes loosest pt cut");
+        debugWayPoint("[fillLeptons] Muon passes loosest pt cut",{(double)Muon_pt[iMu], (double)loosestMuonPtCut },{}, {"pt","cut"} );
         HTTParticle aLepton;
         TLorentzVector p4;
 
@@ -1075,12 +938,13 @@ void HTauTauTreeFromNanoBase::fillLeptons()
                         0.10566); //muon mass
         
         TVector3 pca;//FIXME: can partly recover with ip3d and momentum?
+        std::vector<Double_t> aProperties = getProperties(leptonPropertiesList, iMu, p4, "Muon");
+        aLepton.setProperties(aProperties);
         aLepton.setP4(p4);
         aLepton.setChargedP4(p4);//same as p4 for muon
         //aLepton.setNeutralP4(p4Neutral); not defined for muon
         aLepton.setPCA(pca);
-        std::vector<Double_t> aProperties = getProperties(leptonPropertiesList, iMu, p4, "Muon");
-        aLepton.setProperties(aProperties);
+
         aLepton.setCutBitmask( muonSelection(aLepton) );
 
         httLeptonCollection.push_back(aLepton);
@@ -1099,7 +963,7 @@ void HTauTauTreeFromNanoBase::fillLeptons()
 
         if (Electron_eCorr[iEl]>0) e_pt/=Electron_eCorr[iEl];
         if( !(e_pt>loosestElectronPtCut) ) continue;
-        debugWayPoint("[fillLeptons] Electron passes loosest pt cut");
+        debugWayPoint("[fillLeptons] Electron passes loosest pt cut",{(double)e_pt,(double)loosestElectronPtCut },{}, {"pt","cut"} );
         HTTParticle aLepton;
         TLorentzVector p4;
 
@@ -1109,12 +973,14 @@ void HTauTauTreeFromNanoBase::fillLeptons()
                         0.51100e-3); //electron mass
 
         TVector3 pca;//FIXME: can partly recover with ip3d and momentum?
+
+        std::vector<Double_t> aProperties = getProperties(leptonPropertiesList, iEl, p4, "Electron");
+        aLepton.setProperties(aProperties);
         aLepton.setP4(p4);
         aLepton.setChargedP4(p4);//same as p4 for electron
         //aLepton.setNeutralP4(p4Neutral); not defined for electron
         aLepton.setPCA(pca);
-        std::vector<Double_t> aProperties = getProperties(leptonPropertiesList, iEl, p4, "Electron");
-        aLepton.setProperties(aProperties);
+
         aLepton.setCutBitmask( electronSelection(aLepton) );
         httLeptonCollection.push_back(aLepton);
     }//Electrons
@@ -1133,16 +999,16 @@ void HTauTauTreeFromNanoBase::fillLeptons()
                            Tau_eta[iTau],
                            Tau_phi[iTau],
                            Tau_mass[iTau]);
-        std::vector<Double_t> aProperties = getProperties(leptonPropertiesList, iTau, newp4, "Tau");
 
-        aLepton.setP4(newp4);
+        std::vector<Double_t> aProperties = getProperties(leptonPropertiesList, iTau, newp4, "Tau");
         aLepton.setProperties(aProperties); //Set properties to allow calculation of TES in HTTParticle (mc_match needed)
+        aLepton.setP4(newp4);
         aLepton.setCutBitmask( tauSelection(aLepton) );
 
         if( aLepton.getP4().Pt() < 20 ) continue;
         if( std::abs(aLepton.getProperty(PropertyEnum::dz)) > 0.2 ) continue;
         if( (int)std::abs(aLepton.getProperty(PropertyEnum::charge)) != 1 )continue;
-        debugWayPoint("[fillLeptons] Tau passes loosest pt cut after ES");
+        debugWayPoint("[fillLeptons] Tau passes loosest pt cut after ES",{(double)aLepton.getP4().Pt()},{(int)aLepton.getProperty(PropertyEnum::decayMode)},{"pt","dm"});
 
         UChar_t bitmask=aLepton.getProperty( HTTEvent::usePropertyFor.at("tauID") ); //byIsolationMVArun2v1DBoldDMwLTraw
         if ( !(bitmask & 0x1 ) ) continue; //require at least very loose tau (in NanoAOD, only OR of loosest WP of all discriminators is stored)
@@ -1429,15 +1295,11 @@ bool HTauTauTreeFromNanoBase::buildPairs()
             if( !(httLeptonCollection[iL1].getP4().DeltaR(httLeptonCollection[iL2].getP4())>0.3) ) continue;
             debugWayPoint("[buildPairs] No overlap");
 
-            TVector2 met; met.SetMagPhi(MET_pt, MET_phi);
-            HTTPair aHTTpair;
 
-            aHTTpair.setMET(met);
-            aHTTpair.setMETMatrix(MET_covXX, MET_covXY, MET_covXY, MET_covYY);
+            HTTPair aHTTpair;
 
             aHTTpair.setLeg1(httLeptonCollection.at(iL1),iL1);
             aHTTpair.setLeg2(httLeptonCollection.at(iL2),iL2);
-
             
             httPairs_.push_back(aHTTpair); 
         }
@@ -1580,19 +1442,19 @@ Double_t  HTauTauTreeFromNanoBase::getProperty(std::string name, unsigned int in
 }
 /////////////////////////////////////////////////
 /////////////////////////////////////////////////
-void  HTauTauTreeFromNanoBase::writeJECSourceHeader(const std::vector<string> &jecSources)
-{
-    ofstream outputFile("JecUncEnum.h");
-    outputFile<<"enum class JecUncEnum { ";
+// void  HTauTauTreeFromNanoBase::writeJECSourceHeader(const std::vector<string> &jecSources)
+// {
+//     ofstream outputFile("JecUncEnum.h");
+//     outputFile<<"enum class JecUncEnum { ";
 
-    for(unsigned int isrc = 0; isrc < jecSources_.size(); isrc++)
-    {
-        outputFile<<jecSources_[isrc]<<" = "<<isrc<<", "<<std::endl;
-    }
-    outputFile<<"NONE"<<" = "<<jecSources_.size()<<std::endl;
-    outputFile<<"};"<<std::endl;
-    outputFile.close();
-}
+//     for(unsigned int isrc = 0; isrc < jecSources_.size(); isrc++)
+//     {
+//         outputFile<<jecSources_[isrc]<<" = "<<isrc<<", "<<std::endl;
+//     }
+//     outputFile<<"NONE"<<" = "<<jecSources_.size()<<std::endl;
+//     outputFile<<"};"<<std::endl;
+//     outputFile.close();
+// }
 /////////////////////////////////////////////////
 /////////////////////////////////////////////////
 void  HTauTauTreeFromNanoBase::writeTriggersHeader(const std::vector<TriggerData> &triggerBits)
@@ -1681,16 +1543,18 @@ int HTauTauTreeFromNanoBase::getTriggerMatching(unsigned int index, TLorentzVect
     unsigned int particleId=0;
     double dRmax=0.5;//was 0.25
 
+    if(checkBit) debugWayPoint("[getTriggerMatching] ------ Begin -------");
+
     if(colType=="Muon")            particleId=13;
     else if(colType=="Electron")   particleId=11;
     else if(colType=="Tau")        particleId=15;
     else return 0;
 
     int firedBits = 0;
-    for(unsigned int iTrg=0; iTrg<triggerBits_.size(); iTrg++)
+    for(unsigned int iTrg=0; iTrg<triggerBits_.size(); ++iTrg)
     {
         bool decision = false;
-
+        if(checkBit) debugWayPoint("[getTriggerMatching] " + triggerBits_[iTrg].path_name);
         if (p4_1.Pt()<triggerBits_[iTrg].leg1OfflinePt) continue;
 
         //check if trigger is fired
@@ -1701,13 +1565,14 @@ int HTauTauTreeFromNanoBase::getTriggerMatching(unsigned int index, TLorentzVect
             decision = leaf!=nullptr ? leaf->GetValue() : false;
         }
         if(!decision) continue; // do not check rest if trigger is not fired
+        if(checkBit) debugWayPoint("[getTriggerMatching] trigger fired");
 
         //////////////////////// check legs //////////////////////////////////
         //////  first leg   //////// 
         decision = false;
         if(particleId==triggerBits_[iTrg].leg1Id)
         {
-            for(unsigned int iObj=0; iObj<nTrigObj; iObj++)
+            for(unsigned int iObj=0; iObj<nTrigObj; ++iObj)
             {
                 if(TrigObj_id[iObj]!=(int)particleId) continue;
                 TLorentzVector p4_trg;
@@ -1717,13 +1582,20 @@ int HTauTauTreeFromNanoBase::getTriggerMatching(unsigned int index, TLorentzVect
                                     0.);
 
                 if( !(p4_1.DeltaR(p4_trg)<dRmax) ) continue;
+                if(checkBit) debugWayPoint("[getTriggerMatching] matched with trigger object",{(double)TrigObj_pt[iObj],
+                                                                                               (double)TrigObj_eta[iObj],
+                                                                                               (double)TrigObj_phi[iObj] }, {},
+                                                                                               {"pt","eta","phi"});
+
                 if( triggerBits_[iTrg].leg1Pt>0   && !( TrigObj_pt[iObj]            > triggerBits_[iTrg].leg1Pt) ) continue;
                 if( triggerBits_[iTrg].leg1Eta>0  && !( std::abs(TrigObj_eta[iObj]) < triggerBits_[iTrg].leg1Eta) ) continue;
                 if( triggerBits_[iTrg].leg1L1Pt>0 && !( TrigObj_l1pt[iObj]          > triggerBits_[iTrg].leg1L1Pt) ) continue;
+                if(checkBit) debugWayPoint("[getTriggerMatching] object passes l1pt cut",{(double)triggerBits_[iTrg].leg1L1Pt, (double)TrigObj_l1pt[iObj] },{},{"cut","l1pt"});
 
                 if( checkBit && !( ((int)TrigObj_filterBits[iObj] & triggerBits_[iTrg].leg1BitMask)==triggerBits_[iTrg].leg1BitMask) ) continue;
+                if(checkBit) debugWayPoint("[getTriggerMatching] passes filter");
                 decision = true;
-                break;
+                // break;
             }
         }
         if(decision){
@@ -1735,7 +1607,7 @@ int HTauTauTreeFromNanoBase::getTriggerMatching(unsigned int index, TLorentzVect
         decision = false;
         if(particleId==triggerBits_[iTrg].leg2Id)
         {
-            for(unsigned int iObj=0; iObj<nTrigObj; iObj++)
+            for(unsigned int iObj=0; iObj<nTrigObj; ++iObj)
             {
                 if(TrigObj_id[iObj]!=(int)particleId) continue;
                 TLorentzVector p4_trg;
@@ -1898,11 +1770,10 @@ double HTauTauTreeFromNanoBase::getZPtReweight(const TLorentzVector &genBosonP4,
     double weight = 1.0;
 
     //Z pt reweighting
-    TH2F *hWeight = zptmass_histo;
-    if(doSUSY) hWeight = zptmass_histo_SUSY;
     
     if(genBosonP4.M()>1E-3)
     {
+        TH2D *hWeight = zptmass_histo;
         double mass = genBosonP4.M();
         double pt = genBosonP4.Perp();    
         int massBin = hWeight->GetXaxis()->FindBin(mass);
@@ -1913,8 +1784,7 @@ double HTauTauTreeFromNanoBase::getZPtReweight(const TLorentzVector &genBosonP4,
 }
 /////////////////////////////////////////////////
 /////////////////////////////////////////////////
-void HTauTauTreeFromNanoBase::computeSvFit(HTTPair &aPair,
-                                           HTTAnalysis::sysEffects type)
+void HTauTauTreeFromNanoBase::computeSvFit(HTTPair &aPair)
 {
     if(svFitAlgo_==nullptr) return;
 
@@ -1959,33 +1829,44 @@ void HTauTauTreeFromNanoBase::computeSvFit(HTTPair &aPair,
     }
     //Leptons for SvFit
     std::vector<classic_svFit::MeasuredTauLepton> measuredTauLeptons;
-    measuredTauLeptons.push_back(classic_svFit::MeasuredTauLepton(type1, leg1.getP4(type).Pt(), leg1.getP4(type).Eta(), leg1.getP4(type).Phi(), mass1, decay1) );
-    measuredTauLeptons.push_back(classic_svFit::MeasuredTauLepton(type2, leg2.getP4(type).Pt(), leg2.getP4(type).Eta(), leg2.getP4(type).Phi(), mass2, decay2) );
+    measuredTauLeptons.push_back(classic_svFit::MeasuredTauLepton(type1, leg1.getP4().Pt(), leg1.getP4().Eta(), leg1.getP4().Phi(), mass1, decay1) );
+    measuredTauLeptons.push_back(classic_svFit::MeasuredTauLepton(type2, leg2.getP4().Pt(), leg2.getP4().Eta(), leg2.getP4().Phi(), mass2, decay2) );
     //MET
-    TVector2 aMET = aPair.getMET(type);
+
     TMatrixD covMET(2, 2);
     covMET[0][0] = aPair.getMETMatrix().at(0);
     covMET[0][1] = aPair.getMETMatrix().at(1);
     covMET[1][0] = aPair.getMETMatrix().at(2);
     covMET[1][1] = aPair.getMETMatrix().at(3);
+    if(covMET[0][0]==0 && covMET[1][0]==0 && covMET[0][1]==0 && covMET[1][1]==0) return; //singular covariance matrix    
 
-    if(covMET[0][0]==0 && covMET[1][0]==0 && covMET[0][1]==0 && covMET[1][1]==0) return; //singular covariance matrix
+    TLorentzVector p4SVFit;
+    vector<string> shifts;
 
-    TLorentzVector p4SVFit = aPair.getP4(HTTAnalysis::NOMINAL);
-    TLorentzVector leg1P4Nominal = leg1.getP4(HTTAnalysis::NOMINAL);
-    TLorentzVector leg2P4Nominal = leg2.getP4(HTTAnalysis::NOMINAL);
-
-    
-    if(type==HTTAnalysis::NOMINAL
-       || leg1.getP4(type)!=leg1P4Nominal
-       || leg2.getP4(type)!=leg2P4Nominal)
+    if(applyRecoil)
     {
-         p4SVFit = runSVFitAlgo(measuredTauLeptons, aMET, covMET);
+        for(auto shift : metShifts)                              shifts.push_back( shift.first );
+    }else
+    {
+        for(auto shift : httJetCollection.getNeededJECShifts() ) shifts.push_back( shift.first );
     }
 
-    aPair.setP4(p4SVFit,type);
-    aPair.setLeg1P4(p4Leg1SVFit,type);
-    aPair.setLeg2P4(p4Leg2SVFit,type);
+    for(auto shift : shifts )
+    {
+        p4SVFit.SetPtEtaPhiM(-10,-.10,-10,-10);
+
+        aPair.setCurrentMETShift(shift);
+
+        //Only calculate svfit for shapes that are in SR
+        if( ( strcmp(shift.c_str(),"") != 0 && aPair.isInLooseSR() )
+            || ( strcmp(shift.c_str(),"") == 0  )
+        ){
+            p4SVFit = runSVFitAlgo(measuredTauLeptons, aPair.getMET(), covMET);
+        }
+
+        aPair.setP4(p4SVFit,shift);
+    }
+    aPair.setCurrentMETShift("");
 }
 /////////////////////////////////////////////////
 /////////////////////////////////////////////////
@@ -1997,17 +1878,24 @@ TLorentzVector HTauTauTreeFromNanoBase::runSVFitAlgo(const std::vector<classic_s
 
     //set logM regularization term which is final state dependent
     double kappa = 4;
-    if(measuredTauLeptons[0].type()==classic_svFit::MeasuredTauLepton::kTauToElecDecay || measuredTauLeptons[0].type()==classic_svFit::MeasuredTauLepton::kTauToMuDecay) { //1st tau is lepton
-        if(measuredTauLeptons[1].type()==classic_svFit::MeasuredTauLepton::kTauToElecDecay || measuredTauLeptons[1].type()==classic_svFit::MeasuredTauLepton::kTauToMuDecay){
+    if(measuredTauLeptons[0].type()==classic_svFit::MeasuredTauLepton::kTauToElecDecay 
+       || measuredTauLeptons[0].type()==classic_svFit::MeasuredTauLepton::kTauToMuDecay)
+    { //1st tau is lepton
+        if(measuredTauLeptons[1].type()==classic_svFit::MeasuredTauLepton::kTauToElecDecay 
+           || measuredTauLeptons[1].type()==classic_svFit::MeasuredTauLepton::kTauToMuDecay)
+        {
             kappa = 3; //ll decay
-        }else{
+        } else{
             kappa = 4; //lt decay
         }
 
-    }else {//1st tau is hadron
-      if(measuredTauLeptons[1].type()==classic_svFit::MeasuredTauLepton::kTauToElecDecay || measuredTauLeptons[1].type()==classic_svFit::MeasuredTauLepton::kTauToMuDecay){
+    } else
+    { //1st tau is hadron
+      if(measuredTauLeptons[1].type()==classic_svFit::MeasuredTauLepton::kTauToElecDecay
+         || measuredTauLeptons[1].type()==classic_svFit::MeasuredTauLepton::kTauToMuDecay)
+      {
           kappa = 4; //ltau decay
-      }else{
+      } else{
           kappa = 5; //tt decay
       }
     }    
@@ -2025,85 +1913,121 @@ TLorentzVector HTauTauTreeFromNanoBase::runSVFitAlgo(const std::vector<classic_s
 
     }else{
         p4SVFit.SetPtEtaPhiM(0,0,0,0);
-        p4Leg1SVFit.SetPtEtaPhiM(0,0,0,0);
-        p4Leg2SVFit.SetPtEtaPhiM(0,0,0,0);
     }
 
     return p4SVFit;
 }
 /////////////////////////////////////////////////
 /////////////////////////////////////////////////
-void HTauTauTreeFromNanoBase::applyMetRecoilCorrections()
+void HTauTauTreeFromNanoBase::applyMetRecoilCorrections(HTTPair &aPair)
 {
 
-    // Do nothing if there is not best pair or recoilCorrector is not initialized
-    if( recoilCorrector_==nullptr || httPairCollection.empty() )
-      return;
-    TVector2 theUncorrMEt;
+    // Shift met by jec if there is not best pair or recoilCorrector is not initialized
+    TVector2 met; met.SetMagPhi(MET_pt, MET_phi);
+    aPair.setMETMatrix(MET_covXX, MET_covXY, MET_covXY, MET_covYY);
+
+    if( recoilCorrector_==nullptr
+        || httPairCollection.empty()
+        || !applyRecoil
+    )
+    {
+        for(auto shift : httJetCollection.getNeededJECShifts() )
+        {
+            aPair.setMET( met - httJetCollection.getTotalJetShift(shift.second.first, shift.second.second), shift.first );
+        }
+        aPair.setCurrentMETShift(""); //Explicitly set current met to unshifted
+        return;
+    }
+
+    debugWayPoint("[applyMetRecoilCorrections] original met   ",{(double)met.Px(),
+                                                              (double)met.Py(),
+                                                              (double)met.Mod()},{},
+                                                              {"met_px","met_py","met_pt"} ) ;
+    aPair.setMET(met,""); // Set Met to propagate tes
+
+    TLorentzVector genBosonP4 = httEvent->getGenBosonP4();
+    TLorentzVector genBosonVisP4 = httEvent->getGenBosonP4(true);
+
     float corrMEtPx, corrMEtPy;
+    float MEtPx = aPair.getMET().Px();
+    float MEtPy = aPair.getMET().Py();
+    float gen_ll_px = genBosonP4.Px();
+    float gen_ll_py = genBosonP4.Py();
+    float gen_ll_vis_px = genBosonVisP4.Px();
+    float gen_ll_vis_py = genBosonVisP4.Py();
+
     int nJets = httJetCollection.getNJets(20);
     if(httEvent->getDecayModeBoson()>=10) nJets++; //W, add jet for fake tau
       
-    TLorentzVector genBosonP4 = httEvent->getGenBosonP4();
-    TLorentzVector genBosonVisP4 = httEvent->getGenBosonP4(true);
-    /* Do not correct Met in the event, keep it as it is
-    // Correct Met in the event
-    theUncorrMEt = httEvent->getMET();
+
+    debugWayPoint("[applyMetRecoilCorrections] met after applying tes   ",{(double)MEtPx,
+                                                                           (double)MEtPy,
+                                                                           (double)TVector2(MEtPx,MEtPy).Mod()},{},
+                                                                           {"met_px","met_py","met_pt"} );
+
+    debugWayPoint("[applyMetRecoilCorrections] gen boson   ",{(double)gen_ll_px,
+                                                           (double)gen_ll_py,
+                                                           (double)gen_ll_vis_px,
+                                                           (double)gen_ll_vis_py},{},
+                                                           {"gen_px","gen_py","genvis_px","genvis_py"} ) ;
+
     recoilCorrector_->CorrectByMeanResolution(
     //recoilCorrector_->Correct( //Quantile correction works better for MVA MET
-        theUncorrMEt.Px(),
-        theUncorrMEt.Py(),
-        genBosonP4.Px(),
-        genBosonP4.Py(),
-        genBosonVisP4.Px(),
-        genBosonVisP4.Py(),
-        nJets,
-        corrMEtPx,
-        corrMEtPy
+      MEtPx,
+      MEtPy,
+      gen_ll_px,
+      gen_ll_py,
+      gen_ll_vis_px,
+      gen_ll_vis_py,
+      nJets,
+      corrMEtPx,
+      corrMEtPy
     );
-    httEvent->setMET( TVector2(corrMEtPx,corrMEtPy) );
-    */
-    // Correct Met in pairs (a priori it can be by-pair Met)
-    for(unsigned int iPair=0; iPair<httPairCollection.size(); iPair++)
+
+    debugWayPoint("[applyMetRecoilCorrections] met after applying recoil corrections   ",{(double)corrMEtPx,
+                                                                                          (double)corrMEtPy,
+                                                                                          (double)TVector2(corrMEtPx,corrMEtPy).Mod()},{},
+                                                                                          {"met_px","met_py","met_pt"} ) ;
+
+
+    float met_scale_x, met_scale_y;
+    for(auto shift : metShifts )
     {
-          //theUncorrMEt = httEvent->getMET();
-          theUncorrMEt = httPairCollection[iPair].getMET();//TES corrected, fine??
-          recoilCorrector_->CorrectByMeanResolution(
-          //recoilCorrector_->Correct( //Quantile correction works better for MVA MET
-              theUncorrMEt.Px(),
-              theUncorrMEt.Py(),
-              genBosonP4.Px(),
-              genBosonP4.Py(),
-              genBosonVisP4.Px(),
-              genBosonVisP4.Py(),
-              nJets,
-              corrMEtPx,
-              corrMEtPy
-          );
-          //Remove TES correction to not have it twice
-          if( (std::abs(httPairCollection[iPair].getLeg1().getPDGid())==15 && httPairCollection[iPair].getLeg1().getProperty(PropertyEnum::mc_match)==5)
-              || (std::abs(httPairCollection[iPair].getLeg2().getPDGid())==15 && httPairCollection[iPair].getLeg2().getProperty(PropertyEnum::mc_match)==5) )
-          {
-              corrMEtPx-=httPairCollection[iPair].getLeg1().getP4(HTTAnalysis::DUMMY_SYS).X(); //uncor
-              corrMEtPx-=httPairCollection[iPair].getLeg2().getP4(HTTAnalysis::DUMMY_SYS).X(); //uncor
-              corrMEtPx+=httPairCollection[iPair].getLeg1().getP4(HTTAnalysis::NOMINAL).X();
-              corrMEtPx+=httPairCollection[iPair].getLeg2().getP4(HTTAnalysis::NOMINAL).X();
-              corrMEtPy-=httPairCollection[iPair].getLeg1().getP4(HTTAnalysis::DUMMY_SYS).Y(); //uncor
-              corrMEtPy-=httPairCollection[iPair].getLeg2().getP4(HTTAnalysis::DUMMY_SYS).Y(); //uncor
-              corrMEtPy+=httPairCollection[iPair].getLeg1().getP4(HTTAnalysis::NOMINAL).Y();
-              corrMEtPy+=httPairCollection[iPair].getLeg2().getP4(HTTAnalysis::NOMINAL).Y();
-          }
-          httPairCollection[iPair].setMET( TVector2(corrMEtPx,corrMEtPy) );
+        met_scale_x = corrMEtPx;
+        met_scale_y = corrMEtPy;
+        // Do not apply shift for nominal
+        if(shift.first.find("unclustered") != std::string::npos )
+        {
+            if(shift.second.second == MEtSys::SysShift::Up)
+            {
+                met_scale_x += MET_MetUnclustEnUpDeltaX; 
+                met_scale_y += MET_MetUnclustEnUpDeltaY;
+            }
+            if(shift.second.second == MEtSys::SysShift::Down)
+            {
+                met_scale_x -= MET_MetUnclustEnUpDeltaX; 
+                met_scale_y -= MET_MetUnclustEnUpDeltaY;
+            }            
 
-          //recompute mT's using consistently TES corrected MEt and Pt
-          // double mTLeg1 = TMath::Sqrt(2.*httPairCollection[iPair].getLeg1().getP4().Pt()*httPairCollection[iPair].getMET().Mod()*(1.-TMath::Cos(httPairCollection[iPair].getLeg1().getP4().Phi()-httPairCollection[iPair].getMET().Phi())));
-          // double mTLeg2 = TMath::Sqrt(2.*httPairCollection[iPair].getLeg2().getP4().Pt()*httPairCollection[iPair].getMET().Mod()*(1.-TMath::Cos(httPairCollection[iPair].getLeg2().getP4().Phi()-httPairCollection[iPair].getMET().Phi())));
-
-          // httPairCollection[iPair].setMTLeg1(mTLeg1);
-          // httPairCollection[iPair].setMTLeg2(mTLeg2);
+        } else if(strcmp(shift.first.c_str(),"") != 0)
+        {
+            metSys_->ApplyMEtSys(
+                corrMEtPx, corrMEtPy,        
+                gen_ll_px,gen_ll_py,         
+                gen_ll_vis_px,gen_ll_vis_py, 
+                nJets,                       
+                MEtSys::ProcessType::BOSON,  
+                shift.second.first,   
+                shift.second.second,        
+                met_scale_x,met_scale_y      
+            );
+        }     
+        aPair.setMET( TVector2(met_scale_x,met_scale_y), shift.first, false); // Set met without applying tes a second time
     }
+    aPair.setCurrentMETShift("");
 
-    return;
+
+    return ;
 }
 /////////////////////////////////////////////////
 /////////////////////////////////////////////////
