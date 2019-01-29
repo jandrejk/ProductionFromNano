@@ -87,8 +87,10 @@ def getHeplxPublicFolder():
 
     user = os.environ["USER"]
     first = user[0]
-    second = user[:8]
-
+    if user == 'jaandrej' :
+        second = 'jandrejkovic'
+    else :
+        second = user[:8]
     return glob.glob( "/afs/hephy.at//user/{0}/{1}*/public".format(first,second) )[0]
 
 def getSystem(inverse = False):
