@@ -119,11 +119,11 @@
 		"nevents_from_DAS":9259000,
 		"nevents":12151030
 	},
-	"VBFHToTauTau_M125_13TeV_powheg_pythia8_PU2017_12Apr2018_94X_mc2017_realistic_v14_v1":{
-		"putag":"VBFHToTauTau_M125_13TeV_powheg_pythia8_PU2017_12Apr2018_94X_mc2017_realistic_v14_v1",
+	"VBFHToTauTau_M125_13TeV_powheg_pythia8_RunIIAutumn18MiniAOD_102X_upgrade2018_realistic_v15_ext1_v1":{
+		"putag":"pileup",
 		"xsec":0.23720704,
-	    "nevents_from_DAS":2975404,
-		"nevents":2975404
+	    "nevents_from_DAS":3000000,
+		"nevents":3000000
 	},
 
 	"GluGluHToWWTo2L2Nu_M125_13TeV_powheg2_JHUGenV714_pythia8_PU2017_12Apr2018_94X_mc2017_realistic_v14_v1":{
