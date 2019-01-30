@@ -43,7 +43,7 @@ deltaEtaSC,
 lostHits,
 convVeto,
 rawFactor,
-puIdDisc,
+//puIdDisc,
 area,
 puId,
 partonFlavour,
@@ -105,7 +105,7 @@ const vector<string> leptonProperties= {
 
 
 "Jet_rawFactor",
-"Jet_puIdDisc",
+//"Jet_puIdDisc",
 "Jet_area",
 "Jet_puId",
 "Jet_partonFlavour",
