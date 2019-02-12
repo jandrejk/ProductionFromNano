@@ -16,13 +16,14 @@ def main():
     parser.add_argument('-v', dest='version', help='Version of the merged samples', default = "v1")
     parser.add_argument('-c', dest='channel', help='Dataset channel',choices = ['mt','et','tt'], default = 'mt')
     parser.add_argument('-s', dest='stitch', help='Stitch samples',action="store_true")
+    parser.add_argument('-f', dest='force', help='Force merging',action="store_true")
 
 
     args = parser.parse_args()
 
     if not checkTokens(): sys.exit()
 
-    M = Merger(version=args.version, channel = args.channel)
+    M = Merger(force = args.force, version=args.version, channel = args.channel)
     M.createSamples()
     if args.stitch: M.mergeSamples()
 
@@ -34,6 +35,7 @@ class Merger():
         self.version = version
         self.channel = channel
 
+
         if "cern" in getSystem():
             print "Merging from lxplus - You should switch to heplx to run faster."
   
@@ -44,8 +46,9 @@ class Merger():
 
         self.outdir = "/afs/hephy.at/data/higgs01/"
 
+        self.mergekeys = []
         self.samples = self.collectFiles()
-        self.mergekeys = self.mapCompletedJobs()
+        if not force: self.mapCompletedJobs()
 
     def __del__(self):
 
@@ -84,7 +87,11 @@ class Merger():
                     print "\033[0;31mProblem during merge...\033[0m\n"
                 else:
                     print "\033[0;32mMerge successful!\033[0m\n"
-                    self.log[m[0]][m[1]][m[2]]["status"] = "DONE"
+                    try:
+                        self.log[m[0]][m[1]][m[2]]["status"] = "DONE"
+                    except KeyError as e:
+                        pass
+                    
 
     def mergeSamples(self):
 
@@ -106,8 +113,13 @@ class Merger():
 
                 mergecmds = self.getMergeCmds(mergename, tomerge) 
                 if mergecmds:
-                    for mergecmd in mergecmds:
-                        os.system(mergecmd)
+                    for outfile, mergecmd in mergecmds:
+
+                        if not os.path.exists(outfile):
+                            print 
+                            os.system(mergecmd)
+                        else:
+                            print outfile
         #             cmd_list[mergename] = mergecmd 
 
         # self.applyCmdMulti(cmd_list)
@@ -117,7 +129,7 @@ class Merger():
         mergedir = "/".join([self.outdir,self.version])
         shifts = ["NOMINAL"]
         for es in ["TES","MES","EES"]:        
-            for dm in ["1p0p0","1p1p0","3p0p0"]:
+            for dm in ["1p0p0","1p1p0","3p0p0",""]:
                 for sh in ["Up","Down"]:
                     shifts.append( es + dm + sh )
 
@@ -136,7 +148,7 @@ class Merger():
                 if "{0}-{1}".format( self.channel, shift ) in file:
                     addfiles.append(file)
             if addfiles:
-                mergeCmds.append("hadd -f {0} {1}".format(outfile, " ".join( addfiles ) ) )
+                mergeCmds.append( (outfile, "hadd -f {0} {1}".format(outfile, " ".join( addfiles ) ) ) )
         return mergeCmds
 
 
@@ -161,32 +173,45 @@ class Merger():
 
     def mapCompletedJobs(self):
 
-        mergekeys = []
+        self.mergekeys = []
         samples = self.log.keys()
         samples.sort()
         for sample in samples:
             for channel in self.log[sample]:
                 for shift in self.log[sample][channel]:
                     if self.log[sample][channel][shift]["status"] == "MERGE" or (self.force and self.log[sample][channel][shift]["status"] == "DONE"):
-                        mergekeys.append((sample,channel,shift))
-        return np.array(mergekeys)
+                        self.mergekeys.append((sample,channel,shift))
+        return self.mergekeys
+
 
     def collectFiles(self):
 
+        interesting = []
+        for f in glob.glob("samples/*/*/*"):
+            interesting.append(f.split("/")[-1].replace(".txt","") )
+
         samples = {}
         for sample in glob.glob(self.outdir + "*"):
+
             samplename = sample.replace(self.outdir,"")
+            if not samplename in interesting: continue
             samples[samplename] = {}
 
-            for file in glob.glob( "/".join([ sample, "*"]) ):
+            for i, file in enumerate( glob.glob( "/".join([ sample, "*"]) ) ):
+                if not ".root" in file: continue
+
                 root_file = file.split("/")[-1]
                 channel = root_file.split("-")[0]
                 shift = root_file.split("_")[0].replace(channel+"-","")
 
-                if not samples[samplename].get(channel,False): samples[samplename][channel] = {}
-                if not samples[samplename][channel].get(shift,False): samples[samplename][channel][shift] = {"files":[]}
+                if not channel in samples[samplename]: samples[samplename][channel] = {}
+                if not shift in samples[samplename][channel]:
+                    samples[samplename][channel][shift] = {"files":[]}
+                    if self.force and self.channel == channel:
+                        self.mergekeys.append( (samplename,channel,shift) )                    
 
                 samples[samplename][channel][shift]["files"].append( "/".join([sample,root_file]))
+
 
         return samples
 
