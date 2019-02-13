@@ -16,61 +16,83 @@
 
 HTauTauTreeFromNanoBase::HTauTauTreeFromNanoBase(TTree *tree, std::vector<edm::LuminosityBlockRange> lumiBlocks, std::string prefix) : NanoEventsSkeleton(tree)
 {
-
+    std::cout<<"HTauTauTreeFromNanoBase::HTauTauTreeFromNanoBase(TTree *tree, std::vector<edm::LuminosityBlockRange> lumiBlocks, std::string prefix) : NanoEventsSkeleton(tree)"<<std::endl;
     ifstream S("configBall.json");
+    std::cout<<1<<std::endl;
     Settings = json::parse(S);
-
+    std::cout<<2<<std::endl;
+    
     isMC = Settings["isMC"].get<bool>();
+    std::cout<<3<<std::endl;
     isSync = Settings["isSync"].get<bool>();
-
+    std::cout<<4<<std::endl;
+    
     httJetCollection.initCollection(isMC, isSync);
-
+    std::cout<<5<<std::endl;
     ///Init HTT ntuple
     initHTTTree(tree, prefix);
-
+    std::cout<<6<<std::endl;
     jsonVector = lumiBlocks;
-
+    std::cout<<7<<std::endl;
     ///Initialization of SvFit
     massfit = Settings["massfit"].get<string>();
+    std::cout<<8<<std::endl;
     if( !massfit.empty() )
     {
+        std::cout<<9<<std::endl;
         if ( massfit == "fastmtt" ) {
             std::cout<<"[HTauTauTreeFromNanoBase]: Run w/ FastMTT"<<std::endl;
+            std::cout<<10<<std::endl;
         }
         else {
             std::cout<<"[HTauTauTreeFromNanoBase]: Run w/ SVFit"<<std::endl;
+            std::cout<<11<<std::endl;
         }
         unsigned int verbosity = 0;//Set the debug level to 3 for testing
+        std::cout<<12<<std::endl;
         svFitAlgo_ = std::unique_ptr<ClassicSVfit>(new ClassicSVfit(verbosity) );
+        std::cout<<13<<std::endl;
     } else
     {
         std::cout<<"[HTauTauTreeFromNanoBase]: Run w/o mass fit"<<std::endl;
+        std::cout<<14<<std::endl;
         svFitAlgo_=nullptr;
     }
-
+    std::cout<<15<<std::endl;
     ///Initialization of RecoilCorrector
     if( applyRecoil )
     {
         std::cout<<"[HTauTauTreeFromNanoBase]: Apply MET recoil corrections"<<std::endl;
+        std::cout<<16<<std::endl;
         std::string correctionFile = "HTT-utilities/RecoilCorrections/data/Type1_PFMET_2017.root";
+        std::cout<<17<<std::endl;
         recoilCorrector_= std::unique_ptr<RecoilCorrector>( new RecoilCorrector(correctionFile) );
+        std::cout<<18<<std::endl;
         metSys_         = std::unique_ptr<MEtSys>( new MEtSys("HTT-utilities/RecoilCorrections/data/MEtSys.root") );
+        std::cout<<19<<std::endl;
 
     } else
     {
         std::cout<<"[HTauTauTreeFromNanoBase]: Do not apply MET recoil corrections"<<std::endl;
+        std::cout<<20<<std::endl;
         recoilCorrector_=nullptr;
     }
-
+    std::cout<<21<<std::endl;
     ///Get files with weights
-    zPtReweightFile = std::unique_ptr<TFile>( new TFile("utils/zptweight/zpt_weights_2017.root") );  
+    zPtReweightFile = std::unique_ptr<TFile>( new TFile("utils/zptweight/zpt_weights_2017.root") );
+    std::cout<<22<<std::endl;  
     if(!zPtReweightFile) std::cout<<"Z pt reweight file zpt_weights.root is missing."<<std::endl;
+    std::cout<<23<<std::endl;
     zptmass_histo = (TH2D*)zPtReweightFile->Get("zptmass_histo");
+    std::cout<<24<<std::endl;
 
-    puweights = std::unique_ptr<TFile>( new TFile("utils/puweight/puweights.root") );  
+    puweights = std::unique_ptr<TFile>( new TFile("utils/puweight/puweights.root") ); 
+    std::cout<<25<<std::endl; 
     if(!puweights) std::cout<<"puweights.root is missing."<<std::endl;
+    std::cout<<26<<std::endl;
     // puweights_histo = (TH1D*)puweights->Get("#VBFHToTauTau_M125_13TeV_powheg_pythia8#RunIIFall17MiniAODv2-PU2017_12Apr2018_94X_mc2017_realistic_v14-v1#MINIAODSIM");   
-    puweights_histo = (TH1D*)puweights->Get( Settings["puTag"].get<string>().c_str() );   
+    puweights_histo = (TH1D*)puweights->Get( Settings["puTag"].get<string>().c_str() );
+    std::cout<<27<<std::endl;   
 
 
     if(isMC)
@@ -78,62 +100,91 @@ HTauTauTreeFromNanoBase::HTauTauTreeFromNanoBase(TTree *tree, std::vector<edm::L
         ///https://twiki.cern.ch/twiki/bin/viewauth/CMS/JECDataMC
         std::cout<<"[HTauTauTreeFromNanoBase]: Instantiate JEC uncertainty sources"<<std::endl;
         initJecUnc("utils/jec_uncert/Fall17_17Nov2017_V6_MC_UncertaintySources_AK4PFchs.txt");
+        std::cout<<28<<std::endl;
 
         std::cout<<"[HTauTauTreeFromNanoBase]: Load files and init for promote-demote"<<std::endl;
         httJetCollection.initForPromoteDemote();
+        std::cout<<29<<std::endl;
     }
 
     if(httEvent->getSampleType() == HTTEvent::h)
     {
         nnlo_ggh_graphs = std::unique_ptr<TFile>( new TFile("utils/NNLO_ggH/NNLOPS_reweight.root") );
+        std::cout<<30<<std::endl;
         NNLOPSratio_pt_powheg_0jet = (TGraphErrors*)nnlo_ggh_graphs->Get("gr_NNLOPSratio_pt_powheg_0jet");
+        std::cout<<31<<std::endl;
         NNLOPSratio_pt_powheg_1jet = (TGraphErrors*)nnlo_ggh_graphs->Get("gr_NNLOPSratio_pt_powheg_1jet");
+        std::cout<<32<<std::endl;
         NNLOPSratio_pt_powheg_2jet = (TGraphErrors*)nnlo_ggh_graphs->Get("gr_NNLOPSratio_pt_powheg_2jet");
+        std::cout<<33<<std::endl;
         NNLOPSratio_pt_powheg_3jet = (TGraphErrors*)nnlo_ggh_graphs->Get("gr_NNLOPSratio_pt_powheg_3jet");
+        std::cout<<34<<std::endl;
     }
     else
     {
         nnlo_ggh_graphs=nullptr;
+        std::cout<<35<<std::endl;
     }
     
 
     firstWarningOccurence_=true;
+    std::cout<<36<<std::endl;
 
 }
 
 HTauTauTreeFromNanoBase::~HTauTauTreeFromNanoBase()
 {
+  std::cout<<"HTauTauTreeFromNanoBase::~HTauTauTreeFromNanoBase()"<<std::endl;
   httFile->Write();
+  std::cout<<1<<std::endl;
   cout << "Finished!" << endl;
 }
 
 /////////////////////////////////////////////////
 void HTauTauTreeFromNanoBase::initHTTTree(const TTree *tree, std::string prefix)
 {
+    std::cout<<"void HTauTauTreeFromNanoBase::initHTTTree(const TTree *tree, std::string prefix)"<<std::endl;
 
     if(prefix=="") prefix="HTT";
+    std::cout<<1<<std::endl;
     prefix += "_";
+    std::cout<<2<<std::endl;
 
     std::string filePath(tree->GetCurrentFile()->GetName());
+    std::cout<<3<<std::endl;
     size_t location = filePath.find_last_of("/");
-    if(location==std::string::npos) location = 0;
-    else location+=1;
+    std::cout<<4<<std::endl;
+    if(location==std::string::npos) {
+        location = 0; 
+        std::cout<<5<<std::endl;
+    } 
+    else {
+        location+=1;
+    }
+    std::cout<<6<<std::endl;
     std::string fileName = prefix+filePath.substr(location,filePath.size());
+    std::cout<<7<<std::endl;
     httFile = std::unique_ptr<TFile>( new TFile(fileName.c_str(),"RECREATE") );
+    std::cout<<8<<std::endl;
     httEvent = std::unique_ptr<HTTEvent>(new HTTEvent() );
+    std::cout<<9<<std::endl;
     httEvent->setSampleType( Settings["sample"].get<string>() );
+    std::cout<<10<<std::endl;
 
     metShifts.clear();
+    std::cout<<11<<std::endl;
     if( httEvent->getSampleType() == HTTEvent::TTbar 
         || httEvent->getSampleType() == HTTEvent::ST
         || httEvent->getSampleType() == HTTEvent::Diboson
         || !isMC )
     {
         applyRecoil = false;
+        std::cout<<12<<std::endl;
 
     }else
     {
-        applyRecoil = Settings["recoil"].get<bool>() ;       
+        applyRecoil = Settings["recoil"].get<bool>() ;  
+        std::cout<<13<<std::endl;     
     }
 
     if(applyRecoil)
@@ -141,16 +192,22 @@ void HTauTauTreeFromNanoBase::initHTTTree(const TTree *tree, std::string prefix)
         // Don't judge me... Not very nice way to implement met uncerts
         // TODO: Put it in a smart container that calculates shifts and has knowledge of shift names
         metShifts.push_back( make_pair("",                                       make_pair(MEtSys::SysType::Response,   MEtSys::SysShift::Up ) ) ); // Dummy shifts for nominal
-
+        std::cout<<14<<std::endl;
+        
         metShifts.push_back( make_pair("CMS_scale_met_unclustered_13TeVUp",      make_pair(MEtSys::SysType::Response,   MEtSys::SysShift::Up ) ) );    // SysType is dummy
+        std::cout<<15<<std::endl;
         metShifts.push_back( make_pair("CMS_scale_met_unclustered_13TeVDown",    make_pair(MEtSys::SysType::Response,   MEtSys::SysShift::Down ) ) );  // SysType is dummy
-
+        std::cout<<16<<std::endl;
+        
         metShifts.push_back( make_pair("CMS_htt_boson_reso_met_13TeVUp",         make_pair(MEtSys::SysType::Response,   MEtSys::SysShift::Up ) ) );
+        std::cout<<17<<std::endl;
         metShifts.push_back( make_pair("CMS_htt_boson_reso_met_13TeVDown",       make_pair(MEtSys::SysType::Response,   MEtSys::SysShift::Down ) ) );
+        std::cout<<18<<std::endl;
 
         metShifts.push_back( make_pair("CMS_htt_boson_scale_met_13TeVUp",        make_pair(MEtSys::SysType::Resolution, MEtSys::SysShift::Up ) ) );
+        std::cout<<19<<std::endl;
         metShifts.push_back( make_pair("CMS_htt_boson_scale_met_13TeVDown",      make_pair(MEtSys::SysType::Resolution, MEtSys::SysShift::Down ) ) );
-
+        std::cout<<20<<std::endl;
     }
     
 
@@ -158,13 +215,18 @@ void HTauTauTreeFromNanoBase::initHTTTree(const TTree *tree, std::string prefix)
     //  httTree->SetDirectory(httFile);
 
     hStats = new TH1F("hStats","Bookkeeping histogram",11,-0.5,10.5);
+    std::cout<<21<<std::endl;
     //  hStats->SetDirectory(httFile);
 
     t_TauCheck=new TTree("TauCheck","TauCheck");
+    std::cout<<22<<std::endl;
     evtWriter = std::unique_ptr<EventWriter>( new EventWriter() );
+    std::cout<<23<<std::endl;
     evtWriter->initTree(t_TauCheck, httJetCollection.getNeededJECShifts(), isMC, isSync, metShifts);
+    std::cout<<24<<std::endl;
     
     leptonPropertiesList = leptonProperties; // Defined in PropertyEnum.h
+    std::cout<<25<<std::endl;
 
     ////////////////////////////////////////////////////////////
     HTTEvent::usePropertyFor["electronIsolation"]  = PropertyEnum::pfRelIso03_all;
@@ -175,12 +237,13 @@ void HTauTauTreeFromNanoBase::initHTTTree(const TTree *tree, std::string prefix)
     HTTEvent::usePropertyFor["muonID"]             = PropertyEnum::mediumId;
     HTTEvent::usePropertyFor["tauIsolation"]       = PropertyEnum::rawMVAoldDM2017v2;
     HTTEvent::usePropertyFor["tauID"]              = PropertyEnum::idMVAoldDM2017v2;
+    std::cout<<26<<std::endl;
 
     ///Trigger bits to check
     /// Must be aligned with TriggerEnum.h
     ///FIXME: is there a nicer way to define trigger list, e.g. a cfg file?
     TriggerData aTrgData;
-
+    std::cout<<27<<std::endl;
     // 2017 94X  Filter
 
     // Electron
@@ -224,117 +287,176 @@ void HTauTauTreeFromNanoBase::initHTTTree(const TTree *tree, std::string prefix)
 
 
     triggerBits_.push_back(aTrgData);
+    std::cout<<28<<std::endl;
     triggerBits_.back().path_name="HLT_IsoMu24";
+    std::cout<<29<<std::endl;
     triggerBits_.back().leg1Id=13;
+    std::cout<<30<<std::endl;
     triggerBits_.back().leg1BitMask=(1<<3);
+    std::cout<<31<<std::endl;
     // triggerBits_.back().leg1Pt=24;
     // triggerBits_.back().leg1L1Pt=22;
     // triggerBits_.back().leg1OfflinePt=25;
 
     triggerBits_.push_back(aTrgData);
+    std::cout<<32<<std::endl;
     triggerBits_.back().path_name="HLT_IsoMu27";
+    std::cout<<33<<std::endl;
     triggerBits_.back().leg1Id=13;
+    std::cout<<34<<std::endl;
     triggerBits_.back().leg1BitMask=(1<<3);
+    std::cout<<35<<std::endl;
     // triggerBits_.back().leg1Pt=27;
     // triggerBits_.back().leg1L1Pt=22; //22 or 25...
     // triggerBits_.back().leg1OfflinePt=28;
 
     // Mu tauh triggers
     triggerBits_.push_back(aTrgData);
+    std::cout<<36<<std::endl;
     triggerBits_.back().path_name="HLT_IsoMu20_eta2p1_LooseChargedIsoPFTau27_eta2p1_CrossL1";
+    std::cout<<37<<std::endl;
     triggerBits_.back().leg1Id=13;
+    std::cout<<38<<std::endl;
     triggerBits_.back().leg1BitMask=(1<<1) + (1<<2); //iso+OL
+    std::cout<<39<<std::endl;
     // triggerBits_.back().leg1Pt=20;
     // triggerBits_.back().leg1Eta=2.1;
     triggerBits_.back().leg1L1Pt=-1;
+    std::cout<<40<<std::endl;
     //  triggerBits_.back().leg1L1Pt=18;
     // triggerBits_.back().leg1OfflinePt=20;
     triggerBits_.back().leg2Id=15;
     triggerBits_.back().leg2BitMask=(1<<0) + (1<<8); //looseChargedIso+OL
+    std::cout<<41<<std::endl;
     // triggerBits_.back().leg2Pt=27;
     // triggerBits_.back().leg2Eta=2.1;
     //  triggerBits_.back().leg2L1Pt=20;
     triggerBits_.back().leg2L1Pt=-1;
+    std::cout<<42<<std::endl;
 
     //Single e triggers
     triggerBits_.push_back(aTrgData);
+    std::cout<<43<<std::endl;
     triggerBits_.back().path_name="HLT_Ele27_WPTight_Gsf";
+    std::cout<<44<<std::endl;
     triggerBits_.back().leg1Id=11;
+    std::cout<<45<<std::endl;
     triggerBits_.back().leg1BitMask=(1<<1);
+    std::cout<<46<<std::endl;
     // triggerBits_.back().leg1Pt=27;
     triggerBits_.back().leg1L1Pt=-1;
-
+    std::cout<<47<<std::endl;
+    
     triggerBits_.push_back(aTrgData);
+    std::cout<<48<<std::endl;
     triggerBits_.back().path_name="HLT_Ele32_WPTight_Gsf";
+    std::cout<<49<<std::endl;
     triggerBits_.back().leg1Id=11;
+    std::cout<<50<<std::endl;
     triggerBits_.back().leg1BitMask=(1<<1);
+    std::cout<<51<<std::endl;
     // triggerBits_.back().leg1Pt=32;
     triggerBits_.back().leg1L1Pt=-1;
+    std::cout<<52<<std::endl;
 
     triggerBits_.push_back(aTrgData);
+    std::cout<<53<<std::endl;
     triggerBits_.back().path_name="HLT_Ele35_WPTight_Gsf";
+    std::cout<<54<<std::endl;
     triggerBits_.back().leg1Id=11;
+    std::cout<<55<<std::endl;
     triggerBits_.back().leg1BitMask=(1<<1);
+    std::cout<<56<<std::endl;
     // triggerBits_.back().leg1Pt=35;
     triggerBits_.back().leg1L1Pt=-1;
+    std::cout<<57<<std::endl;
 
 
     triggerBits_.push_back(aTrgData);
+    std::cout<<58<<std::endl;
     triggerBits_.back().path_name="HLT_Ele24_eta2p1_WPTight_Gsf_LooseChargedIsoPFTau30_eta2p1_CrossL1";
+    std::cout<<59<<std::endl;
     triggerBits_.back().leg1Id=11;
+    std::cout<<60<<std::endl;
     triggerBits_.back().leg1BitMask=(1<<1)+(1<<3);
+    std::cout<<61<<std::endl;
     // triggerBits_.back().leg1Pt=24;
     // triggerBits_.back().leg1Eta=2.1;
     triggerBits_.back().leg2Id=15;
+    std::cout<<62<<std::endl;
     triggerBits_.back().leg2BitMask=(1<<0) + (1<<7); 
+    std::cout<<63<<std::endl;
     // triggerBits_.back().leg2Pt=30;
     // triggerBits_.back().leg2Eta=2.1;
 
 
     // Single tauh triggers
     triggerBits_.push_back(aTrgData);
+    std::cout<<64<<std::endl;
     triggerBits_.back().path_name="HLT_MediumChargedIsoPFTau180HighPtRelaxedIso_Trk50_eta2p1";
+    std::cout<<65<<std::endl;
     triggerBits_.back().leg1Id=15;
+    std::cout<<66<<std::endl;
     triggerBits_.back().leg1BitMask=2;
+    std::cout<<67<<std::endl;
 
     // tauh tauh triggers
     ///9th tau bit(1<<8) for di-tau dz filter  (should be OK 80X triggers)
     triggerBits_.push_back(aTrgData);
+    std::cout<<68<<std::endl;
     triggerBits_.back().path_name="HLT_DoubleTightChargedIsoPFTau35_Trk1_TightID_eta2p1_Reg";
+    std::cout<<69<<std::endl;
     triggerBits_.back().leg1Id=15;
+    std::cout<<70<<std::endl;
     triggerBits_.back().leg1BitMask= (1<<2) + (1<<3) + (1<<6); //TightChargedIso+photons+dz
+    std::cout<<71<<std::endl;
     // triggerBits_.back().leg1Pt=35;
     // triggerBits_.back().leg1Eta=2.1;
     triggerBits_.back().leg2Id=15;
+    std::cout<<72<<std::endl;
     triggerBits_.back().leg2BitMask= (1<<2) + (1<<3) + (1<<6);
+    std::cout<<73<<std::endl;
     // triggerBits_.back().leg2Pt=35;
     // triggerBits_.back().leg2Eta=2.1;
 
     triggerBits_.push_back(aTrgData);
+    std::cout<<74<<std::endl;
     triggerBits_.back().path_name="HLT_DoubleMediumChargedIsoPFTau40_Trk1_TightID_eta2p1_Reg";
+    std::cout<<75<<std::endl;
     triggerBits_.back().leg1Id=15;
+    std::cout<<76<<std::endl;
     triggerBits_.back().leg1BitMask=(1<<1) + (1<<3) + (1<<6); //MediumChargedIso+photons+dz
+    std::cout<<77<<std::endl;
     // triggerBits_.back().leg1Pt=40;
     // triggerBits_.back().leg1Eta=2.1;
     triggerBits_.back().leg2Id=15;
+    std::cout<<78<<std::endl;
     triggerBits_.back().leg2BitMask=(1<<1) + (1<<3) + (1<<6);
+    std::cout<<79<<std::endl;
     // triggerBits_.back().leg2Pt=40;
     // triggerBits_.back().leg2Eta=2.1;
 
     triggerBits_.push_back(aTrgData);
+    std::cout<<80<<std::endl;
     triggerBits_.back().path_name="HLT_DoubleTightChargedIsoPFTau40_Trk1_eta2p1_Reg";
+    std::cout<<81<<std::endl;
     triggerBits_.back().leg1Id=15;
+    std::cout<<82<<std::endl;
     triggerBits_.back().leg1BitMask=(1<<2) + (1<<6);; //TightChargedIso+dz
+    std::cout<<83<<std::endl;
     // triggerBits_.back().leg1Pt=40;
     // triggerBits_.back().leg1Eta=2.1;
     triggerBits_.back().leg2Id=15;
+    std::cout<<84<<std::endl;
     triggerBits_.back().leg2BitMask=(1<<2) + (1<<6);;
+    std::cout<<85<<std::endl;
     // triggerBits_.back().leg2Pt=40;
     // triggerBits_.back().leg2Eta=2.1;
     ////////////////////////////////////////////////////////////
     ///Filter bits to check
     for(auto filter : FilterNames) // Defined in FilterEnum.h
         filterBits_.push_back(filter);
+        std::cout<<86<<std::endl;
     
     return;
 }
@@ -414,7 +536,6 @@ void HTauTauTreeFromNanoBase::Loop(Long64_t nentries_max, unsigned int sync_even
             if( !httEvent->checkSelectionBit(SelectionBitsEnum::thirdLeptonVeto)
                 && !httEvent->checkSelectionBit(SelectionBitsEnum::diLeptonVeto)
             ){
-                computeSvFit(bestPair);
                 bool fastMTT = false;
                 computeSvFit(bestPair,fastMTT);
             }
