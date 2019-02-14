@@ -414,7 +414,6 @@ void HTauTauTreeFromNanoBase::Loop(Long64_t nentries_max, unsigned int sync_even
             if( !httEvent->checkSelectionBit(SelectionBitsEnum::thirdLeptonVeto)
                 && !httEvent->checkSelectionBit(SelectionBitsEnum::diLeptonVeto)
             ){
-                computeSvFit(bestPair);
                 bool fastMTT = false;
                 computeSvFit(bestPair,fastMTT);
             }
