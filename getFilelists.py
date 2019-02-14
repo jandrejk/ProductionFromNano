@@ -12,6 +12,7 @@ def main():
     args = parser.parse_args()
 
     if args.location == "private": 
+        #getfromPrivate("/dpm/oeaw.ac.at/home/cms/store/user/jaandrej/nanoAOD/20190125/")
         getfromPrivate("/dpm/oeaw.ac.at/home/cms/store/user/jaandrej/")
     else:
         getfromDAS()
