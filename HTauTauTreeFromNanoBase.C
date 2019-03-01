@@ -66,9 +66,9 @@ HTauTauTreeFromNanoBase::HTauTauTreeFromNanoBase(TTree *tree, std::vector<edm::L
         std::cout<<16<<std::endl;
         std::string correctionFile = "HTT-utilities/RecoilCorrections/data/Type1_PFMET_2017.root";
         std::cout<<17<<std::endl;
-        recoilCorrector_= std::unique_ptr<RecoilCorrector>( new RecoilCorrector(correctionFile) );
+        recoilCorrector_= std::unique_ptr<RecoilCorrector>( new RecoilCorrector(correctionFile) ); //goes to RecoilCorrector.cc inside HTTUtilities
         std::cout<<18<<std::endl;
-        metSys_         = std::unique_ptr<MEtSys>( new MEtSys("HTT-utilities/RecoilCorrections/data/MEtSys.root") );
+        metSys_         = std::unique_ptr<MEtSys>( new MEtSys("HTT-utilities/RecoilCorrections/data/MEtSys.root") ); //goes to MEtSys.cc inside HTTUtilities
         std::cout<<19<<std::endl;
 
     } else
@@ -99,15 +99,15 @@ HTauTauTreeFromNanoBase::HTauTauTreeFromNanoBase(TTree *tree, std::vector<edm::L
     {
         ///https://twiki.cern.ch/twiki/bin/viewauth/CMS/JECDataMC
         std::cout<<"[HTauTauTreeFromNanoBase]: Instantiate JEC uncertainty sources"<<std::endl;
-        initJecUnc("utils/jec_uncert/Fall17_17Nov2017_V6_MC_UncertaintySources_AK4PFchs.txt");
+        initJecUnc("utils/jec_uncert/Fall17_17Nov2017_V6_MC_UncertaintySources_AK4PFchs.txt"); 
         std::cout<<28<<std::endl;
 
-        std::cout<<"[HTauTauTreeFromNanoBase]: Load files and init for promote-demote"<<std::endl;
+        std::cout<<"[HTauTauTreeFromNanoBase]: Load files and init for promote-demote"<<std::endl; // This is used for b-tagging
         httJetCollection.initForPromoteDemote();
         std::cout<<29<<std::endl;
     }
 
-    if(httEvent->getSampleType() == HTTEvent::h)
+    if(httEvent->getSampleType() == HTTEvent::h) //Check if sample is a signal sample (HTTEvent::h) what really happens below I am not so sure
     {
         nnlo_ggh_graphs = std::unique_ptr<TFile>( new TFile("utils/NNLO_ggH/NNLOPS_reweight.root") );
         std::cout<<30<<std::endl;
@@ -464,96 +464,124 @@ void HTauTauTreeFromNanoBase::initHTTTree(const TTree *tree, std::string prefix)
 /////////////////////////////////////////////////
 void HTauTauTreeFromNanoBase::Loop(Long64_t nentries_max, unsigned int sync_event)
 {
-
+    std::cout<<"void HTauTauTreeFromNanoBase::Loop(Long64_t nentries_max, unsigned int sync_event)"<<std::endl;
     check_event_number = sync_event;
-
     if (fChain == 0) return;
+    std::cout<<1<<std::endl;
 
     Long64_t nentries = fChain->GetEntries();
+    std::cout<<2<<std::endl;
     Long64_t nentries_use=nentries;
+    std::cout<<3<<std::endl;
     if (nentries_max>0 && nentries_max < nentries)
     {
+        std::cout<<4<<std::endl;
         nentries_use=nentries_max;
         check_event_number = 2038471; // Usefull event in mutau for debug in 2017
     }
 
     Long64_t nbytes = 0, nb = 0;
     int entry=0;
+    std::cout<<5<<std::endl;
     float perc = 0.0;
     for (Long64_t jentry=0; jentry<nentries_use;jentry++)
     {
+        std::cout<<6<<std::endl;
         Long64_t ientry = LoadTree(jentry);
        
         if (ientry < 0) break;
+        std::cout<<7<<std::endl;
         nb = fChain->GetEntry(jentry);   nbytes += nb;
-
+        std::cout<<8<<std::endl;
         // if (check_event_number>0 && event!=check_event_number) continue;
         httEvent->clear();
+        std::cout<<9<<std::endl;
         evtWriter->setDefault();
-
+        std::cout<<10<<std::endl;
 
         debugWayPoint("## FOUND EVENT ##", {},{(int)event});
 
         if(jentry%10000==0)
         {   
+            std::cout<<11<<std::endl;
             perc = jentry > 0 ? (float)jentry/(float)nentries : 0.0;
             std::cout<<"Processing "<<jentry<<"th event  "<< perc << "%" <<std::endl;
         }
 
         if( !eventInJson() ) continue;
+        std::cout<<12<<std::endl;
         debugWayPoint("[Loop] passes json");
 
         unsigned int bestPairIndex = Cut(ientry);
+        std::cout<<13<<std::endl;
         debugWayPoint("[Loop] best pair index", {}, {(int)bestPairIndex});
 
         hStats->Fill(0);//Number of events analyzed
         // hStats->Fill(1,httEvent->getMCWeight());//Sum of weights
-
+        std::cout<<14<<std::endl;
         if ( failsGlobalSelection() ) continue;
+        std::cout<<15<<std::endl;
         debugWayPoint("[Loop] passes global selection");
 
         bestPairIndex_ = bestPairIndex;
 
         if(bestPairIndex<9999)
         {
-
+            std::cout<<16<<std::endl;
             debugWayPoint("[Loop] good pair index found");
 
             ///Call pairSelection again to set selection bits for the selected pair.
             pairSelection(bestPairIndex);
+            std::cout<<17<<std::endl;
 
             // Throw away a lot of events if not producing sync ntuples.
             if(!isSync && !httEvent->checkSelectionBit(SelectionBitsEnum::antiLeptonId) ) continue;
+            std::cout<<18<<std::endl;
 
             fillJets(bestPairIndex);
+            std::cout<<19<<std::endl;
             fillGenLeptons();
+            std::cout<<20<<std::endl;
             fillPairs(bestPairIndex);
+            std::cout<<21<<std::endl;
             fillEvent(bestPairIndex);
+            std::cout<<22<<std::endl;
 
             HTTPair & bestPair = httPairCollection[0];
+            std::cout<<23<<std::endl;
             applyMetRecoilCorrections(bestPair); // Adds met to pair 
+            std::cout<<24<<std::endl;
 
             if( !httEvent->checkSelectionBit(SelectionBitsEnum::thirdLeptonVeto)
                 && !httEvent->checkSelectionBit(SelectionBitsEnum::diLeptonVeto)
             ){
+                std::cout<<25<<std::endl;
                 bool fastMTT = false;
                 computeSvFit(bestPair,fastMTT);
+                std::cout<<26<<std::endl;
             }
-
+            std::cout<<27<<std::endl;
 
             evtWriter->fill(httEvent.get(), &httJetCollection, httLeptonCollection, &bestPair);
+            std::cout<<28<<std::endl;
             evtWriter->entry=entry++;
+            std::cout<<29<<std::endl;
             evtWriter->fileEntry=jentry;
+            std::cout<<30<<std::endl;
             t_TauCheck->Fill();
+            std::cout<<31<<std::endl;
 
             hStats->Fill(2);//Number of events saved to ntuple
+            std::cout<<32<<std::endl;
             hStats->Fill(3,httEvent->getMCWeight());//Sum of weights saved to ntuple
+            std::cout<<33<<std::endl;
             if(firstWarningOccurence_) firstWarningOccurence_ = false; //stop to warn once the first pair is found and filled
+            std::cout<<34<<std::endl;
         }
     }
 
     cout << "Found " << entry << " pairs" << endl;
-
+    std::cout<<35<<std::endl;
    //if you change any of the lists, uncomment and execute in this directory (i.e. not running parallel in another) and then run again.
    //  Or, if you run in another directory, copy the *Enum*h over after running the first time, then run again.
    
@@ -567,11 +595,12 @@ void HTauTauTreeFromNanoBase::Loop(Long64_t nentries_max, unsigned int sync_even
 /////////////////////////////////////////////////
 bool HTauTauTreeFromNanoBase::failsGlobalSelection()
 {
+    std::cout<<"bool HTauTauTreeFromNanoBase::failsGlobalSelection()"<<std::endl; 
 
-  //  if ( getMetFilterBits() != passMask_ ) return true;
+    //  if ( getMetFilterBits() != passMask_ ) return true;
 
 
-  return false;
+    return false;
 }
 
 /////////////////////////////////////////////////
@@ -591,32 +620,37 @@ Cut
 /////////////////////////////////////////////////
 Int_t HTauTauTreeFromNanoBase::Cut(Long64_t entry)
 {
-
+    std::cout<<"Int_t HTauTauTreeFromNanoBase::Cut(Long64_t entry)"<<std::endl; 
     debugWayPoint("[Cut] ------ Begin -------");
     debugWayPoint("[Cut] Fill leptons");
     fillLeptons();
+    std::cout<<1<<std::endl;
 
     if( !(httLeptonCollection.size()>1) ) return 9999;
-
+    std::cout<<2<<std::endl;
     debugWayPoint("[Cut] Found at least two leptons");
 
     //build pairs
     if(!buildPairs()) return 9999;
-
+    std::cout<<3<<std::endl;
+    
     debugWayPoint("[Cut] Found pairs", {},{(int)httPairs_.size()});
+    std::cout<<4<<std::endl;
 
     std::vector<unsigned int> pairIndices;
     for(unsigned int iPair=0;iPair<httPairs_.size();iPair++)
     {
+        std::cout<<5<<std::endl;
         debugWayPoint("[Cut] Check pair", {},{(int)iPair});
         if(pairSelection(iPair))
         {
+            std::cout<<6<<std::endl;
             pairIndices.push_back(iPair);
             debugWayPoint("[Cut] Pair passes pairSelection");
         }
     }
     debugWayPoint("[Cut] Pairs passing pairSelection", {}, {(int)pairIndices.size()  });
-    
+    std::cout<<7<<std::endl;
     return bestPair(pairIndices);
 }
 /////////////////////////////////////////////////
@@ -624,7 +658,11 @@ Int_t HTauTauTreeFromNanoBase::Cut(Long64_t entry)
 unsigned int HTauTauTreeFromNanoBase::bestPair(std::vector<unsigned int> &pairIndices)
 {
     ///Pair are already sorted during the ntuple creation
-    if(!pairIndices.empty()) return pairIndices[0];
+    std::cout<<"unsigned int HTauTauTreeFromNanoBase::bestPair(std::vector<unsigned int> &pairIndices)"<<std::endl;
+    if(!pairIndices.empty()) {
+        return pairIndices[0];
+        std::cout<<1<<std::endl;
+    }
     else return 9999;
 }
 /////////////////////////////////////////////////
@@ -637,37 +675,44 @@ bool HTauTauTreeFromNanoBase::pairSelection(unsigned int iPair)
     ///https://twiki.cern.ch/twiki/bin/view/CMS/HiggsToTauTauWorking2015#Baseline_mu_tau_h_AN1
     ///Indexes for multiplexed ID variables taken from   LLRHiggsTauTau/NtupleProducer/plugins/
     ///HTauTauNtuplizer.cc, MuFiller.cc, TauFiller.cc, EleFiller.cc
-
+    std::cout<<"bool HTauTauTreeFromNanoBase::pairSelection(unsigned int iPair)"<<std::endl;
     return false;
 }
 /////////////////////////////////////////////////
 /////////////////////////////////////////////////
 bool HTauTauTreeFromNanoBase::extraMuonVeto(unsigned int signalLeg1Index, unsigned int signalLeg2Index, double dRmin)
 {
+    std::cout<<"bool HTauTauTreeFromNanoBase::extraMuonVeto(unsigned int signalLeg1Index, unsigned int signalLeg2Index, double dRmin)"<<std::endl;
     return thirdLeptonVeto(signalLeg1Index,signalLeg2Index,13,dRmin);
 }
 /////////////////////////////////////////////////
 /////////////////////////////////////////////////
 bool HTauTauTreeFromNanoBase::extraElectronVeto(unsigned int signalLeg1Index, unsigned int signalLeg2Index, double dRmin)
-{
+{   std::cout<<"bool HTauTauTreeFromNanoBase::extraElectronVeto(unsigned int signalLeg1Index, unsigned int signalLeg2Index, double dRmin)"<<std::endl;
     return thirdLeptonVeto(signalLeg1Index,signalLeg2Index,11,dRmin);
 }
 
 bool HTauTauTreeFromNanoBase::thirdLeptonVeto(unsigned int signalLeg1Index, unsigned int signalLeg2Index, int leptonPdg, double dRmin)
 {
-
+    std::cout<<"bool HTauTauTreeFromNanoBase::thirdLeptonVeto(unsigned int signalLeg1Index, unsigned int signalLeg2Index, int leptonPdg, double dRmin)"<<std::endl;
     TLorentzVector leg1P4 = httLeptonCollection[signalLeg1Index].getP4();
     TLorentzVector leg2P4 = httLeptonCollection[signalLeg2Index].getP4();
+    std::cout<<1<<std::endl;
 
     for(unsigned int iLepton=0;iLepton<httLeptonCollection.size();iLepton++)
     {
+        std::cout<<2<<std::endl;
         if(iLepton==signalLeg1Index || iLepton==signalLeg2Index) continue;
+        std::cout<<3<<std::endl;
         TLorentzVector leptonP4 = httLeptonCollection[iLepton].getP4();
         double dr = std::min(leg1P4.DeltaR(leptonP4),leg2P4.DeltaR(leptonP4));
         if(dr<dRmin) continue;
+        std::cout<<4<<std::endl;
         if(leptonPdg == 13 && std::abs(httLeptonCollection[iLepton].getPDGid())==leptonPdg && httLeptonCollection[iLepton].isExtraLepton() ) return true;
+        std::cout<<5<<std::endl;
         if(leptonPdg == 11 && std::abs(httLeptonCollection[iLepton].getPDGid())==leptonPdg && httLeptonCollection[iLepton].isExtraLepton() ) return true;
     }
+    std::cout<<6<<std::endl;
     return false;
 }
 
@@ -675,59 +720,81 @@ bool HTauTauTreeFromNanoBase::thirdLeptonVeto(unsigned int signalLeg1Index, unsi
 /////////////////////////////////////////////////
 void HTauTauTreeFromNanoBase::fillEvent(unsigned int bestPairIndex)
 {
-
+    std::cout<<"void HTauTauTreeFromNanoBase::fillEvent(unsigned int bestPairIndex)"<<std::endl;
     // httEvent->setSelectionBit(SelectionBitsEnum::diMuonVeto,1); //only set explicitly for mutau
     // httEvent->setSelectionBit(SelectionBitsEnum::diElectronVeto,1); //only set explicitly for etau
 
     httEvent->setRun(run);
+    std::cout<<1<<std::endl;
     httEvent->setEvent(event);
+    std::cout<<2<<std::endl;
     httEvent->setLS(luminosityBlock);
+    std::cout<<3<<std::endl;
     httEvent->setNPV(PV_npvs);
+    std::cout<<4<<std::endl;
     httEvent->setRho(fixedGridRhoFastjetAll);
-
+    std::cout<<5<<std::endl;
     httEvent->setAODPV(TVector3(PV_x,PV_y,PV_z));
+    std::cout<<6<<std::endl;
     httEvent->setRefittedPV(TVector3(PV_x,PV_y,PV_z));//FIXME
+    std::cout<<7<<std::endl;
     httEvent->setIsRefit(false);//FIXME
-
+    std::cout<<8<<std::endl;
     TVector2 metPF;
     metPF.SetMagPhi(MET_pt, MET_phi);
+    std::cout<<9<<std::endl;
     httEvent->setMET(metPF);
+    std::cout<<10<<std::endl;
     httEvent->setMET_uncorr(metPF);
-
+    std::cout<<11<<std::endl;
     std::vector<Int_t> aFilters = getFilters(filterBits_);
     httEvent->setFilters(aFilters);
+    std::cout<<12<<std::endl;
 
     httEvent->setMETFilterDecision(getMetFilterBits());
+    std::cout<<13<<std::endl;
 
     if( isMC )//Assume that all those are filled for MC
     {
 
         httEvent->setStage1Cat( GenHiggs_stage1PtJet30 );
+        std::cout<<14<<std::endl;
 
         httEvent->setMCWeight( sgn(genWeight) );
+        std::cout<<15<<std::endl;
         httEvent->setXsec( Settings["xsec"].get<float>() );
+        std::cout<<16<<std::endl;
         httEvent->setGenNEventsWeight( 1.0 / Settings["genNEvents"].get<float>() );
+        std::cout<<17<<std::endl;
 
         httEvent->setMCatNLOWeight(LHEWeight_originalXWGTUP);//??
+        std::cout<<18<<std::endl;
         httEvent->setLHE_Ht(LHE_HT);
+        std::cout<<19<<std::endl;
         httEvent->setLHEnOutPartons(LHE_Njets);
+        std::cout<<20<<std::endl;
         //FIXMEhttEvent->setGenPV(TVector3(pvGen_x,pvGen_y,pvGen_z));
 
         httEvent->setNPU(Pileup_nTrueInt); //??Pileup_nPU or Pileup_nTrueInt
+        std::cout<<21<<std::endl;
         httEvent->setPUWeight( puweights_histo->GetBinContent( puweights_histo->GetXaxis()->FindBin(Pileup_nTrueInt) ) );
+        std::cout<<22<<std::endl;
 
         // Zpt reweighting
         TLorentzVector genBosonP4, genBosonVisP4;
         float zPtReWeight = 1.;
         if( findBosonP4(genBosonP4,genBosonVisP4) )
         {
+            std::cout<<23<<std::endl;
             httEvent->setGenBosonP4(genBosonP4,genBosonVisP4);
-
+            std::cout<<24<<std::endl;
             if( ( httEvent->getSampleType() == HTTEvent::DY || httEvent->getSampleType() == HTTEvent::DYLowM ) )
             {
+                std::cout<<25<<std::endl;
                 zPtReWeight = getZPtReweight(genBosonP4);
             }
         }
+        std::cout<<26<<std::endl;
         httEvent->setZPtReWeight(zPtReWeight);
         /////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -736,11 +803,14 @@ void HTauTauTreeFromNanoBase::fillEvent(unsigned int bestPairIndex)
         TLorentzVector topP4, antitopP4;
         double topPtReWeight = 1.;
         double topPtReWeight_r1 = 1.;
+        std::cout<<27<<std::endl;
         if( findTopP4(topP4, antitopP4)  )
         {
+            std::cout<<28<<std::endl;
             httEvent->setTopP4(topP4, antitopP4);
             if( httEvent->getSampleType() == HTTEvent::TTbar)
             {
+                std::cout<<29<<std::endl;
                 double topPt     = topP4.Perp()      > 400 ? 400 : topP4.Perp() ;
                 double antitopPt = antitopP4.Perp()  > 400 ? 400 : antitopP4.Perp();
 
@@ -754,69 +824,88 @@ void HTauTauTreeFromNanoBase::fillEvent(unsigned int bestPairIndex)
                 topPtReWeight_r1 = sqrt(weightTop_r1*weightAntitop_r1);
             }
         }
+        std::cout<<30<<std::endl;
         httEvent->setTopPtReWeight(topPtReWeight);
+        std::cout<<31<<std::endl;
         httEvent->setTopPtReWeightR1(topPtReWeight_r1);
+        std::cout<<32<<std::endl;
         /////////////////////////////////////////////////////////////////////////////////////////////////////
         if(nnlo_ggh_graphs)
         {
+            std::cout<<33<<std::endl;
             if      (GenHiggs_njets30==0)      httEvent->setNNLO_ggH_weight( NNLOPSratio_pt_powheg_0jet->Eval( GenHiggs_pt > 125.0 ? 125.0 : GenHiggs_pt ) );
             else if (GenHiggs_njets30==1)      httEvent->setNNLO_ggH_weight( NNLOPSratio_pt_powheg_1jet->Eval( GenHiggs_pt > 625.0 ? 625.0 : GenHiggs_pt ) );
             else if (GenHiggs_njets30==2)      httEvent->setNNLO_ggH_weight( NNLOPSratio_pt_powheg_2jet->Eval( GenHiggs_pt > 800.0 ? 800.0 : GenHiggs_pt ) );
             else if (GenHiggs_njets30>=3)      httEvent->setNNLO_ggH_weight( NNLOPSratio_pt_powheg_3jet->Eval( GenHiggs_pt > 925.0 ? 925.0 : GenHiggs_pt ) );
             else                               httEvent->setNNLO_ggH_weight( 1.0 );
 
+            std::cout<<34<<std::endl;
             httEvent->setTHU_uncertainties(GenHiggs_njets30, GenHiggs_pt, GenHiggs_stage1PtJet30);
         }
     }
-
+    std::cout<<35<<std::endl;
 }
 /////////////////////////////////////////////////
 /////////////////////////////////////////////////
 void HTauTauTreeFromNanoBase::initJecUnc(std::string correctionFile)
 {
-
+    std::cout<<"void HTauTauTreeFromNanoBase::initJecUnc(std::string correctionFile)"<<std::endl;
     for(unsigned int isrc = 0; isrc < (unsigned int)JecUncertEnum::NONE; isrc++)
     {
-        JetCorrectorParameters *p = new JetCorrectorParameters(correctionFile, JecUncertNames[isrc]);
+        std::cout<<1<<std::endl;
+        JetCorrectorParameters *p = new JetCorrectorParameters(correctionFile, JecUncertNames[isrc]); // from where does it know about JecUncertNames?
+        std::cout<<2<<std::endl;
         JetCorrectionUncertainty *unc = new JetCorrectionUncertainty(*p);
+        std::cout<<3<<std::endl;
         jecUncerts.push_back(unc);
         // outputFile<<jecSources_[isrc]<<" = "<<isrc<<", "<<std::endl;
-    }
+    } // this loop is repeated several times
+    std::cout<<4<<std::endl;
 }
 /////////////////////////////////////////////////
 /////////////////////////////////////////////////
 double HTauTauTreeFromNanoBase::getJecUnc(unsigned int index, unsigned int isrc, bool up)
 {
+    std::cout<<"double HTauTauTreeFromNanoBase::getJecUnc(unsigned int index, unsigned int isrc, bool up)"<<std::endl;
     if(b_nGenPart==nullptr) return 0;//MB: do not check it for data
+    std::cout<<1<<std::endl;
     double result = 0;
     double jetpt = Jet_pt[index];
     double jeteta =  Jet_eta[index];
 
     JetCorrectionUncertainty *unc = jecUncerts[isrc];
+    std::cout<<2<<std::endl;
     unc->setJetPt(jetpt);
+    std::cout<<3<<std::endl;
     unc->setJetEta(jeteta);
+    std::cout<<4<<std::endl;
     return unc->getUncertainty(up);
 }
 /////////////////////////////////////////////////
 /////////////////////////////////////////////////
 map<string,double> HTauTauTreeFromNanoBase::getValuesAfterJecSplitting(unsigned int iJet)
 {   
+    std::cout<<"map<string,double> HTauTauTreeFromNanoBase::getValuesAfterJecSplitting(unsigned int iJet)"<<std::endl;
     map<string,double> values = { {"", 0.} };
     for(auto uncert : JecAfterSplitting)
     {   
+        std::cout<<1<<std::endl;
         double uncertSum = 0.;
         for(auto source : uncert.second)
         {
+            std::cout<<2<<std::endl;
             uncertSum = sqrt( uncertSum*uncertSum +  pow( getJecUnc(iJet, (unsigned int)source, true), 2 )  );
         }
+        std::cout<<3<<std::endl;
         values[uncert.first] = uncertSum ;
     }
+    std::cout<<4<<std::endl;
     return values;
 }
 
 bool HTauTauTreeFromNanoBase::jetSelection(unsigned int index, unsigned int bestPairIndex)
 {
-
+    std::cout<<"bool HTauTauTreeFromNanoBase::jetSelection(unsigned int index, unsigned int bestPairIndex)"<<std::endl;
     TLorentzVector aP4;
     aP4.SetPtEtaPhiM(Jet_pt[index],
                      Jet_eta[index],
@@ -828,28 +917,34 @@ bool HTauTauTreeFromNanoBase::jetSelection(unsigned int index, unsigned int best
    
     if(bestPairIndex<9999)
     {
+        std::cout<<1<<std::endl;
         TLorentzVector leg1P4 = httPairs_[bestPairIndex].getLeg1().getP4();
+        std::cout<<2<<std::endl;
         TLorentzVector leg2P4 = httPairs_[bestPairIndex].getLeg2().getP4();
+        std::cout<<3<<std::endl;
 
         passSelection &= aP4.DeltaR(leg1P4) > 0.5
                          && aP4.DeltaR(leg2P4) > 0.5;
+        std::cout<<4<<std::endl;
     }
 
     if( 2.65 < std::abs( aP4.Eta() ) && std::abs( aP4.Eta() ) <  3.139 && aP4.Pt() < 50) return false; // removal of jets from EE noise
+    std::cout<<5<<std::endl;
     return passSelection;
 }
 /////////////////////////////////////////////////
 /////////////////////////////////////////////////
 void HTauTauTreeFromNanoBase::fillJets(unsigned int bestPairIndex)
 {
-
+    std::cout<<"void HTauTauTreeFromNanoBase::fillJets(unsigned int bestPairIndex)"<<std::endl;
     debugWayPoint("[fillJets] ------ Begin -------");
     httJetCollection.clear();
-
+    std::cout<<1<<std::endl;
     for(unsigned int iJet=0;iJet<nJet;++iJet)
     {
-
+        std::cout<<2<<std::endl;
         if(!jetSelection(iJet, bestPairIndex)) continue;
+        std::cout<<3<<std::endl;
         debugWayPoint("[fillJets] passing jet selection",{(double)Jet_pt[iJet], (double)Jet_eta[iJet]},{},{"pt","eta"});
 
 
@@ -858,33 +953,41 @@ void HTauTauTreeFromNanoBase::fillJets(unsigned int bestPairIndex)
                         Jet_eta[iJet],
                         Jet_phi[iJet],
                         Jet_mass[iJet]);
-
+        std::cout<<4<<std::endl;
 
         ///JEC uncertaintes
         aJet.setJecUncertValues( getValuesAfterJecSplitting(iJet) );
+        std::cout<<5<<std::endl;
 
         std::vector<Double_t> aProperties = getProperties(leptonPropertiesList, iJet, aJet.P4(), "Jet");
+        std::cout<<6<<std::endl;
+
         ///Set jet PDG id by hand
         aProperties[(unsigned int)PropertyEnum::pdgId] = 98.0;
+        std::cout<<7<<std::endl;
 
         aJet.setProperties(aProperties);
+        std::cout<<8<<std::endl;
         httJetCollection.addJet(aJet);
-        
+        std::cout<<9<<std::endl;
     }
+    std::cout<<10<<std::endl;
     //Set Jet collection to unshifted jets
     httJetCollection.fillCurrentCollections();
 
 }
 int HTauTauTreeFromNanoBase::muonSelection(HTTParticle aLepton)
-{
+{   
+    std::cout<<"int HTauTauTreeFromNanoBase::muonSelection(HTTParticle aLepton)"<<std::endl;
     int bitmask = 0;
     float muonPt = aLepton.getP4().Pt();
     float muonEta = std::abs( aLepton.getP4().Eta() );
  
-
+    std::cout<<1<<std::endl;
     if(std::abs(aLepton.getProperty(PropertyEnum::dz))<0.2
        && std::abs(aLepton.getProperty(PropertyEnum::dxy))<0.045)
     {
+        std::cout<<2<<std::endl;
         float muonIso = aLepton.getProperty( HTTEvent::usePropertyFor.at("muonIsolation") ) < 0.3;
         float muonID = aLepton.getProperty(  HTTEvent::usePropertyFor.at("muonID")) > 0.5;
 
@@ -893,28 +996,37 @@ int HTauTauTreeFromNanoBase::muonSelection(HTTParticle aLepton)
            && muonEta < LeptonCuts::Baseline.Muon.eta
            && muonID
         ) bitmask |= LeptonCuts::Baseline.bitmask;
-
+        std::cout<<3<<std::endl;
         
         if(muonIso)
         {
+            std::cout<<4<<std::endl;
             // Passes ilepton cuts
             if(muonPt > LeptonCuts::Di.Muon.pt
                && muonEta < LeptonCuts::Di.Muon.eta
             ) bitmask |= LeptonCuts::Di.bitmask; 
 
+            std::cout<<5<<std::endl;
+
             if(muonID)
             {
+                std::cout<<6<<std::endl;
                 // Passes extra lepton cuts
                 if(muonPt > LeptonCuts::Extra.Muon.pt
                    && muonEta < LeptonCuts::Extra.Muon.eta
                 ) bitmask |= LeptonCuts::Extra.bitmask;
 
+                std::cout<<7<<std::endl;
                 // Passes additional lepton cuts
                 if(muonPt > LeptonCuts::Additional.Muon.pt
                    && muonEta < LeptonCuts::Additional.Muon.eta
                 ) bitmask |= LeptonCuts::Additional.bitmask;
+
+                std::cout<<8<<std::endl;
             }
+            std::cout<<9<<std::endl;
         }
+        std::cout<<10<<std::endl;
 
     }
     debugWayPoint("[muonSelection]",
@@ -928,12 +1040,14 @@ int HTauTauTreeFromNanoBase::muonSelection(HTTParticle aLepton)
         },
         {},
         {"pt","eta","dz","dxy","iso","id","mask"}
-    ); 
+    );
+    std::cout<<11<<std::endl; 
     return bitmask;
 }
 
 int HTauTauTreeFromNanoBase::electronSelection(HTTParticle aLepton)
 {
+    std::cout<<"int HTauTauTreeFromNanoBase::electronSelection(HTTParticle aLepton)"<<std::endl;
     int bitmask = 0;
     float elePt = aLepton.getP4().Pt();
     float eleEta = std::abs( aLepton.getP4().Eta() );
@@ -942,6 +1056,7 @@ int HTauTauTreeFromNanoBase::electronSelection(HTTParticle aLepton)
     if(std::abs(aLepton.getProperty(PropertyEnum::dz))<0.2
        && std::abs(aLepton.getProperty(PropertyEnum::dxy))<0.045)
     {
+        std::cout<<1<<std::endl;
 
         bool eleIso =    aLepton.getProperty(HTTEvent::usePropertyFor.at("electronIsolation") ) < 0.3;
         bool eleIDWP80 = aLepton.getProperty(HTTEvent::usePropertyFor.at("electronIDWP80")) > 0.5;
@@ -949,7 +1064,7 @@ int HTauTauTreeFromNanoBase::electronSelection(HTTParticle aLepton)
         bool eleIDCB   = aLepton.getProperty(HTTEvent::usePropertyFor.at("electronIDCutBased") ) > 0;
         bool convVeto  = aLepton.getProperty(PropertyEnum::convVeto)>0.5;
         bool lostHits  = aLepton.getProperty(PropertyEnum::lostHits)<1.5; //0 or 1
-
+        std::cout<<2<<std::endl;
 
         // Passes dilepton cuts
         if(elePt >  LeptonCuts::Di.Electron.pt
@@ -957,15 +1072,18 @@ int HTauTauTreeFromNanoBase::electronSelection(HTTParticle aLepton)
             && eleIso
             && eleIDCB
         ) bitmask |= LeptonCuts::Di.bitmask;
+        std::cout<<3<<std::endl;
 
         if(convVeto && lostHits)
         {
+            std::cout<<4<<std::endl;
             // Passes baseline cuts
             if(elePt >  LeptonCuts::Baseline.Electron.pt
                 && eleEta < LeptonCuts::Baseline.Electron.eta
                 && eleIDWP90
             ) bitmask |= LeptonCuts::Baseline.bitmask;
 
+            std::cout<<5<<std::endl;
             // Passes additional lepton cuts
             if(elePt >  LeptonCuts::Additional.Electron.pt
                 && eleEta < LeptonCuts::Additional.Electron.eta
@@ -973,13 +1091,17 @@ int HTauTauTreeFromNanoBase::electronSelection(HTTParticle aLepton)
                 && eleIso
             ) bitmask |= LeptonCuts::Additional.bitmask;
 
+            std::cout<<6<<std::endl;
             // Passes extra lepton cuts
             if(elePt >  LeptonCuts::Extra.Electron.pt
                 && eleEta < LeptonCuts::Extra.Electron.eta
                 && eleIDWP90
                 && eleIso
             ) bitmask |= LeptonCuts::Extra.bitmask;
+
+            std::cout<<7<<std::endl;
         }
+        std::cout<<8<<std::endl;
 
     }
 
@@ -999,26 +1121,30 @@ int HTauTauTreeFromNanoBase::electronSelection(HTTParticle aLepton)
         {},
         {"pt","eta","dz","dxy","iso","id80","id90","idcb","coVe","loHi","mask"}
     );
-
+    std::cout<<9<<std::endl;
     return bitmask;
 }
 
 int HTauTauTreeFromNanoBase::tauSelection(HTTParticle aLepton)
 {
+    std::cout<<"int HTauTauTreeFromNanoBase::tauSelection(HTTParticle aLepton)"<<std::endl;
     int bitmask = 0;
 
     float tauPt = aLepton.getP4().Pt();
     float tauEta = std::abs( aLepton.getP4().Eta() );
-
+    std::cout<<1<<std::endl;
     if(tauPt > LeptonCuts::Baseline.Tau.SemiLep.pt
        && tauEta < LeptonCuts::Baseline.Tau.SemiLep.eta
     ) bitmask |= (LeptonCuts::Baseline.Tau.SemiLep.bitmask + LeptonCuts::Baseline.Tau.Additional);
-
+    std::cout<<2<<std::endl;
+    
     if(tauEta < LeptonCuts::Baseline.Tau.FullHad.eta)
     {
+        std::cout<<3<<std::endl;
         if(tauPt  > LeptonCuts::Baseline.Tau.FullHad.lead_pt)
             bitmask |= (LeptonCuts::Baseline.Tau.FullHad.lead_bitmask + LeptonCuts::Baseline.Tau.Additional);
 
+        std::cout<<4<<std::endl;
         if(tauPt  > LeptonCuts::Baseline.Tau.FullHad.sublead_pt)
             bitmask |= (LeptonCuts::Baseline.Tau.FullHad.sub_bitmask + LeptonCuts::Baseline.Tau.Additional);
     }
@@ -1034,22 +1160,25 @@ int HTauTauTreeFromNanoBase::tauSelection(HTTParticle aLepton)
         {},
         {"pt","eta","dz","iso","id","mask"}
     );
-
+    std::cout<<5<<std::endl;
     return bitmask;
 }
 
 void HTauTauTreeFromNanoBase::fillLeptons()
 {
-
+    std::cout<<"void HTauTauTreeFromNanoBase::fillLeptons()"<<std::endl;
     debugWayPoint("[fillLeptons] ------ Begin -------");
     httLeptonCollection.clear();
+    std::cout<<1<<std::endl;
 
     // Only interested in events with hadronic taus
     if(nTau == 0) return;
+    std::cout<<2<<std::endl;
 
     //Muons //////////////////////////////////////////////////////////////////////////////////
     for(unsigned int iMu=0; iMu<nMuon; ++iMu)
     {
+        std::cout<<3<<std::endl;
         float loosestMuonPtCut = min( { LeptonCuts::Baseline.Muon.pt,
                                         LeptonCuts::Additional.Muon.pt,
                                         LeptonCuts::Extra.Muon.pt, 
@@ -1057,6 +1186,7 @@ void HTauTauTreeFromNanoBase::fillLeptons()
                                       } );
 
         if( !(Muon_pt[iMu] > loosestMuonPtCut ) ) continue;
+        std::cout<<4<<std::endl;
         debugWayPoint("[fillLeptons] Muon passes loosest pt cut",{(double)Muon_pt[iMu], (double)loosestMuonPtCut },{}, {"pt","cut"} );
         HTTParticle aLepton;
         TLorentzVector p4;
@@ -1068,20 +1198,28 @@ void HTauTauTreeFromNanoBase::fillLeptons()
         
         TVector3 pca;//FIXME: can partly recover with ip3d and momentum?
         std::vector<Double_t> aProperties = getProperties(leptonPropertiesList, iMu, p4, "Muon");
+        std::cout<<5<<std::endl;
         aLepton.setProperties(aProperties);
+        std::cout<<6<<std::endl;
         aLepton.setP4(p4);
+        std::cout<<7<<std::endl;
         aLepton.setChargedP4(p4);//same as p4 for muon
+        std::cout<<8<<std::endl;
         //aLepton.setNeutralP4(p4Neutral); not defined for muon
         aLepton.setPCA(pca);
+        std::cout<<9<<std::endl;
 
         aLepton.setCutBitmask( muonSelection(aLepton) );
+        std::cout<<10<<std::endl;
 
         httLeptonCollection.push_back(aLepton);
+        std::cout<<11<<std::endl;
     }//Muons
 
     //Electrons //////////////////////////////////////////////////////////////////////////////////
     for(unsigned int iEl=0; iEl<nElectron; ++iEl)
     {
+        std::cout<<12<<std::endl;
         float e_pt=Electron_pt[iEl];
         float loosestElectronPtCut = min( { LeptonCuts::Baseline.Electron.pt,
                                             LeptonCuts::Additional.Electron.pt,
@@ -1091,6 +1229,7 @@ void HTauTauTreeFromNanoBase::fillLeptons()
                                           } );
 
         if (Electron_eCorr[iEl]>0) e_pt/=Electron_eCorr[iEl];
+        std::cout<<13<<std::endl;
         if( !(e_pt>loosestElectronPtCut) ) continue;
         debugWayPoint("[fillLeptons] Electron passes loosest pt cut",{(double)e_pt,(double)loosestElectronPtCut },{}, {"pt","cut"} );
         HTTParticle aLepton;
@@ -1100,24 +1239,33 @@ void HTauTauTreeFromNanoBase::fillLeptons()
                         Electron_eta[iEl],
                         Electron_phi[iEl],
                         0.51100e-3); //electron mass
-
+        std::cout<<14<<std::endl;
         TVector3 pca;//FIXME: can partly recover with ip3d and momentum?
 
         std::vector<Double_t> aProperties = getProperties(leptonPropertiesList, iEl, p4, "Electron");
+        std::cout<<15<<std::endl;
         aLepton.setProperties(aProperties);
+        std::cout<<16<<std::endl;
         aLepton.setP4(p4);
+        std::cout<<17<<std::endl;
         aLepton.setChargedP4(p4);//same as p4 for electron
+        std::cout<<18<<std::endl;
         //aLepton.setNeutralP4(p4Neutral); not defined for electron
         aLepton.setPCA(pca);
+        std::cout<<19<<std::endl;
 
         aLepton.setCutBitmask( electronSelection(aLepton) );
+        std::cout<<20<<std::endl;
         httLeptonCollection.push_back(aLepton);
+        std::cout<<21<<std::endl;
     }//Electrons
 
     //Taus //////////////////////////////////////////////////////////////////////////////////
     for(unsigned int iTau=0; iTau<nTau; ++iTau)
     {
+        std::cout<<22<<std::endl;
         if( std::abs(Tau_eta[iTau])>2.3 ) continue;
+        std::cout<<23<<std::endl;
         if( Tau_idDecayMode[iTau]<0.5 ) continue; //oldDMs
         debugWayPoint("[fillLeptons] Tau passes eta cut and DMId");
 
@@ -1130,18 +1278,25 @@ void HTauTauTreeFromNanoBase::fillLeptons()
                            Tau_mass[iTau]);
 
         std::vector<Double_t> aProperties = getProperties(leptonPropertiesList, iTau, newp4, "Tau");
+        std::cout<<24<<std::endl;
         aLepton.setProperties(aProperties); //Set properties to allow calculation of TES in HTTParticle (mc_match needed)
+        std::cout<<25<<std::endl;
         aLepton.setP4(newp4);
+        std::cout<<26<<std::endl;
         aLepton.setCutBitmask( tauSelection(aLepton) );
 
         if( aLepton.getP4().Pt() < 20 ) continue;
+        std::cout<<27<<std::endl;
         if( std::abs(aLepton.getProperty(PropertyEnum::dz)) > 0.2 ) continue;
+        std::cout<<28<<std::endl;
         if( (int)std::abs(aLepton.getProperty(PropertyEnum::charge)) != 1 )continue;
+        std::cout<<29<<std::endl;
         debugWayPoint("[fillLeptons] Tau passes loosest pt cut after ES",{(double)aLepton.getP4().Pt()},{(int)aLepton.getProperty(PropertyEnum::decayMode)},{"pt","dm"});
 
         UChar_t bitmask=aLepton.getProperty( HTTEvent::usePropertyFor.at("tauID") ); //byIsolationMVArun2v1DBoldDMwLTraw
+        std::cout<<30<<std::endl;
         if ( !(bitmask & 0x1 ) ) continue; //require at least very loose tau (in NanoAOD, only OR of loosest WP of all discriminators is stored)
-
+        std::cout<<31<<std::endl;
         TLorentzVector chargedP4;//approximate by leadTrack p4
         double leadTkPhi = TVector2::Phi_mpi_pi(Tau_phi[iTau]+Tau_leadTkDeltaPhi[iTau]);
 
@@ -1149,48 +1304,66 @@ void HTauTauTreeFromNanoBase::fillLeptons()
                                Tau_eta[iTau]+Tau_leadTkDeltaEta[iTau],
                                leadTkPhi,
                                0.13957); //pi+/- mass
-
+        std::cout<<32<<std::endl;
+        
         aLepton.setChargedP4(chargedP4);
+        std::cout<<33<<std::endl;
         aLepton.setNeutralP4( aLepton.getP4() -chargedP4);
+        std::cout<<34<<std::endl;
 
         TVector3 pca;//FIXME: can partly recover with dxy,dz and momentum?
         aLepton.setPCA(pca);
+        std::cout<<35<<std::endl;
 
         httLeptonCollection.push_back(aLepton);
+        std::cout<<36<<std::endl;
     }//Taus
-
+    std::cout<<37<<std::endl;
     //Sort leptons
     std::sort(httLeptonCollection.begin(),httLeptonCollection.end(),compareLeptons);
+    std::cout<<38<<std::endl;
 
 }
 /////////////////////////////////////////////////
 /////////////////////////////////////////////////
 void HTauTauTreeFromNanoBase::fillGenLeptons()
 {
+    std::cout<<"void HTauTauTreeFromNanoBase::fillGenLeptons()"<<std::endl;
 
     httGenLeptonCollection.clear();
+    std::cout<<1<<std::endl;
 
     if(!fChain->FindBranch("nGenPart")) return;
-
+    std::cout<<2<<std::endl;
     for(unsigned int iGenPart=0;iGenPart<nGenPart;++iGenPart)
     {
+        std::cout<<3<<std::endl;
         if(std::abs(GenPart_pdgId[iGenPart])!=15) continue;
+        std::cout<<4<<std::endl;
         TLorentzVector p4;
         p4.SetPtEtaPhiM(GenPart_pt[iGenPart],
                         GenPart_eta[iGenPart],
                         GenPart_phi[iGenPart],
                         1.777);//should use pdg mass as masses below 10GeV are zeroed
         //do not consider low momentum candidates??
+        std::cout<<5<<std::endl;
         if( !(p4.P()>10) ) continue;
+        std::cout<<6<<std::endl;
         //find direct daughters
         std::vector<unsigned int> daughterIndexes;
         bool isFinalTau=getDirectDaughterIndexes(daughterIndexes,(int)iGenPart);
+        std::cout<<7<<std::endl;
         if(!isFinalTau) continue;
-
+        std::cout<<8<<std::endl;
+        
         HTTParticle aLepton;
+        std::cout<<9<<std::endl;
         aLepton.setP4(p4);
+        std::cout<<10<<std::endl;
         aLepton.setChargedP4(getGenComponentP4(daughterIndexes,1));
+        std::cout<<11<<std::endl;
         aLepton.setNeutralP4(getGenComponentP4(daughterIndexes,0));
+        std::cout<<12<<std::endl;
         //TVector3 pca(genpart_pca_x->at(iGenPart), genpart_pca_y->at(iGenPart), genpart_pca_z->at(iGenPart));
         //aLepton.setPCA(pca);
 
@@ -1198,91 +1371,122 @@ void HTauTauTreeFromNanoBase::fillGenLeptons()
         //set properties by hand (keep correct order)
         std::vector<Double_t> aProperties;
         aProperties.push_back(GenPart_pdgId[iGenPart]);
-        aProperties.push_back(genTauDecayMode(daughterIndexes));    
+        std::cout<<13<<std::endl;
+        aProperties.push_back(genTauDecayMode(daughterIndexes));
+        std::cout<<14<<std::endl;    
         aLepton.setProperties(aProperties);
+        std::cout<<15<<std::endl;
 
         httGenLeptonCollection.push_back(aLepton);
-
+        std::cout<<16<<std::endl;
     }
+    std::cout<<17<<std::endl;
 }
 /////////////////////////////////////////////////
 /////////////////////////////////////////////////
 TLorentzVector HTauTauTreeFromNanoBase::getGenComponentP4(std::vector<unsigned int> &indexes, unsigned int iAbsCharge)
 {
-
+    std::cout<<"TLorentzVector HTauTauTreeFromNanoBase::getGenComponentP4(std::vector<unsigned int> &indexes, unsigned int iAbsCharge)"<<std::endl;
     TLorentzVector aNeutralP4, aChargedP4, aLeptonP4;
 
-    for(unsigned int idx=0;idx<indexes.size();++idx){
+    for(unsigned int idx=0;idx<indexes.size();++idx)
+    {
+        std::cout<<1<<std::endl;
         unsigned int iGenPart = indexes[idx];
         unsigned int pdg_id = std::abs(GenPart_pdgId[iGenPart]);
         if(pdg_id == 11 || pdg_id == 13){
+            std::cout<<2<<std::endl;
             aLeptonP4.SetPtEtaPhiM(GenPart_pt[iGenPart],
                                    GenPart_eta[iGenPart],
                                    GenPart_phi[iGenPart],
                                    (pdg_id==11?0.51100e-3:0.10566));//set mass
 
         }else if(pdg_id == 211 || pdg_id == 321 ){
+            std::cout<<3<<std::endl;
             aChargedP4.SetPtEtaPhiM(GenPart_pt[iGenPart],
                                     GenPart_eta[iGenPart],
                                     GenPart_phi[iGenPart],
                                     (pdg_id==211?0.1396:0.4937));//set mass
 
         }else if(pdg_id == 111 || pdg_id == 130 || pdg_id == 310 || pdg_id == 311 ){
+            std::cout<<4<<std::endl;
             aNeutralP4.SetPtEtaPhiM(GenPart_pt[iGenPart],
                                     GenPart_eta[iGenPart],
                                     GenPart_phi[iGenPart],
                                     (pdg_id==111?0.1350:0.4976));//set mass
         }
+        std::cout<<5<<std::endl;
     }
-
+    std::cout<<6<<std::endl;
     TLorentzVector aP4;
-    if(iAbsCharge==0) aP4 = aNeutralP4;
-    else if(aChargedP4.E()>0) aP4 = aChargedP4;
-    else if(aLeptonP4.E()>0) aP4 = aLeptonP4;
-
+    if(iAbsCharge==0) {
+        aP4 = aNeutralP4;
+        std::cout<<7<<std::endl;
+    }
+    else if(aChargedP4.E()>0) {
+        aP4 = aChargedP4;
+        std::cout<<8<<std::endl;
+    }
+    else if(aLeptonP4.E()>0) {
+        aP4 = aLeptonP4;
+        std::cout<<9<<std::endl;
+    }
     return aP4;
 }
 /////////////////////////////////////////////////
 /////////////////////////////////////////////////
 int HTauTauTreeFromNanoBase::getGenMatch(unsigned int index, std::string colType) //overloaded
 { 
+    std::cout<<"int HTauTauTreeFromNanoBase::getGenMatch(unsigned int index, std::string colType) //overloaded"<<std::endl;
     if(!isMC) return -999;
+    std::cout<<1<<std::endl;
     if(b_nGenPart==nullptr) return -999;
+    std::cout<<2<<std::endl;
     if(nGenPart==0) return -999;
+    std::cout<<3<<std::endl;
 
     TLorentzVector p4;
     if(colType=="Muon")
-    {
+    {   
+        std::cout<<4<<std::endl;
         if(index>=nMuon) return -999;
+        std::cout<<5<<std::endl;
         p4.SetPtEtaPhiM(Muon_pt[index],
                         Muon_eta[index],
                         Muon_phi[index],
                         0.10566); //muon mass
-
+        std::cout<<6<<std::endl;
     }else if(colType=="Electron"){
+        std::cout<<7<<std::endl;
         if(index>=nElectron) return -999;
+        std::cout<<8<<std::endl;
         p4.SetPtEtaPhiM(Electron_pt[index],
                         Electron_eta[index],
                         Electron_phi[index],
                         0.51100e-3); //electron mass
-
+        std::cout<<9<<std::endl;
     }else if(colType=="Tau"){
+        std::cout<<10<<std::endl;
         if(index>=nTau) return -999;
+        std::cout<<11<<std::endl;
         p4.SetPtEtaPhiM(Tau_pt[index],
                         Tau_eta[index],
                         Tau_phi[index],
                         Tau_mass[index]);
+        std::cout<<12<<std::endl;
     }
-    else
+    else {
+        std::cout<<13<<std::endl;
         return -999;
-
+    }
+    std::cout<<14<<std::endl;
     return getGenMatch(p4);
 }
 /////////////////////////////////////////////////
 /////////////////////////////////////////////////
 int HTauTauTreeFromNanoBase::getGenMatch(TLorentzVector selObj)
 {
-
+    std::cout<<"int HTauTauTreeFromNanoBase::getGenMatch(TLorentzVector selObj)"<<std::endl;
     float dRTmp = 1.;
     float matchings[5] = {15.,15.,15.,15.,15.};
     debugWayPoint("[getGenMatch] ------ Begin -------");
@@ -1292,12 +1496,14 @@ int HTauTauTreeFromNanoBase::getGenMatch(TLorentzVector selObj)
                   {"pt","eta","phi"});
 
     for(unsigned int iGen=0;iGen<nGenPart;++iGen)
-    {
+    {   
+        std::cout<<1<<std::endl;
 
         if( GenPart_pt[iGen] > 8)
         {
+            std::cout<<2<<std::endl;
             dRTmp = evtWriter->calcDR( GenPart_eta[iGen],GenPart_phi[iGen],selObj.Eta(),selObj.Phi() );
-
+            std::cout<<3<<std::endl;
             int statusFlags=GenPart_statusFlags[iGen];
             bool GenPart_isPrompt=(statusFlags & (1<<0) ) == (1<<0);
             bool GenPart_isDirectPromptTauDecayProduct=(statusFlags & (1<<5) ) == (1<<5);
@@ -1305,11 +1511,14 @@ int HTauTauTreeFromNanoBase::getGenMatch(TLorentzVector selObj)
             //electron
             if(std::abs(GenPart_pdgId[iGen]) == 11)
             {
+                std::cout<<4<<std::endl;
                 if( dRTmp < matchings[0] && GenPart_isPrompt){
+                    std::cout<<5<<std::endl;
                     matchings[0] = dRTmp;
                     debugWayPoint("[getGenMatch] is prompt electron with",{(double)GenPart_pt[iGen], (double)dRTmp},{},{"pt","dR"});
                 }
                 if( dRTmp < matchings[2] && GenPart_isDirectPromptTauDecayProduct){
+                    std::cout<<6<<std::endl;
                     matchings[2] = dRTmp;
                     debugWayPoint("[getGenMatch] is direct prompt electron with",{(double)GenPart_pt[iGen], (double)dRTmp},{},{"pt","dR"});
                 }
@@ -1318,11 +1527,14 @@ int HTauTauTreeFromNanoBase::getGenMatch(TLorentzVector selObj)
             //muon
             if(fabs(GenPart_pdgId[iGen]) == 13)
             {
+                std::cout<<7<<std::endl;
                 if( dRTmp < matchings[1] && GenPart_isPrompt){
+                    std::cout<<8<<std::endl;
                     matchings[1] = dRTmp;
                     debugWayPoint("[getGenMatch] is prompt muon with",{(double)GenPart_pt[iGen], (double)dRTmp},{},{"pt","dR"});
                 }
                 if( dRTmp < matchings[3] && GenPart_isDirectPromptTauDecayProduct){
+                    std::cout<<9<<std::endl;
                     matchings[3] = dRTmp;
                     debugWayPoint("[getGenMatch] is direct prompt muon with",{(double)GenPart_pt[iGen], (double)dRTmp},{},{"pt","dR"});
                 }
@@ -1331,21 +1543,27 @@ int HTauTauTreeFromNanoBase::getGenMatch(TLorentzVector selObj)
             //tauhad
             if( fabs(GenPart_pdgId[iGen]) == 15 && GenPart_isPrompt)
             {
+                std::cout<<10<<std::endl;
                 TLorentzVector tmpLVec;
                 TLorentzVector remParticles;
                 remParticles.SetPtEtaPhiM(0.,0.,0.,0.);
+                std::cout<<11<<std::endl;
                 int nr_neutrinos = 0;
                 int nr_gammas = 0;
                 bool vetoLep = false;
+                std::cout<<12<<std::endl;
 
                 for(unsigned int iDau=0;iDau<nGenPart;++iDau)
                 {
+                    std::cout<<13<<std::endl;
                     if( ( fabs(GenPart_pdgId[iDau]) == 11 || fabs(GenPart_pdgId[iDau]) == 13 )
                         && (int)GenPart_genPartIdxMother[iDau] == (int)iGen
                         ) vetoLep = true;
+                    std::cout<<14<<std::endl;
 
                     if( fabs(GenPart_pdgId[iDau]) == 16 && (int)GenPart_genPartIdxMother[iDau] ==  (int)iGen)
                     {
+                        std::cout<<15<<std::endl;
 
                         tmpLVec.SetPtEtaPhiM(GenPart_pt[iDau],
                                              GenPart_eta[iDau],
@@ -1354,48 +1572,64 @@ int HTauTauTreeFromNanoBase::getGenMatch(TLorentzVector selObj)
                                              );
                         remParticles += tmpLVec;
                         if(fabs(GenPart_pdgId[iDau]) == 16) nr_neutrinos++;
+                        std::cout<<16<<std::endl;
                     }
+                    std::cout<<17<<std::endl;
 
                 }
-              
+                std::cout<<18<<std::endl;
                 if(vetoLep==false && nr_neutrinos == 1 )
                 {
+                    std::cout<<19<<std::endl;
                     TLorentzVector tau;
                     tau.SetPtEtaPhiM(GenPart_pt[iGen],
                                      GenPart_eta[iGen],
                                      GenPart_phi[iGen],
                                      GenPart_mass[iGen]
                                      );
-
+                    std::cout<<20<<std::endl;
                     if((tau-remParticles).Pt() > 15)
                     {
+                        std::cout<<21<<std::endl;
                         dRTmp = evtWriter->calcDR( (tau-remParticles).Eta(), (tau-remParticles).Phi(), selObj.Eta(), selObj.Phi() );
+                        std::cout<<22<<std::endl;
                         if( dRTmp < matchings[4] ){
+                            std::cout<<23<<std::endl;
                             matchings[4] = dRTmp;
                             debugWayPoint("[getGenMatch] genuine tau after radiation",{(double)dRTmp},{},{"dR"});
                         }
+                        std::cout<<24<<std::endl;
                     }
+                    std::cout<<25<<std::endl;
                 }
+                std::cout<<26<<std::endl;
             }//end tauhad
+            std::cout<<27<<std::endl;
         }
+        std::cout<<28<<std::endl;
     }
-
+    std::cout<<29<<std::endl;
     int whichObj = 1;
 
     float smallestObj = matchings[0];
     for(int i=1; i<5; i++)
     {
+        std::cout<<30<<std::endl;
         if(matchings[i] < smallestObj){
+            std::cout<<31<<std::endl;
             smallestObj = matchings[i];
             whichObj = i+1;
         }
+        std::cout<<32<<std::endl;
     }
     
     if(whichObj < 6 && smallestObj < 0.2)
     {
+        std::cout<<33<<std::endl;
         debugWayPoint("[getGenMatch] tightest match",{(double)smallestObj},{(int)whichObj},{"dR","=> gen_match"});
         return whichObj;
     }
+    std::cout<<34<<std::endl;
     debugWayPoint("[getGenMatch] no match => gen_match = 6");
     return 6;
 
@@ -1405,20 +1639,27 @@ int HTauTauTreeFromNanoBase::getGenMatch(TLorentzVector selObj)
 /////////////////////////////////////////////////
 void HTauTauTreeFromNanoBase::fillPairs(unsigned int bestPairIndex)
 {
+    std::cout<<"void HTauTauTreeFromNanoBase::fillPairs(unsigned int bestPairIndex)"<<std::endl;
     httPairCollection.clear();
+    std::cout<<1<<std::endl;
     if(bestPairIndex<9999 &&  bestPairIndex<httPairs_.size()){
+        std::cout<<2<<std::endl;
         httPairCollection.push_back(httPairs_[bestPairIndex]);
     }
+    std::cout<<3<<std::endl;
 }
 /////////////////////////////////////////////////
 /////////////////////////////////////////////////
 bool HTauTauTreeFromNanoBase::buildPairs()
 {
     httPairs_.clear();
+    std::cout<<"bool HTauTauTreeFromNanoBase::buildPairs()"<<std::endl;
     for(unsigned int iL1=0; iL1<httLeptonCollection.size()-1; ++iL1)
     {
+        std::cout<<1<<std::endl;
         for(unsigned int iL2=iL1+1; iL2<httLeptonCollection.size(); ++iL2)
         {
+            std::cout<<2<<std::endl;
 
             debugWayPoint("[buildPairs] Try pair",{},{(int)iL1,(int)iL2});
             if( !(httLeptonCollection[iL1].getP4().DeltaR(httLeptonCollection[iL2].getP4())>0.3) ) continue;
@@ -1428,39 +1669,53 @@ bool HTauTauTreeFromNanoBase::buildPairs()
             HTTPair aHTTpair;
 
             aHTTpair.setLeg1(httLeptonCollection.at(iL1),iL1);
+            std::cout<<3<<std::endl;
             aHTTpair.setLeg2(httLeptonCollection.at(iL2),iL2);
-            
-            httPairs_.push_back(aHTTpair); 
+            std::cout<<4<<std::endl;
+            httPairs_.push_back(aHTTpair);
+            std::cout<<5<<std::endl; 
         }
+        std::cout<<6<<std::endl;
     }
+    std::cout<<7<<std::endl;
     std::sort(httPairs_.begin(),httPairs_.end(),comparePairs);
+    std::cout<<8<<std::endl;
     return !httPairs_.empty();
 }
 /////////////////////////////////////////////////
 /////////////////////////////////////////////////
 template<class T> T HTauTauTreeFromNanoBase::getBranchValue(const char *branchAddress, unsigned int index)
 {
+    std::cout<<"template<class T> T HTauTauTreeFromNanoBase::getBranchValue(const char *branchAddress, unsigned int index)"<<std::endl;
     std::vector<T> *aVector = *(std::vector<T> **)(branchAddress);
     if(aVector->size()<=index){
+        std::cout<<1<<std::endl;
         return 0;
     }
+    std::cout<<2<<std::endl;
     return aVector->at(index);
 }
 /////////////////////////////////////////////////
 /////////////////////////////////////////////////
 Int_t  HTauTauTreeFromNanoBase::getFilter(std::string name)
 {
+    std::cout<<"Int_t  HTauTauTreeFromNanoBase::getFilter(std::string name)"<<std::endl;
     TBranch *branch = fChain->GetBranch(name.c_str());
+    std::cout<<1<<std::endl;
     if(!branch)
     {
+        std::cout<<2<<std::endl;
         if(firstWarningOccurence_)
           std::cout<<"Branch: "<<name<<" not found in the TTree."<<std::endl;
         return -999;
     }else{
+        std::cout<<3<<std::endl;
         TLeaf *leaf = branch->FindLeaf(name.c_str());
         bool decision = leaf!=nullptr ? leaf->GetValue() : false;
+        std::cout<<4<<std::endl;
         return decision;
     }
+    std::cout<<5<<std::endl;
 }
 
 /////////////////////////////////////////////////
@@ -1469,9 +1724,10 @@ std::vector<Double_t>  HTauTauTreeFromNanoBase::getProperties(const std::vector<
                                                               unsigned int index,
                                                               std::string colType)
 {
-
+    std::cout<<"std::vector<Double_t>  HTauTauTreeFromNanoBase::getProperties(const std::vector<std::string> & propertiesList,unsigned int index,std::string colType)"<<std::endl;
     TLorentzVector obj;
     obj.SetPtEtaPhiM(0,0,0,999999);
+    std::cout<<1<<std::endl;
     return getProperties(propertiesList,index,obj,colType);
 }
 /////////////////////////////////////////////////
@@ -1481,19 +1737,23 @@ std::vector<Double_t>  HTauTauTreeFromNanoBase::getProperties(const std::vector<
                                                               TLorentzVector obj,
                                                               std::string colType)
 {
-
+    std::cout<<"std::vector<Double_t>  HTauTauTreeFromNanoBase::getProperties(const std::vector<std::string> & propertiesList,unsigned int index,TLorentzVector obj,std::string colType"<<std::endl;
     std::vector<Double_t> aProperties;
     for(auto propertyName:propertiesList){
+        std::cout<<1<<std::endl;
         aProperties.push_back(getProperty(propertyName,index,obj,colType));
     }
+    std::cout<<2<<std::endl;
     return aProperties;
 }
 /////////////////////////////////////////////////
 /////////////////////////////////////////////////
 Double_t  HTauTauTreeFromNanoBase::getProperty(std::string name, unsigned int index, std::string colType)
 {
+    std::cout<<"Double_t  HTauTauTreeFromNanoBase::getProperty(std::string name, unsigned int index, std::string colType)"<<std::endl;
     TLorentzVector obj;
     obj.SetPtEtaPhiM(0,0,0,999999);
+    std::cout<<1<<std::endl;
     return getProperty(name,index,obj,colType);
 }
 
@@ -1501,72 +1761,104 @@ Double_t  HTauTauTreeFromNanoBase::getProperty(std::string name, unsigned int in
 /////////////////////////////////////////////////
 Double_t  HTauTauTreeFromNanoBase::getProperty(std::string name, unsigned int index, TLorentzVector obj, std::string colType)
 {
+    std::cout<<"Double_t  HTauTauTreeFromNanoBase::getProperty(std::string name, unsigned int index, TLorentzVector obj, std::string colType)"<<std::endl;
+    std::cout<<"name "<<name<<endl;
+    std::cout<<"index "<<index<<endl;
+    std::cout<<"colType "<<colType<<endl;
+    std::cout<<"obj components "<<obj.Px()<<" "<<obj.Py()<<" "<<obj.Pz()<<" "<<obj.E()<<endl;
 
     if(name=="mc_match") return getGenMatch(index,colType);
+    std::cout<<1<<std::endl;
     if(name=="isGoodTriggerType") return getTriggerMatching(index,obj,false,colType);
+    std::cout<<2<<std::endl;
     if(name=="FilterFired") return getTriggerMatching(index,obj,true,colType);//some overhead due to calling it again with a different option, but kept for backward compatibility (and debug)
+    std::cout<<3<<std::endl;
 
     if(colType=="Electron")
     {
-      if(name.find("Muon_")!=std::string::npos
+        std::cout<<4<<std::endl;
+        if(name.find("Muon_")!=std::string::npos
            || name.find("Tau_")!=std::string::npos
            || name.find("Jet_")!=std::string::npos
            || false) return 0;
+        std::cout<<5<<std::endl;
 
     }else if(colType=="Muon"){
+        std::cout<<6<<std::endl;
         if(name.find("Electron_")!=std::string::npos
            || name.find("Tau_")!=std::string::npos
            || name.find("Jet_")!=std::string::npos
            || false) return 0;
+        std::cout<<7<<std::endl;
 
     }else if(colType=="Tau"){
+        std::cout<<8<<std::endl;
         if(name.find("Electron_")!=std::string::npos
            || name.find("Muon_")!=std::string::npos
            || name.find("Jet_")!=std::string::npos
            || name.find("pfRelIso03_all")!=std::string::npos
            || name.find("sip3d")!=std::string::npos
            || false) return 0;
+        std::cout<<9<<std::endl;
 
         if(name.find("pdgId")!=std::string::npos)
         {
+            std::cout<<10<<std::endl;
             TBranch *branch = fChain->GetBranch("Tau_charge");
             if(!branch)
             {
+                std::cout<<11<<std::endl;
                 if(firstWarningOccurence_) std::cout<<"Branch: Tau_charge not found in the TTree, return pdgId=-15"<<std::endl;
+                std::cout<<12<<std::endl;
                 return -15;
             }
+            std::cout<<13<<std::endl;
             TLeaf *leaf = branch->FindLeaf("Tau_charge");
             int charge = leaf!=nullptr ? leaf->GetValue(index) : 0;
+            std::cout<<14<<std::endl;
             return charge>0 ? -15 : 15; 
-        }      
+
+        }  
+        std::cout<<15<<std::endl;    
     }
     else if(colType=="Jet"){
+        std::cout<<16<<std::endl;
         if(name.find("Jet_")==std::string::npos) return 0;
+        std::cout<<17<<std::endl;
     }
 
     if(colType!="" && name.find(colType+"_")==std::string::npos){
+        std::cout<<18<<std::endl;
         name = colType+"_"+name;
     }
-
+    std::cout<<19<<std::endl;
     TBranch *branch = fChain->GetBranch(name.c_str());
     if(!branch)
     {
+        std::cout<<20<<std::endl;
         if(firstWarningOccurence_) std::cout<<"Branch: "<<name<<" not found in the TTree."<<std::endl;
+        std::cout<<21<<std::endl;
         return 0;
     }
-
+    std::cout<<22<<std::endl;
     const char *branchAddress = branch->GetAddress();
     std::string branchClass(branch->GetClassName());
     if(branchClass=="vector<double>") return getBranchValue<double>(branchAddress, index);
+    std::cout<<23<<std::endl;
     if(branchClass=="vector<int>") return getBranchValue<int>(branchAddress, index);
+    std::cout<<24<<std::endl;
     if(branchClass=="vector<bool>") return getBranchValue<bool>(branchAddress, index);
+    std::cout<<25<<std::endl;
     if(branchClass=="vector<Long64_t>") return getBranchValue<Long64_t>(branchAddress, index);
+    std::cout<<26<<std::endl;
     //otherwise assume that index value makes sense
     if(branchClass==""){//check leafs
+        std::cout<<27<<std::endl;
         TLeaf *leaf = branch->FindLeaf(name.c_str());
         return leaf!=nullptr ? leaf->GetValue(index) : 0;
+        std::cout<<28<<std::endl;
     }
-
+    std::cout<<29<<std::endl;
     return 0;
 }
 /////////////////////////////////////////////////
@@ -1588,79 +1880,110 @@ Double_t  HTauTauTreeFromNanoBase::getProperty(std::string name, unsigned int in
 /////////////////////////////////////////////////
 void  HTauTauTreeFromNanoBase::writeTriggersHeader(const std::vector<TriggerData> &triggerBits)
 {
+    std::cout<<"void  HTauTauTreeFromNanoBase::writeTriggersHeader(const std::vector<TriggerData> &triggerBits)"<<std::endl;
     ofstream outputFile("TriggerEnum.h");
+    std::cout<<1<<std::endl;
     outputFile<<"enum class TriggerEnum { ";
+    std::cout<<2<<std::endl;
 
     for(unsigned int iBit=0;iBit<triggerBits.size();++iBit)
     {
+        std::cout<<3<<std::endl;
         std::string name = triggerBits[iBit].path_name;
         outputFile<<name<<" = "<<iBit<<", "<<std::endl;
+        std::cout<<4<<std::endl;
     }
+    std::cout<<5<<std::endl;
     outputFile<<"NONE"<<" = "<<triggerBits.size()<<std::endl;
+    std::cout<<6<<std::endl;
     outputFile<<"};"<<std::endl;
+    std::cout<<7<<std::endl;
     outputFile.close();
+    std::cout<<8<<std::endl;
 }
 /////////////////////////////////////////////////
 /////////////////////////////////////////////////
 void  HTauTauTreeFromNanoBase::writeFiltersHeader(const std::vector<std::string> &filterBits)
 {
+    std::cout<<"void  HTauTauTreeFromNanoBase::writeFiltersHeader(const std::vector<std::string> &filterBits)"<<std::endl;
     ofstream outputFile("FilterEnum.h");
+    std::cout<<1<<std::endl;
     outputFile<<"enum class FilterEnum { ";
+    std::cout<<2<<std::endl;
 
     for(unsigned int iItem=0;iItem<filterBits.size();++iItem){
+        std::cout<<3<<std::endl;
         std::string name = filterBits[iItem];
         outputFile<<name<<" = "<<iItem<<", "<<std::endl;
     }
+    std::cout<<4<<std::endl;
     outputFile<<"NONE"<<" = "<<filterBits.size()<<std::endl;
     outputFile<<"};"<<std::endl;
+    std::cout<<5<<std::endl;
     outputFile.close();
+    std::cout<<6<<std::endl;
 }
 /////////////////////////////////////////////////
 /////////////////////////////////////////////////
 void  HTauTauTreeFromNanoBase::writePropertiesHeader(const std::vector<std::string> & propertiesList)
 {
+    std::cout<<"void  HTauTauTreeFromNanoBase::writePropertiesHeader(const std::vector<std::string> & propertiesList)"<<std::endl;
 
     ofstream outputFile("PropertyEnum.h");
     outputFile<<"enum class PropertyEnum { ";
 
     for(unsigned int iItem=0;iItem<propertiesList.size();++iItem)
     {
+        std::cout<<1<<std::endl;
         std::string name = propertiesList[iItem];
         std::string pattern = "daughters_";
         if(name.find(pattern)!=std::string::npos) name.erase(name.find(pattern), pattern.size());
+        std::cout<<2<<std::endl;
         pattern = "Daughters";
         if(name.find(pattern)!=std::string::npos) name.erase(name.find(pattern), pattern.size());
+        std::cout<<3<<std::endl;
         pattern = "jets_";
         if(name.find(pattern)!=std::string::npos) name.erase(name.find(pattern), pattern.size());
+        std::cout<<4<<std::endl;
         pattern = "Jet_";
         if(name.find(pattern)!=std::string::npos) name.erase(name.find(pattern), pattern.size());
+        std::cout<<5<<std::endl;
         pattern = "Tau_";
         if(name.find(pattern)!=std::string::npos) name.erase(name.find(pattern), pattern.size());
+        std::cout<<6<<std::endl;
         pattern = "Muon_";
         if(name.find(pattern)!=std::string::npos) name.erase(name.find(pattern), pattern.size());
+        std::cout<<7<<std::endl;
         pattern = "Electron_";
         if(name.find(pattern)!=std::string::npos) name.erase(name.find(pattern), pattern.size());
+        std::cout<<8<<std::endl;
         outputFile<<name<<" = "<<iItem<<", "<<std::endl;
     }
+    std::cout<<9<<std::endl;
     outputFile<<"NONE"<<" = "<<propertiesList.size()<<std::endl;
     outputFile<<"};"<<std::endl;
     outputFile.close();
+    std::cout<<10<<std::endl;
 }
 /////////////////////////////////////////////////
 /////////////////////////////////////////////////
 
 std::vector<Int_t>  HTauTauTreeFromNanoBase::getFilters(const std::vector<std::string> & filtersList)
 {
+    std::cout<<"std::vector<Int_t>  HTauTauTreeFromNanoBase::getFilters(const std::vector<std::string> & filtersList)"<<std::endl;
     std::vector<Int_t> aFilters;
     for(auto propertyName:filtersList){
+        std::cout<<1<<std::endl;
         aFilters.push_back(getFilter(propertyName));
     }
+    std::cout<<2<<std::endl;
     return aFilters;
 }
 /////////////////////////////////////////////////
 /////////////////////////////////////////////////
 bool HTauTauTreeFromNanoBase::isGoodToMatch(unsigned int ind)
 {  
+    std::cout<<"bool HTauTauTreeFromNanoBase::isGoodToMatch(unsigned int ind)"<<std::endl;
     //MB: This method not mandatory as selection of good to match is applied upper in the flow. Anyway, an trivial implementation kept.
     return true;
 }
@@ -1668,42 +1991,64 @@ bool HTauTauTreeFromNanoBase::isGoodToMatch(unsigned int ind)
 /////////////////////////////////////////////////
 int HTauTauTreeFromNanoBase::getTriggerMatching(unsigned int index, TLorentzVector p4_1, bool checkBit, std::string colType)
 {
+    std::cout<<"int HTauTauTreeFromNanoBase::getTriggerMatching(unsigned int index, TLorentzVector p4_1, bool checkBit, std::string colType)"<<std::endl;
     //  TLorentzVector p4_1;
     unsigned int particleId=0;
     double dRmax=0.5;//was 0.25
 
     if(checkBit) debugWayPoint("[getTriggerMatching] ------ Begin -------");
 
-    if(colType=="Muon")            particleId=13;
-    else if(colType=="Electron")   particleId=11;
-    else if(colType=="Tau")        particleId=15;
+    if(colType=="Muon") {           
+        particleId=13;
+        std::cout<<1<<std::endl;
+    }
+    else if(colType=="Electron")  {
+        particleId=11;
+        std::cout<<2<<std::endl;
+    }
+    else if(colType=="Tau") {
+        particleId=15;
+        std::cout<<3<<std::endl;
+    }
     else return 0;
 
+    std::cout<<4<<std::endl;
     int firedBits = 0;
     for(unsigned int iTrg=0; iTrg<triggerBits_.size(); ++iTrg)
     {
+        std::cout<<5<<std::endl;
         bool decision = false;
         if(checkBit) debugWayPoint("[getTriggerMatching] " + triggerBits_[iTrg].path_name);
+        std::cout<<6<<std::endl;
         if (p4_1.Pt()<triggerBits_[iTrg].leg1OfflinePt) continue;
+        std::cout<<7<<std::endl;
 
         //check if trigger is fired
         TBranch *branch = fChain->GetBranch(triggerBits_[iTrg].path_name.c_str());
         if(branch!=nullptr)
         {
+            std::cout<<8<<std::endl;
             TLeaf *leaf = branch->FindLeaf(triggerBits_[iTrg].path_name.c_str());
+            std::cout<<9<<std::endl;
             decision = leaf!=nullptr ? leaf->GetValue() : false;
         }
+        std::cout<<10<<std::endl;
         if(!decision) continue; // do not check rest if trigger is not fired
+        std::cout<<11<<std::endl;
         if(checkBit) debugWayPoint("[getTriggerMatching] trigger fired");
+        std::cout<<12<<std::endl;
 
         //////////////////////// check legs //////////////////////////////////
         //////  first leg   //////// 
         decision = false;
         if(particleId==triggerBits_[iTrg].leg1Id)
         {
+            std::cout<<13<<std::endl;
             for(unsigned int iObj=0; iObj<nTrigObj; ++iObj)
             {
+                std::cout<<14<<std::endl;
                 if(TrigObj_id[iObj]!=(int)particleId) continue;
+                std::cout<<15<<std::endl;
                 TLorentzVector p4_trg;
                 p4_trg.SetPtEtaPhiM(TrigObj_pt[iObj],
                                     TrigObj_eta[iObj],
@@ -1711,95 +2056,132 @@ int HTauTauTreeFromNanoBase::getTriggerMatching(unsigned int index, TLorentzVect
                                     0.);
 
                 if( !(p4_1.DeltaR(p4_trg)<dRmax) ) continue;
+                std::cout<<16<<std::endl;
                 if(checkBit) debugWayPoint("[getTriggerMatching] matched with trigger object",{(double)TrigObj_pt[iObj],
                                                                                                (double)TrigObj_eta[iObj],
                                                                                                (double)TrigObj_phi[iObj] }, {},
                                                                                                {"pt","eta","phi"});
-
+                std::cout<<17<<std::endl;
                 if( triggerBits_[iTrg].leg1Pt>0   && !( TrigObj_pt[iObj]            > triggerBits_[iTrg].leg1Pt) ) continue;
+                std::cout<<18<<std::endl;
                 if( triggerBits_[iTrg].leg1Eta>0  && !( std::abs(TrigObj_eta[iObj]) < triggerBits_[iTrg].leg1Eta) ) continue;
+                std::cout<<19<<std::endl;
                 if( triggerBits_[iTrg].leg1L1Pt>0 && !( TrigObj_l1pt[iObj]          > triggerBits_[iTrg].leg1L1Pt) ) continue;
+                std::cout<<20<<std::endl;
                 if(checkBit) debugWayPoint("[getTriggerMatching] object passes l1pt cut",{(double)triggerBits_[iTrg].leg1L1Pt, (double)TrigObj_l1pt[iObj] },{},{"cut","l1pt"});
+                std::cout<<21<<std::endl;
 
                 if( checkBit && !( ((int)TrigObj_filterBits[iObj] & triggerBits_[iTrg].leg1BitMask)==triggerBits_[iTrg].leg1BitMask) ) continue;
+                std::cout<<22<<std::endl;
                 if(checkBit) debugWayPoint("[getTriggerMatching] passes filter");
+                std::cout<<23<<std::endl;
                 decision = true;
                 // break;
             }
+            std::cout<<24<<std::endl;
         }
+        std::cout<<25<<std::endl;
         if(decision){
+            std::cout<<26<<std::endl;
             firedBits |= (1<<iTrg);
             continue;
         }
+        std::cout<<27<<std::endl;
         //////////////////////////////////////////////////////////////////////
         //////  second leg   //////// 
         decision = false;
         if(particleId==triggerBits_[iTrg].leg2Id)
         {
+            std::cout<<28<<std::endl;
             for(unsigned int iObj=0; iObj<nTrigObj; ++iObj)
             {
+                std::cout<<29<<std::endl;
                 if(TrigObj_id[iObj]!=(int)particleId) continue;
                 TLorentzVector p4_trg;
                 p4_trg.SetPtEtaPhiM(TrigObj_pt[iObj],
                                     TrigObj_eta[iObj],
                                     TrigObj_phi[iObj],
                                     0.);
-
+                std::cout<<30<<std::endl;
                 if( !(p4_1.DeltaR(p4_trg)<dRmax) ) continue;
+                std::cout<<31<<std::endl;
                 if( triggerBits_[iTrg].leg2Pt>0   && !( TrigObj_pt[iObj]            > triggerBits_[iTrg].leg2Pt) ) continue;
+                std::cout<<32<<std::endl;
                 if( triggerBits_[iTrg].leg2Eta>0  && !( std::abs(TrigObj_eta[iObj]) < triggerBits_[iTrg].leg2Eta) ) continue;
+                std::cout<<33<<std::endl;
                 if( triggerBits_[iTrg].leg2L1Pt>0 && !( TrigObj_l1pt[iObj]          > triggerBits_[iTrg].leg2L1Pt) ) continue;
+                std::cout<<34<<std::endl;
 
                 if( checkBit && !( ((int)TrigObj_filterBits[iObj] & triggerBits_[iTrg].leg2BitMask)==triggerBits_[iTrg].leg2BitMask) ) continue;
+                std::cout<<35<<std::endl;
                 decision = true;
                 break;
+                std::cout<<36<<std::endl;
             }
+            std::cout<<37<<std::endl;
         }
+        std::cout<<38<<std::endl;
         if(decision){
+            std::cout<<39<<std::endl;
             firedBits |= (1<<iTrg);
             continue;
         }
+        std::cout<<40<<std::endl;
         ////////////////////////////////////////////////////////////////////// 
     }
+    std::cout<<41<<std::endl;
     return firedBits;
 }
 /////////////////////////////////////////////////
 /////////////////////////////////////////////////
 int HTauTauTreeFromNanoBase::getMetFilterBits()
 {
+    std::cout<<"int HTauTauTreeFromNanoBase::getMetFilterBits()"<<std::endl;
     int firedBits=0;
     for(unsigned int iFlt=0; iFlt<filterBits_.size(); ++iFlt)
     {
+        std::cout<<1<<std::endl;
         bool decision = false;
         //check if trigger is fired
         TBranch *branch = fChain->GetBranch(filterBits_[iFlt].c_str());
         if(branch!=nullptr)
         {
+            std::cout<<2<<std::endl;
             TLeaf *leaf = branch->FindLeaf(filterBits_[iFlt].c_str());
+            std::cout<<3<<std::endl;
             decision = leaf!=nullptr ? leaf->GetValue() : false;
         }
+        std::cout<<4<<std::endl;
         if(decision) firedBits |= (1<<iFlt);
+        std::cout<<5<<std::endl;
     }
+    std::cout<<6<<std::endl;
     return firedBits;
 }
 /////////////////////////////////////////////////
 /////////////////////////////////////////////////
 bool HTauTauTreeFromNanoBase::findBosonP4(TLorentzVector &bosonP4, TLorentzVector &visBosonP4)
 {
+    std::cout<<"bool HTauTauTreeFromNanoBase::findBosonP4(TLorentzVector &bosonP4, TLorentzVector &visBosonP4)"<<std::endl;
     bosonP4.SetXYZM(0,0,0,0);
     visBosonP4.SetXYZM(0,0,0,0);
-
+    std::cout<<1<<std::endl;
     if(b_nGenPart==nullptr) return false;
+    std::cout<<2<<std::endl;
 
     for(unsigned int iGen = 0; iGen < nGenPart; ++iGen)
     {
+        std::cout<<3<<std::endl;
         unsigned int absPdgId = std::abs(GenPart_pdgId[iGen]);
         if(absPdgId != 11 && absPdgId != 13 && absPdgId != 15 //charged leptons
            && absPdgId != 12 && absPdgId != 14 && absPdgId != 16 ) //neutrinos
           continue;
+        std::cout<<4<<std::endl;
 
         bool fromHardProcessFinalState = ( (GenPart_statusFlags[iGen] & (1<<8)) == (1<<8) );
+        std::cout<<5<<std::endl;
         if ( !(fromHardProcessFinalState ) ) continue;
+        std::cout<<6<<std::endl;
 
         //mass is stored only m>10GeV and photons m>1GeV
         double mass = GenPart_mass[iGen]>0 ? GenPart_mass[iGen] :
@@ -1807,15 +2189,17 @@ bool HTauTauTreeFromNanoBase::findBosonP4(TLorentzVector &bosonP4, TLorentzVecto
           absPdgId==13 ? 0.10566 :
           absPdgId==11 ? 0.51100e-3 : 0.;
 
+        std::cout<<7<<std::endl;
         TLorentzVector p4;
         p4.SetPtEtaPhiM(GenPart_pt[iGen],
                         GenPart_eta[iGen],
                         GenPart_phi[iGen],
                         mass);
-
+        std::cout<<8<<std::endl;
         std::vector<unsigned int> daughterIndexes;
         bool isFinal=getDirectDaughterIndexes(daughterIndexes,(int)iGen,false);//store neutrinos for further use
         if(!isFinal) continue;
+        std::cout<<9<<std::endl;
 
         bool isElectron = (absPdgId == 11);
         bool isMuon = (absPdgId == 13);
@@ -1836,28 +2220,37 @@ bool HTauTauTreeFromNanoBase::findBosonP4(TLorentzVector &bosonP4, TLorentzVecto
        //is the following correct? When undecayed particles are used (incl. taus) there should not be double counting
         if ( fromHardProcessFinalState && (isMuon || isElectron || isNeutrino || isTau) )
         {
+            std::cout<<10<<std::endl;
             bosonP4 += p4;
             if(!isNeutrino) visBosonP4 += p4;
+            std::cout<<11<<std::endl;
 
             if(isTau)
             {
-              //subtract p4 of tau neutrinos from visBosonP4
+                std::cout<<12<<std::endl;
+                //subtract p4 of tau neutrinos from visBosonP4
                 for(unsigned int iDau=0; iDau<daughterIndexes.size(); ++iDau)
                 {
+                    std::cout<<13<<std::endl;
                     unsigned int absPdgIdDau = std::abs(GenPart_pdgId[daughterIndexes[iDau]]);
                     if(absPdgIdDau != 12 && absPdgIdDau != 14 && absPdgIdDau != 16 ) continue; //neutrinos
-                      
+                    std::cout<<14<<std::endl;
+
                     TLorentzVector p4Dau;
                     p4Dau.SetPtEtaPhiM(GenPart_pt[daughterIndexes[iDau]],
                                        GenPart_eta[daughterIndexes[iDau]],
                                        GenPart_phi[daughterIndexes[iDau]],
                                        0.);
                     visBosonP4 -= p4Dau;
+                    std::cout<<15<<std::endl;
                 }
+                std::cout<<16<<std::endl;
             }
+            std::cout<<17<<std::endl;
         }
+        std::cout<<18<<std::endl;
     }
-    //std::cout<<"boson mass="<<bosonP4.M()<<std::endl;
+    std::cout<<"boson mass="<<bosonP4.M()<<std::endl;
 
     return ( bosonP4.M()>1E-3 || bosonP4.P()>1E-3 );
 }
@@ -1865,14 +2258,18 @@ bool HTauTauTreeFromNanoBase::findBosonP4(TLorentzVector &bosonP4, TLorentzVecto
 /////////////////////////////////////////////////
 bool HTauTauTreeFromNanoBase::findTopP4(TLorentzVector &topP4, TLorentzVector &antiTopP4)
 {
+    std::cout<<"bool HTauTauTreeFromNanoBase::findTopP4(TLorentzVector &topP4, TLorentzVector &antiTopP4)"<<std::endl;
     topP4.SetXYZM(0,0,0,0);
     antiTopP4.SetXYZM(0,0,0,0);
 
     if(b_nGenPart==nullptr) return false;
+    std::cout<<1<<std::endl;
 
     for(unsigned int iGen = 0; iGen < nGenPart; ++iGen)
     {
+        std::cout<<2<<std::endl;
         if(std::abs(GenPart_pdgId[iGen])!=6) continue;
+        std::cout<<3<<std::endl;
 
         //mass is stored only m>10GeV and photons m>1GeV (fine for top)
         TLorentzVector p4;
@@ -1884,104 +2281,135 @@ bool HTauTauTreeFromNanoBase::findTopP4(TLorentzVector &topP4, TLorentzVector &a
         std::vector<unsigned int> daughterIndexes;
         bool isFinal=getDirectDaughterIndexes(daughterIndexes,(int)iGen);
         if(!isFinal) continue;
+        std::cout<<4<<std::endl;
 
         if(GenPart_pdgId[iGen]==6) topP4 = p4;
+        std::cout<<5<<std::endl;
         if(GenPart_pdgId[iGen]==-6) antiTopP4 = p4;
+        std::cout<<6<<std::endl;
     }
-
+    std::cout<<7<<std::endl;
     return (topP4.M()>1E-3 && antiTopP4.M()>1E-3);
 }
 /////////////////////////////////////////////////
 /////////////////////////////////////////////////
 double HTauTauTreeFromNanoBase::getZPtReweight(const TLorentzVector &genBosonP4, bool doSUSY)
 {
-
+    std::cout<<"double HTauTauTreeFromNanoBase::getZPtReweight(const TLorentzVector &genBosonP4, bool doSUSY)"<<std::endl;
     double weight = 1.0;
 
     //Z pt reweighting
     
     if(genBosonP4.M()>1E-3)
     {
+        std::cout<<1<<std::endl;
         TH2D *hWeight = zptmass_histo;
         double mass = genBosonP4.M();
         double pt = genBosonP4.Perp();    
         int massBin = hWeight->GetXaxis()->FindBin(mass);
         int ptBin = hWeight->GetYaxis()->FindBin(pt);
         weight = hWeight->GetBinContent(massBin,ptBin);
+        std::cout<<2<<std::endl;
     }
+    std::cout<<3<<std::endl;
     return weight;
 }
 /////////////////////////////////////////////////
 /////////////////////////////////////////////////
 void HTauTauTreeFromNanoBase::computeSvFit(HTTPair &aPair, bool fastMTT)
 {
+    std::cout<<"void HTauTauTreeFromNanoBase::computeSvFit(HTTPair &aPair, bool fastMTT)"<<std::endl;
     if(svFitAlgo_==nullptr) return;
+    std::cout<<1<<std::endl;
 
     //Legs
     HTTParticle leg1 = aPair.getLeg1();
+    std::cout<<2<<std::endl;
     double mass1;
     int decay1 = -1;
     classic_svFit::MeasuredTauLepton::kDecayType type1;
     if(std::abs(leg1.getPDGid())==11)
     {
+        std::cout<<3<<std::endl;
         mass1 = 0.51100e-3; //electron mass
         type1 = classic_svFit::MeasuredTauLepton::kTauToElecDecay;
 
     }else if(std::abs(leg1.getPDGid())==13){
+        std::cout<<4<<std::endl;
         mass1 = 0.10566; //muon mass
         type1 = classic_svFit::MeasuredTauLepton::kTauToMuDecay;
 
     }else{//tau->hadrs.
+        std::cout<<5<<std::endl;
         decay1 = leg1.getProperty(PropertyEnum::decayMode);
         mass1 = leg1.getP4().M();
         if(decay1==0) mass1 = 0.13957; //pi+/- mass
+        std::cout<<6<<std::endl;
         type1 = classic_svFit::MeasuredTauLepton::kTauToHadDecay;
     }
+    std::cout<<7<<std::endl;
 
     HTTParticle leg2 = aPair.getLeg2();
     double mass2;
     int decay2 = -1;
     classic_svFit::MeasuredTauLepton::kDecayType type2;
+    std::cout<<8<<std::endl;
     if(std::abs(leg2.getPDGid())==11){
+        std::cout<<9<<std::endl;
         mass2 = 0.51100e-3; //electron mass
         type2 = classic_svFit::MeasuredTauLepton::kTauToElecDecay;
 
     }else if(std::abs(leg2.getPDGid())==13){
+        std::cout<<10<<std::endl;
         mass2 = 0.10566; //muon mass
         type2 = classic_svFit::MeasuredTauLepton::kTauToMuDecay;
 
     }else{//tau->hadrs.
+        std::cout<<11<<std::endl;
         decay2 = leg2.getProperty(PropertyEnum::decayMode);
         mass2 = leg2.getP4().M();
         if(decay2==0) mass2 = 0.13957; //pi+/- mass
+        std::cout<<12<<std::endl;
         type2 = classic_svFit::MeasuredTauLepton::kTauToHadDecay;
     }
+    std::cout<<13<<std::endl;
     //Leptons for SvFit
     std::vector<classic_svFit::MeasuredTauLepton> measuredTauLeptons;
     measuredTauLeptons.push_back(classic_svFit::MeasuredTauLepton(type1, leg1.getP4().Pt(), leg1.getP4().Eta(), leg1.getP4().Phi(), mass1, decay1) );
+    std::cout<<14<<std::endl;
     measuredTauLeptons.push_back(classic_svFit::MeasuredTauLepton(type2, leg2.getP4().Pt(), leg2.getP4().Eta(), leg2.getP4().Phi(), mass2, decay2) );
+    std::cout<<15<<std::endl;
     //MET
 
     TMatrixD covMET(2, 2);
+    std::cout<<16<<std::endl;
     covMET[0][0] = aPair.getMETMatrix().at(0);
+    std::cout<<17<<std::endl;
     covMET[0][1] = aPair.getMETMatrix().at(1);
+    std::cout<<18<<std::endl;
     covMET[1][0] = aPair.getMETMatrix().at(2);
+    std::cout<<19<<std::endl;
     covMET[1][1] = aPair.getMETMatrix().at(3);
+    std::cout<<20<<std::endl;
     if(covMET[0][0]==0 && covMET[1][0]==0 && covMET[0][1]==0 && covMET[1][1]==0) return; //singular covariance matrix    
-
+    std::cout<<21<<std::endl;
     TLorentzVector p4SVFit;
     vector<string> shifts;
 
     if(applyRecoil)
     {
+        std::cout<<22<<std::endl;
         for(auto shift : metShifts)                              shifts.push_back( shift.first );
-    }else
+    }
+    else
     {
+        std::cout<<23<<std::endl;
         for(auto shift : httJetCollection.getNeededJECShifts() ) shifts.push_back( shift.first );
     }
 
     for(auto shift : shifts )
     {
+        std::cout<<24<<std::endl;
         p4SVFit.SetPtEtaPhiM(-10,-.10,-10,-10);
 
         aPair.setCurrentMETShift(shift);
@@ -1990,110 +2418,137 @@ void HTauTauTreeFromNanoBase::computeSvFit(HTTPair &aPair, bool fastMTT)
         if( ( strcmp(shift.c_str(),"") != 0 && aPair.isInLooseSR() )
             || ( strcmp(shift.c_str(),"") == 0  )
         ){
+            std::cout<<25<<std::endl;
             if(massfit == true) {//compute fast mtt calculation
-                //std::cout << "computing Fast MTT" << std::endl;
+                std::cout<<26<<std::endl;
                 p4SVFit = runFastMttAlgo(measuredTauLeptons, aPair.getMET(), covMET);
-                //std::cout << "pt, eta phi, m" << "\t" << p4SVFit.Pt() << "\t" << p4SVFit.Eta()<< "\t" << p4SVFit.Phi()<< "\t" << p4SVFit.M() << std::endl;
-
+                
             }
-            else {//compute SV fit
-                //std::cout << "computing SV Fit" << std::endl;
+            else {
+                std::cout<<27<<std::endl;
                 p4SVFit = runSVFitAlgo(measuredTauLeptons, aPair.getMET(), covMET);
-                //std::cout << "pt, eta phi, m" << "\t" << p4SVFit.Pt() << "\t" << p4SVFit.Eta()<< "\t" << p4SVFit.Phi()<< "\t" << p4SVFit.M() << std::endl; 
             }
+            std::cout<<28<<std::endl;
         }
+        std::cout<<29<<std::endl;
 
         aPair.setP4(p4SVFit,shift);
     }
+    std::cout<<30<<std::endl;
     aPair.setCurrentMETShift("");
+    std::cout<<31<<std::endl;
 }
 /////////////////////////////////////////////////
 /////////////////////////////////////////////////
 TLorentzVector HTauTauTreeFromNanoBase::runFastMttAlgo(const std::vector<classic_svFit::MeasuredTauLepton> & measuredTauLeptons, const TVector2 &aMET, const TMatrixD &covMET)
 {
+    std::cout<<"TLorentzVector HTauTauTreeFromNanoBase::runFastMttAlgo(const std::vector<classic_svFit::MeasuredTauLepton> & measuredTauLeptons, const TVector2 &aMET, const TMatrixD &covMET)"<<std::endl;
     TLorentzVector p4FastMTT;
     if(measuredTauLeptons.size()!=2 || svFitAlgo_==nullptr) return p4FastMTT;
+    std::cout<<1<<std::endl;
 
     //Run FastMTT
     FastMTT aFastMTTAlgo;
     aFastMTTAlgo.run(measuredTauLeptons, aMET.X(), aMET.Y(), covMET);
+    std::cout<<2<<std::endl;
     LorentzVector ttP4 = aFastMTTAlgo.getBestP4();
     p4FastMTT.SetPtEtaPhiM(ttP4.Pt(),
                              ttP4.Eta(),
                              ttP4.Phi(),
                              ttP4.M());
 
-
+    std::cout<<3<<std::endl;
     return p4FastMTT;
 }
 /////////////////////////////////////////////////
 /////////////////////////////////////////////////
 TLorentzVector HTauTauTreeFromNanoBase::runSVFitAlgo(const std::vector<classic_svFit::MeasuredTauLepton> & measuredTauLeptons, const TVector2 &aMET, const TMatrixD &covMET)
 {
-
+    std::cout<<"TLorentzVector HTauTauTreeFromNanoBase::runSVFitAlgo(const std::vector<classic_svFit::MeasuredTauLepton> & measuredTauLeptons, const TVector2 &aMET, const TMatrixD &covMET)"<<std::endl;
     TLorentzVector p4SVFit;
     if(measuredTauLeptons.size()!=2 || svFitAlgo_==nullptr) return p4SVFit;
+    std::cout<<1<<std::endl;
 
     //set logM regularization term which is final state dependent
     double kappa = 4;
     if(measuredTauLeptons[0].type()==classic_svFit::MeasuredTauLepton::kTauToElecDecay 
        || measuredTauLeptons[0].type()==classic_svFit::MeasuredTauLepton::kTauToMuDecay)
     { //1st tau is lepton
+        std::cout<<2<<std::endl;
         if(measuredTauLeptons[1].type()==classic_svFit::MeasuredTauLepton::kTauToElecDecay 
            || measuredTauLeptons[1].type()==classic_svFit::MeasuredTauLepton::kTauToMuDecay)
         {
+            std::cout<<3<<std::endl;
             kappa = 3; //ll decay
         } else{
+            std::cout<<4<<std::endl;
             kappa = 4; //lt decay
         }
+        std::cout<<5<<std::endl;
 
     } else
     { //1st tau is hadron
-      if(measuredTauLeptons[1].type()==classic_svFit::MeasuredTauLepton::kTauToElecDecay
+        std::cout<<6<<std::endl;
+        if(measuredTauLeptons[1].type()==classic_svFit::MeasuredTauLepton::kTauToElecDecay
          || measuredTauLeptons[1].type()==classic_svFit::MeasuredTauLepton::kTauToMuDecay)
       {
+          std::cout<<7<<std::endl;
           kappa = 4; //ltau decay
       } else{
+          std::cout<<8<<std::endl;
           kappa = 5; //tt decay
       }
-    }    
+      std::cout<<9<<std::endl;
+    }  
+    std::cout<<10<<std::endl;  
     svFitAlgo_->addLogM_fixed(true, kappa);
+    std::cout<<11<<std::endl;
     svFitAlgo_->integrate(measuredTauLeptons, aMET.X(), aMET.Y(), covMET);
+    std::cout<<12<<std::endl;
 
     if(svFitAlgo_->isValidSolution() )//Get solution
     {
-
+        std::cout<<13<<std::endl;
         classic_svFit::DiTauSystemHistogramAdapter* aHistogramAdapter = static_cast< classic_svFit::DiTauSystemHistogramAdapter*>(svFitAlgo_->getHistogramAdapter());
         p4SVFit.SetPtEtaPhiM(aHistogramAdapter->getPt(),
                              aHistogramAdapter->getEta(),
                              aHistogramAdapter->getPhi(),
                              aHistogramAdapter->getMass());
+        std::cout<<14<<std::endl;
 
     }else{
+        std::cout<<15<<std::endl;
         p4SVFit.SetPtEtaPhiM(0,0,0,0);
     }
-
+    std::cout<<16<<std::endl;
     return p4SVFit;
 }
 /////////////////////////////////////////////////
 /////////////////////////////////////////////////
 void HTauTauTreeFromNanoBase::applyMetRecoilCorrections(HTTPair &aPair)
 {
+    std::cout<<"void HTauTauTreeFromNanoBase::applyMetRecoilCorrections(HTTPair &aPair)"<<std::endl;
 
     // Shift met by jec if there is not best pair or recoilCorrector is not initialized
     TVector2 met; met.SetMagPhi(MET_pt, MET_phi);
+    std::cout<<1<<std::endl;
     aPair.setMETMatrix(MET_covXX, MET_covXY, MET_covXY, MET_covYY);
+    std::cout<<2<<std::endl;
 
     if( recoilCorrector_==nullptr
         || httPairCollection.empty()
         || !applyRecoil
     )
     {
+        std::cout<<3<<std::endl;
         for(auto shift : httJetCollection.getNeededJECShifts() )
         {
+            std::cout<<4<<std::endl;
             aPair.setMET( met - httJetCollection.getTotalJetShift(shift.second.first, shift.second.second), shift.first );
         }
+        std::cout<<5<<std::endl;
         aPair.setCurrentMETShift(""); //Explicitly set current met to unshifted
+        std::cout<<6<<std::endl;
         return;
     }
 
@@ -2102,9 +2557,11 @@ void HTauTauTreeFromNanoBase::applyMetRecoilCorrections(HTTPair &aPair)
                                                               (double)met.Mod()},{},
                                                               {"met_px","met_py","met_pt"} ) ;
     aPair.setMET(met,""); // Set Met to propagate tes
-
+    std::cout<<7<<std::endl;
     TLorentzVector genBosonP4 = httEvent->getGenBosonP4();
+    std::cout<<8<<std::endl;
     TLorentzVector genBosonVisP4 = httEvent->getGenBosonP4(true);
+    std::cout<<9<<std::endl;
 
     float corrMEtPx, corrMEtPy;
     float MEtPx = aPair.getMET().Px();
@@ -2116,6 +2573,7 @@ void HTauTauTreeFromNanoBase::applyMetRecoilCorrections(HTTPair &aPair)
 
     int nJets = httJetCollection.getNJets(20);
     if(httEvent->getDecayModeBoson()>=10) nJets++; //W, add jet for fake tau
+    std::cout<<10<<std::endl;
       
 
     debugWayPoint("[applyMetRecoilCorrections] met after applying tes   ",{(double)MEtPx,
@@ -2151,24 +2609,29 @@ void HTauTauTreeFromNanoBase::applyMetRecoilCorrections(HTTPair &aPair)
     float met_scale_x, met_scale_y;
     for(auto shift : metShifts )
     {
+        std::cout<<11<<std::endl;
         met_scale_x = corrMEtPx;
         met_scale_y = corrMEtPy;
         // Do not apply shift for nominal
         if(shift.first.find("unclustered") != std::string::npos )
         {
+            std::cout<<12<<std::endl;
             if(shift.second.second == MEtSys::SysShift::Up)
             {
+                std::cout<<13<<std::endl;
                 met_scale_x += MET_MetUnclustEnUpDeltaX; 
                 met_scale_y += MET_MetUnclustEnUpDeltaY;
             }
             if(shift.second.second == MEtSys::SysShift::Down)
             {
+                std::cout<<14<<std::endl;
                 met_scale_x -= MET_MetUnclustEnUpDeltaX; 
                 met_scale_y -= MET_MetUnclustEnUpDeltaY;
             }            
 
         } else if(strcmp(shift.first.c_str(),"") != 0)
         {
+            std::cout<<15<<std::endl;
             metSys_->ApplyMEtSys(
                 corrMEtPx, corrMEtPy,        
                 gen_ll_px,gen_ll_py,         
@@ -2179,9 +2642,11 @@ void HTauTauTreeFromNanoBase::applyMetRecoilCorrections(HTTPair &aPair)
                 shift.second.second,        
                 met_scale_x,met_scale_y      
             );
-        }     
+        } 
+        std::cout<<16<<std::endl;    
         aPair.setMET( TVector2(met_scale_x,met_scale_y), shift.first, false); // Set met without applying tes a second time
     }
+    std::cout<<17<<std::endl;
     aPair.setCurrentMETShift("");
 
 
@@ -2191,15 +2656,29 @@ void HTauTauTreeFromNanoBase::applyMetRecoilCorrections(HTTPair &aPair)
 /////////////////////////////////////////////////
 bool HTauTauTreeFromNanoBase::compareLeptons(const HTTParticle& i, const HTTParticle& j)
 {
+    std::cout<<"bool HTauTauTreeFromNanoBase::compareLeptons(const HTTParticle& i, const HTTParticle& j)"<<std::endl;
     unsigned int i_type=2, j_type=2;
-    if(std::abs(i.getPDGid())==11)      i_type=1;//ele
-    else if(std::abs(i.getPDGid())==13) i_type=0;//mu
-      
-    if(std::abs(j.getPDGid())==11)      j_type=1;//ele
-    else if(std::abs(j.getPDGid())==13) j_type=0;//mu
-      
+    if(std::abs(i.getPDGid())==11) {
+        i_type=1;//ele
+        std::cout<<1<<std::endl;
+    }
+    else if(std::abs(i.getPDGid())==13) {
+        i_type=0;//mu
+        std::cout<<2<<std::endl;
+    }
+
+    if(std::abs(j.getPDGid())==11) {
+        j_type=1;//ele
+        std::cout<<3<<std::endl;
+    }
+    else if(std::abs(j.getPDGid())==13) {
+        j_type=0;//mu
+        std::cout<<4<<std::endl;
+    }
     if(i_type > j_type) return false;
+    std::cout<<5<<std::endl;
     if(i_type == j_type && i.getP4().Pt() < j.getP4().Pt() ) return false;
+    std::cout<<6<<std::endl;
 
     return true;
 }
@@ -2207,67 +2686,120 @@ bool HTauTauTreeFromNanoBase::compareLeptons(const HTTParticle& i, const HTTPart
 /////////////////////////////////////////////////
 bool HTauTauTreeFromNanoBase::comparePairs(const HTTPair& i, const HTTPair& j)
 {
+    std::cout<<"bool HTauTauTreeFromNanoBase::comparePairs(const HTTPair& i, const HTTPair& j)"<<std::endl;
     double i_iso=999, j_iso=999;
     unsigned int i_type=2, j_type=2;
 
     ////////////////////////////////////// Leg 1 ////////////////////////////////////////////////
     //step 0.5, leg 1 type: 2: tau, 1: e, 0: mu
 
-    if( std::abs(i.getLeg1().getPDGid())==11 ) i_type = 1;
-    else if( std::abs(i.getLeg1().getPDGid())==13 ) i_type = 0;
+    if( std::abs(i.getLeg1().getPDGid())==11 ) {
+        i_type = 1;
+        std::cout<<1<<std::endl;
+    }
+    else if( std::abs(i.getLeg1().getPDGid())==13 ) {
+        i_type = 0;
+        std::cout<<2<<std::endl;
+    }
+    if( std::abs(j.getLeg1().getPDGid())==11 ) {
+        j_type = 1;
+        std::cout<<3<<std::endl;
+    }
+    else if( std::abs(j.getLeg1().getPDGid())==13 ) {
+        j_type = 0;
+        std::cout<<4<<std::endl;
+    }
 
-    if( std::abs(j.getLeg1().getPDGid())==11 ) j_type = 1;
-    else if( std::abs(j.getLeg1().getPDGid())==13 ) j_type = 0;
-
-    if (i_type<j_type) return true;
-    else if(i_type>j_type) return false;
-
+    if (i_type<j_type) {
+        return true;
+        std::cout<<5<<std::endl;
+    }
+    else if(i_type>j_type) {
+        return false;
+        std::cout<<6<<std::endl;
+    }
     //step 1: two pairs with same leg1 lepton: leg 1 ISO
     i_iso = std::abs(i.getLeg1().getPDGid())==15 ? -i.getLeg1().getProperty(HTTEvent::usePropertyFor.at("tauIsolation")) :
             std::abs(i.getLeg1().getPDGid())==11 ? i.getLeg1().getProperty(HTTEvent::usePropertyFor.at("electronIsolation")):
             i.getLeg1().getProperty(HTTEvent::usePropertyFor.at("muonIsolation"));
     if(i_iso<-1) i_iso=999; //something went wrong
+    std::cout<<7<<std::endl;
 
     j_iso = std::abs(j.getLeg1().getPDGid())==15 ? -j.getLeg1().getProperty(HTTEvent::usePropertyFor.at("tauIsolation")) :
             std::abs(j.getLeg1().getPDGid())==11 ? j.getLeg1().getProperty(HTTEvent::usePropertyFor.at("electronIsolation")):
             j.getLeg1().getProperty(HTTEvent::usePropertyFor.at("muonIsolation"));
+
     if(j_iso<-1) j_iso=999; //something went wrong
+    std::cout<<8<<std::endl;
 
-    if (i_iso<j_iso) return true;
-    else if(i_iso>j_iso) return false;
-
+    if (i_iso<j_iso) {
+        return true;
+        std::cout<<9<<std::endl;
+    }
+    else if(i_iso>j_iso) {
+        return false;
+        std::cout<<10<<std::endl;
+    }
     //step 2: two pairs with same leg1 lepton that have same isolation: leg1 pt
-    if(i.getLeg1().getP4().Pt()>j.getLeg1().getP4().Pt()) return true;
-    else if(i.getLeg1().getP4().Pt()<j.getLeg1().getP4().Pt()) return false;
-
+    if(i.getLeg1().getP4().Pt()>j.getLeg1().getP4().Pt()) {
+        return true;
+        std::cout<<11<<std::endl;
+    }
+    else if(i.getLeg1().getP4().Pt()<j.getLeg1().getP4().Pt()) {
+        return false;
+        std::cout<<12<<std::endl;
+    }
     ////////////////////////////////////// Leg 2 ////////////////////////////////////////////////
     //step 2.5, leg 2 type
-    if( std::abs(i.getLeg2().getPDGid())==11 ) i_type = 1;
-    else if( std::abs(i.getLeg2().getPDGid())==13 ) i_type = 0;
-
-    if( std::abs(j.getLeg2().getPDGid())==11 ) j_type = 1;
-    else if( std::abs(j.getLeg2().getPDGid())==13 ) j_type = 0;
-
-    if (i_type<j_type) return true;
-    else if(i_type>j_type) return false;
+    if( std::abs(i.getLeg2().getPDGid())==11 ) {
+        i_type = 1;
+        std::cout<<13<<std::endl;
+    }
+    else if( std::abs(i.getLeg2().getPDGid())==13 ) {
+        i_type = 0;
+        std::cout<<14<<std::endl;
+    }
+    if( std::abs(j.getLeg2().getPDGid())==11 ) {
+        j_type = 1;
+        std::cout<<15<<std::endl;
+    }
+    else if( std::abs(j.getLeg2().getPDGid())==13 ) {
+        j_type = 0;
+        std::cout<<16<<std::endl;
+    }
+    if (i_type<j_type) {
+        return true;
+        std::cout<<17<<std::endl;
+    }
+    else if(i_type>j_type) {
+        return false;
+        std::cout<<18<<std::endl;
+    }
 
     //step 3: two pairs with same leg2 lepton: leg 2 ISO
     i_iso = std::abs(i.getLeg2().getPDGid())==15 ? -i.getLeg2().getProperty(HTTEvent::usePropertyFor.at("tauIsolation")) :
             std::abs(i.getLeg2().getPDGid())==11 ? i.getLeg2().getProperty(HTTEvent::usePropertyFor.at("electronIsolation")):
             i.getLeg2().getProperty(HTTEvent::usePropertyFor.at("muonIsolation"));
     if(i_iso<-1) i_iso=999; //something went wrong
+    std::cout<<19<<std::endl;
 
     j_iso = std::abs(j.getLeg2().getPDGid())==15 ? -j.getLeg2().getProperty(HTTEvent::usePropertyFor.at("tauIsolation")) :
             std::abs(j.getLeg2().getPDGid())==11 ? j.getLeg2().getProperty(HTTEvent::usePropertyFor.at("electronIsolation")):
             j.getLeg2().getProperty(HTTEvent::usePropertyFor.at("muonIsolation"));
     if(j_iso<-1) j_iso=999; //something went wrong
+    std::cout<<20<<std::endl;
 
-    if (i_iso<j_iso) return true;
-    else if(i_iso>j_iso) return false;
-
+    if (i_iso<j_iso) {
+        return true;
+        std::cout<<21<<std::endl;
+    }
+    else if(i_iso>j_iso) {
+        return false;
+        std::cout<<22<<std::endl;
+    }
     //step 4: two pairs with same leg2 lepton that have same isolation: leg2 pt
     if(i.getLeg2().getP4().Pt()>j.getLeg2().getP4().Pt()) return true;
-
+    std::cout<<23<<std::endl;
     return false;
 }
 /////////////////////////////////////////////////
@@ -2292,41 +2824,56 @@ bool HTauTauTreeFromNanoBase::comparePairs(const HTTPair& i, const HTTPair& j)
 /////////////////////////////////////////////////
 bool HTauTauTreeFromNanoBase::getDirectDaughterIndexes(std::vector<unsigned int> &indexes, unsigned int motherIndex, bool ignoreNeutrinos)
 {  
+    std::cout<<"bool HTauTauTreeFromNanoBase::getDirectDaughterIndexes(std::vector<unsigned int> &indexes, unsigned int motherIndex, bool ignoreNeutrinos)"<<std::endl;
     indexes.clear();
     bool isFinal=true;
     for(unsigned int iDau=0;iDau<nGenPart;iDau++)
     {
+        std::cout<<1<<std::endl;
         if(GenPart_genPartIdxMother[iDau]==(int)motherIndex)
         {
+            std::cout<<2<<std::endl;
             int aPdgId = std::abs(GenPart_pdgId[iDau]);
             if(aPdgId==std::abs(GenPart_pdgId[motherIndex])){
+                std::cout<<3<<std::endl;
                 isFinal=false;
             }
+            std::cout<<4<<std::endl;
             if((aPdgId==12 || aPdgId==14 || aPdgId==16) && ignoreNeutrinos) continue;
+            std::cout<<5<<std::endl;
             indexes.push_back(iDau);
         }
+        std::cout<<6<<std::endl;
     }
+    std::cout<<7<<std::endl;
     return isFinal;
 }
 /////////////////////////////////////////////////
 /////////////////////////////////////////////////
 unsigned int HTauTauTreeFromNanoBase::findFinalCopy(unsigned int index)
 {  
+    std::cout<<"unsigned int HTauTauTreeFromNanoBase::findFinalCopy(unsigned int index)"<<std::endl;
     std::vector<unsigned int> daughterIndexes;
     if(getDirectDaughterIndexes(daughterIndexes,index)) return index;
-
+    std::cout<<1<<std::endl;
     unsigned int newIndex=index;
     for(unsigned int iDau=0;iDau<daughterIndexes.size();iDau++)
     {
+        std::cout<<2<<std::endl;
         int pdgId = GenPart_pdgId[daughterIndexes[iDau]];
         if(pdgId==GenPart_pdgId[index]){
+            std::cout<<3<<std::endl;
             newIndex=daughterIndexes[iDau];
             break;
         }
+        std::cout<<4<<std::endl;
     }
+    std::cout<<5<<std::endl;
     //check if found copy is decaying (should not happen for unstable particles)
     getDirectDaughterIndexes(daughterIndexes,newIndex,false);
+    std::cout<<6<<std::endl;
     if(daughterIndexes.empty()) return index;
+    std::cout<<7<<std::endl;
 
     return findFinalCopy(newIndex);
 }
@@ -2334,11 +2881,14 @@ unsigned int HTauTauTreeFromNanoBase::findFinalCopy(unsigned int index)
 /////////////////////////////////////////////////
 unsigned int HTauTauTreeFromNanoBase::findFirstCopy(unsigned int index)
 {
+    std::cout<<"unsigned int HTauTauTreeFromNanoBase::findFirstCopy(unsigned int index)"<<std::endl;
     int mo_idx = GenPart_genPartIdxMother[index];
     if(mo_idx<0) return index;
+    std::cout<<1<<std::endl;
 
     int mo_pdgId = GenPart_pdgId[mo_idx];
     if(mo_pdgId!=GenPart_pdgId[index]) return index;
+    std::cout<<2<<std::endl;
     
     return findFirstCopy((unsigned int)mo_idx);
 }
@@ -2346,9 +2896,10 @@ unsigned int HTauTauTreeFromNanoBase::findFirstCopy(unsigned int index)
 /////////////////////////////////////////////////
 int HTauTauTreeFromNanoBase::genTauDecayMode(std::vector<unsigned int> &daughterIndexes)
 {
-
+    std::cout<<"int HTauTauTreeFromNanoBase::genTauDecayMode(std::vector<unsigned int> &daughterIndexes)"<<std::endl;
     if(daughterIndexes.empty()) return -99;
-   
+    std::cout<<1<<std::endl;
+
     int numElectrons      = 0;
     int numMuons          = 0;
     int numChargedPions   = 0;
@@ -2359,26 +2910,48 @@ int HTauTauTreeFromNanoBase::genTauDecayMode(std::vector<unsigned int> &daughter
     
     for(unsigned int idx=0; idx<daughterIndexes.size(); idx++) 
     {
+        std::cout<<2<<std::endl;
         int pdg_id = std::abs(GenPart_pdgId[daughterIndexes[idx]]);
-        if(pdg_id == 11) numElectrons++;
-        else if(pdg_id == 13) numMuons++;
-        else if(pdg_id == 211 || pdg_id == 321 ) numChargedPions++; //Count both pi+ and K+
-        else if(pdg_id == 111 || pdg_id == 130 || pdg_id == 310 || pdg_id == 311 ) numNeutralPions++; //Count both pi0 and K0 {_L/S}
+        if(pdg_id == 11) {
+            numElectrons++;
+            std::cout<<3<<std::endl;
+        }
+        else if(pdg_id == 13) {
+            numMuons++;
+            std::cout<<4<<std::endl;
+        }
+        else if(pdg_id == 211 || pdg_id == 321 ) { 
+            numChargedPions++; //Count both pi+ and K+
+            std::cout<<5<<std::endl;
+        }
+        else if(pdg_id == 111 || pdg_id == 130 || pdg_id == 310 || pdg_id == 311 ) {
+            numNeutralPions++; //Count both pi0 and K0 {_L/S}
+            std::cout<<6<<std::endl;
+        }
         else if(pdg_id == 12 || 
                 pdg_id == 14 || 
                 pdg_id == 16) {
             numNeutrinos++;
+            std::cout<<7<<std::endl;
         }
-        else if(pdg_id == 22) numPhotons++;
+        else if(pdg_id == 22) { 
+            numPhotons++;
+            std::cout<<8<<std::endl;
+        }
         else {
+            std::cout<<9<<std::endl;
             numOtherParticles++;
         }
+        std::cout<<10<<std::endl;
     }
+    std::cout<<11<<std::endl;
     if(numElectrons>1)//sometimes there are gamma->ee conversions
     { 
+        std::cout<<12<<std::endl;
         numPhotons += numElectrons/2;
         numElectrons -= 2*(numElectrons/2);
     }
+    std::cout<<13<<std::endl;
     //"convert" photons to piZeros
     numNeutralPions += numPhotons/2;
     numPhotons -= 2*(numPhotons/2);
@@ -2386,95 +2959,124 @@ int HTauTauTreeFromNanoBase::genTauDecayMode(std::vector<unsigned int> &daughter
 
     if( numOtherParticles == 0 )
     {
+        std::cout<<14<<std::endl;
         if( numElectrons == 1 )
         {
-          //--- tau decays into electrons
+            std::cout<<15<<std::endl;
+            //--- tau decays into electrons
           tauDecayMode = HTTAnalysis::tauDecaysElectron;
         }else if( numMuons == 1 ){
-          //--- tau decays into muons
+            std::cout<<16<<std::endl;
+            //--- tau decays into muons
           tauDecayMode = HTTAnalysis::tauDecayMuon;
         }else {
             //--- hadronic tau decays
+            std::cout<<17<<std::endl;
             switch ( numChargedPions )
             {
               case 1 :
                   if( numPhotons != 0 )
                   {
+                      std::cout<<18<<std::endl;
                       tauDecayMode =  HTTAnalysis::tauDecayOther;
                       break;
                   }
                   switch ( numNeutralPions )
                   {
-                      case 0:
+                      case 0:   
+                          std::cout<<19<<std::endl;
                           tauDecayMode = HTTAnalysis::tauDecay1ChargedPion0PiZero;
                           break;
                       case 1:
+                          std::cout<<20<<std::endl;
                           tauDecayMode = HTTAnalysis::tauDecay1ChargedPion1PiZero;
                           break;
                       case 2:
+                          std::cout<<21<<std::endl;
                           tauDecayMode = HTTAnalysis::tauDecay1ChargedPion2PiZero;
                           break;
                       case 3:
+                          std::cout<<22<<std::endl;
                           tauDecayMode = HTTAnalysis::tauDecay1ChargedPion3PiZero;
                           break;
                       case 4:
+                          std::cout<<23<<std::endl;
                           tauDecayMode = HTTAnalysis::tauDecay1ChargedPion4PiZero;
                           break;
                       default:
+                          std::cout<<24<<std::endl;
                           tauDecayMode = HTTAnalysis::tauDecayOther;
                           break;
                   }
+                  std::cout<<25<<std::endl;
                   break;
               case 3 : 
                   if( numPhotons != 0 )
                   {
+                      std::cout<<26<<std::endl;
                       tauDecayMode = HTTAnalysis::tauDecayOther;
                       break;
                   }
                   switch ( numNeutralPions )
                   {
-                      case 0 : 
+                      case 0 :
+                          std::cout<<27<<std::endl; 
                           tauDecayMode = HTTAnalysis::tauDecay3ChargedPion0PiZero;
                           break;
                       case 1 : 
+                          std::cout<<28<<std::endl;
                           tauDecayMode = HTTAnalysis::tauDecay3ChargedPion1PiZero;
                           break;
                       case 2 : 
+                          std::cout<<29<<std::endl;
                           tauDecayMode = HTTAnalysis::tauDecay3ChargedPion2PiZero;
                           break;
                       case 3 : 
+                          std::cout<<30<<std::endl;
                           tauDecayMode = HTTAnalysis::tauDecay3ChargedPion3PiZero;
                           break;
                       case 4 : 
+                          std::cout<<31<<std::endl;
                           tauDecayMode = HTTAnalysis::tauDecay3ChargedPion4PiZero;
                           break;
                       default:
+                          std::cout<<32<<std::endl;
                           tauDecayMode = HTTAnalysis::tauDecayOther;
                           break;
                   }
+                  std::cout<<33<<std::endl;
                   break;
             }
+            std::cout<<34<<std::endl;
         }
+        std::cout<<35<<std::endl;
     }
+    std::cout<<36<<std::endl;
     return tauDecayMode;
 }
 /////////////////////////////////////////////////
 /////////////////////////////////////////////////
 bool HTauTauTreeFromNanoBase::eventInJson()
 {
+    std::cout<<"bool HTauTauTreeFromNanoBase::eventInJson()"<<std::endl;
     //If the jsonVec is empty, then no JSON file was provided so all events should be accepted
     if( jsonVector.empty() ) return true;
+    std::cout<<1<<std::endl;
 
     edm::LuminosityBlockID lumiID(run, luminosityBlock);
     for(std::vector<edm::LuminosityBlockRange>::const_iterator itr = jsonVector.begin(); itr != jsonVector.end(); itr++){
+        std::cout<<2<<std::endl;
         if( edm::contains(*itr,lumiID) ) return true;
+        std::cout<<3<<std::endl;
     }
+    std::cout<<4<<std::endl;
     return false;
 }
 /////////////////////////////////////////////////
 /////////////////////////////////////////////////
 void HTauTauTreeFromNanoBase::debugWayPoint(string description, vector<double> dbls, vector<int> ints, vector<string> descr)
 {
+    //std::cout<<"void HTauTauTreeFromNanoBase::debugWayPoint(string description, vector<double> dbls, vector<int> ints, vector<string> descr)"<<std::endl;
     if (event==check_event_number)
     {   int ind = 0;
         bool what = dbls.size() + ints.size() == descr.size();
@@ -2482,14 +3084,19 @@ void HTauTauTreeFromNanoBase::debugWayPoint(string description, vector<double> d
         cout << description << ": ";
         for( auto &d : dbls )
         {   
+            //std::cout<<1<<std::endl;
             cout << descr[ind] << "(" << d << ") ";
             if(what) ind++;
+            //std::cout<<2<<std::endl;
         }
+        //std::cout<<3<<std::endl;
         for( auto &i : ints )
         {
+            //std::cout<<4<<std::endl;
             cout << descr[ind] << "(" << i << ") ";
             if(what) ind++;
         }
+        //std::cout<<5<<std::endl;
         cout << endl;
     }
 }

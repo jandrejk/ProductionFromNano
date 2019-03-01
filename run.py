@@ -80,12 +80,13 @@ def makeSubmitList( sample, channel ):
         for s in samples:
 
             # if "/data/" in s and sh != "": continue
-            if c == "et" and not "/mc/" in s and not "samples/data/SingleElectron" in s: continue
-            if c == "mt" and not "/mc/" in s and not "samples/data/SingleMuon" in s: continue
-            if c == "tt" and not "/mc/" in s and not "samples/data/Tau" in s: continue
+            if c == "et" and not "/mc/" in s and not "/emb/" in s and not "samples/data/SingleElectron" in s: continue
+            if c == "mt" and not "/mc/" in s and not "/emb/" in s and not "samples/data/SingleMuon" in s: continue
+            if c == "tt" and not "/mc/" in s and not "/emb/" in s and not "samples/data/Tau" in s: continue
 
             submitlist.append( { "sample":s, "channel":c } )
 
+    print submitlist
     return submitlist
 
 
@@ -352,6 +353,7 @@ class SteerNanoProduction():
     def makeConfigBalls(self,sample, shift):
         configBalls = []
         samples_avail = glob("samples/*/*/*")
+        print sample
         for sa in samples_avail:
             if sample + ".txt" in sa:
                 files = self.getFiles(sa)
@@ -374,15 +376,29 @@ class SteerNanoProduction():
             configBall["nevents"]     = int(self.nevents)
             configBall["check_event"] = int(self.event)
             configBall["isSync"]      = self.sync
-            if  parts[1] == "mc":
+            
+            
+            if parts[1] == 'emb' :
+                configBall["isEMB"]        = True
                 configBall["isMC"]        = True
                 configBall["certJson"] = ""
                 configBall["puTag"]    = puTag[ sample ]["putag"]
                 configBall["xsec"]     = puTag[ sample ]["xsec"]
                 configBall["genNEvents"]  = puTag[ sample ]["nevents"]
 
-            else:
+
+            if  parts[1] == "mc" :
+                configBall["isEMB"]        = False
+                configBall["isMC"]        = True
+                configBall["certJson"] = ""
+                configBall["puTag"]    = puTag[ sample ]["putag"]
+                configBall["xsec"]     = puTag[ sample ]["xsec"]
+                configBall["genNEvents"]  = puTag[ sample ]["nevents"]
+
+
+            if parts[1] == "data" :
                 configBall["isMC"]        = False
+                configBall["isEMB"]        = False
                 configBall["certJson"] = self.certJson
                 configBall["puTag"]   = "pileup"
 

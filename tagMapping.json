@@ -246,7 +246,21 @@
 		"xsec":544.3,
 		"nevents_from_DAS":11333705,
 		"nevents":11333705
-	}
+	},
+	"mutau": {
+               "xsec":4.321,
+               "putag":"pileup",
+               "nevents_from_DAS":3000000,
+               "nevents":3000000
+                       
+       },
+       "mutauTest": {
+               "xsec":4.321,
+               "putag":"pileup",
+               "nevents_from_DAS":3000000,
+               "nevents":3000000
+                       
+       }
 
 }
 

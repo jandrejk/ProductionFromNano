@@ -37,7 +37,7 @@ class HTTEvent{
 
   static std::map<string,PropertyEnum> usePropertyFor;
 
-  enum sampleTypeEnum {DUMMY, MuonData, EleData, TauData , DY, DYLowM, WJets, TTbar, ST, Diboson, EWK, h, H, A};
+  enum sampleTypeEnum {DUMMY, MuonData, EleData, TauData , DY, DYLowM, WJets, TTbar, ST, Diboson, EWK, h, H, A, EmbMuTau, EmbElTau, EmbTauTau};
 
   static const int ntauIds = 13;
   static const int againstMuIdOffset = 0;

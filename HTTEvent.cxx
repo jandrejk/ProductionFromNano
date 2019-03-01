@@ -88,6 +88,10 @@ void HTTEvent::setSampleType(string sampletype)
   if(sampletype == "diboson")        sampleType = Diboson;
   if(sampletype == "ewk")            sampleType = EWK;   
   if(sampletype == "signal")         sampleType = h;
+  if(sampletype == "MuTau")          sampleType = EmbMuTau;
+  if(sampletype == "ElTau")          sampleType = EmbElTau;
+  if(sampletype == "TauTau")         sampleType = EmbTauTau;
+
   sampletype = DUMMY;
 }
 void HTTEvent::setTHU_uncertainties(int njets, double ptH, int stxs1)
