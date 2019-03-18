@@ -132,6 +132,7 @@ class EventWriter
   int trg_doubletau_40_tightiso;
   int trg_doubletau_40_mediso_tightid;
   int trg_doubletau_35_tightiso_tightid;
+  int trg_doubletau_35_mediso_HPS;
   int trg_muonelectron; //fires HLT_Mu8_TrkIsoVVL_Ele23_CaloIdL_TrackIdL_IsoVL or HLT_Mu23_TrkIsoVVL_Ele12_CaloIdL_TrackIdL_IsoVL
   int flagMETFilter;
   int Flag_METFilters;

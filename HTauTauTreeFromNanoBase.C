@@ -52,7 +52,8 @@ HTauTauTreeFromNanoBase::HTauTauTreeFromNanoBase(TTree *tree, std::vector<edm::L
     if( applyRecoil )
     {
         std::cout<<"[HTauTauTreeFromNanoBase]: Apply MET recoil corrections"<<std::endl;
-        std::string correctionFile = "HTT-utilities/RecoilCorrections/data/Type1_PFMET_2017.root";
+        // Janik: here the path to the root file used for recoil corrections
+        std::string correctionFile = "HTT-utilities/RecoilCorrections/data/TypeI-PFMet_Run2018.root"; // Type I PF MET 2018
         recoilCorrector_= std::unique_ptr<RecoilCorrector>( new RecoilCorrector(correctionFile) );
         metSys_         = std::unique_ptr<MEtSys>( new MEtSys("HTT-utilities/RecoilCorrections/data/MEtSys.root") );
 
@@ -77,8 +78,8 @@ HTauTauTreeFromNanoBase::HTauTauTreeFromNanoBase(TTree *tree, std::vector<edm::L
     {
         ///https://twiki.cern.ch/twiki/bin/viewauth/CMS/JECDataMC
         std::cout<<"[HTauTauTreeFromNanoBase]: Instantiate JEC uncertainty sources"<<std::endl;
-        initJecUnc("utils/jec_uncert/Fall17_17Nov2017_V6_MC_UncertaintySources_AK4PFchs.txt");
-
+        initJecUnc("utils/jec_uncert/Autumn18_V3_MC_UncertaintySources_AK4PFchs.txt");
+        
         std::cout<<"[HTauTauTreeFromNanoBase]: Load files and init for promote-demote"<<std::endl;
         httJetCollection.initForPromoteDemote();
     }
@@ -168,9 +169,9 @@ void HTauTauTreeFromNanoBase::initHTTTree(const TTree *tree, std::string prefix)
 
     ////////////////////////////////////////////////////////////
     HTTEvent::usePropertyFor["electronIsolation"]  = PropertyEnum::pfRelIso03_all;
-    HTTEvent::usePropertyFor["electronIDWP80"]     = PropertyEnum::mvaFall17noIso_WP80_v2;
-    HTTEvent::usePropertyFor["electronIDWP90"]     = PropertyEnum::mvaFall17noIso_WP90_v2;
-    HTTEvent::usePropertyFor["electronIDCutBased"] = PropertyEnum::cutBased_v2;
+    HTTEvent::usePropertyFor["electronIDWP80"]     = PropertyEnum::mvaFall17V2noIso_WP80;
+    HTTEvent::usePropertyFor["electronIDWP90"]     = PropertyEnum::mvaFall17V2noIso_WP90;
+    HTTEvent::usePropertyFor["electronIDCutBased"] = PropertyEnum::cutBased;
     HTTEvent::usePropertyFor["muonIsolation"]      = PropertyEnum::pfRelIso04_all;
     HTTEvent::usePropertyFor["muonID"]             = PropertyEnum::mediumId;
     HTTEvent::usePropertyFor["tauIsolation"]       = PropertyEnum::rawMVAoldDM2017v2;
@@ -207,7 +208,6 @@ void HTauTauTreeFromNanoBase::initHTTTree(const TTree *tree, std::string prefix)
     // 7 = hltL3fL1TripleMu*
     // 8 = max(filter('hltL3fL1DoubleMu*EG*Filtered*'),filter('hltDiMu*Ele*CaloIdLTrackIdLElectronleg*Filter'))
     // 9 = max(filter('hltL3fL1Mu*DoubleEG*Filtered*'),filter('hltMu*DiEle*CaloIdLTrackIdLElectronleg*Filter'))
-            
 
     // Tau
     // 0 = *LooseChargedIso*
@@ -331,6 +331,16 @@ void HTauTauTreeFromNanoBase::initHTTTree(const TTree *tree, std::string prefix)
     triggerBits_.back().leg2BitMask=(1<<2) + (1<<6);;
     // triggerBits_.back().leg2Pt=40;
     // triggerBits_.back().leg2Eta=2.1;
+
+    triggerBits_.push_back(aTrgData);
+    triggerBits_.back().path_name="HLT_DoubleMediumChargedIsoPFTauHPS35_Trk1_eta2p1_Reg";
+    triggerBits_.back().leg1Id=15;
+    triggerBits_.back().leg1BitMask=(1<<1) + (1<<6);
+
+    triggerBits_.back().leg2Id=15;
+    triggerBits_.back().leg2BitMask=(1<<1) + (1<<6);
+
+
     ////////////////////////////////////////////////////////////
     ///Filter bits to check
     for(auto filter : FilterNames) // Defined in FilterEnum.h
@@ -407,7 +417,6 @@ void HTauTauTreeFromNanoBase::Loop(Long64_t nentries_max, unsigned int sync_even
             fillGenLeptons();
             fillPairs(bestPairIndex);
             fillEvent(bestPairIndex);
-
             HTTPair & bestPair = httPairCollection[0];
             applyMetRecoilCorrections(bestPair); // Adds met to pair 
 
@@ -417,13 +426,13 @@ void HTauTauTreeFromNanoBase::Loop(Long64_t nentries_max, unsigned int sync_even
                 bool fastMTT = false;
                 computeSvFit(bestPair,fastMTT);
             }
-
-
+            
             evtWriter->fill(httEvent.get(), &httJetCollection, httLeptonCollection, &bestPair);
             evtWriter->entry=entry++;
             evtWriter->fileEntry=jentry;
             t_TauCheck->Fill();
 
+            
             hStats->Fill(2);//Number of events saved to ntuple
             hStats->Fill(3,httEvent->getMCWeight());//Sum of weights saved to ntuple
             if(firstWarningOccurence_) firstWarningOccurence_ = false; //stop to warn once the first pair is found and filled
@@ -580,7 +589,7 @@ void HTauTauTreeFromNanoBase::fillEvent(unsigned int bestPairIndex)
     if( isMC )//Assume that all those are filled for MC
     {
 
-        httEvent->setStage1Cat( GenHiggs_stage1PtJet30 );
+        httEvent->setStage1Cat( HTXS_stage_1_pTjet30 );
 
         httEvent->setMCWeight( sgn(genWeight) );
         httEvent->setXsec( Settings["xsec"].get<float>() );
@@ -637,13 +646,13 @@ void HTauTauTreeFromNanoBase::fillEvent(unsigned int bestPairIndex)
         /////////////////////////////////////////////////////////////////////////////////////////////////////
         if(nnlo_ggh_graphs)
         {
-            if      (GenHiggs_njets30==0)      httEvent->setNNLO_ggH_weight( NNLOPSratio_pt_powheg_0jet->Eval( GenHiggs_pt > 125.0 ? 125.0 : GenHiggs_pt ) );
-            else if (GenHiggs_njets30==1)      httEvent->setNNLO_ggH_weight( NNLOPSratio_pt_powheg_1jet->Eval( GenHiggs_pt > 625.0 ? 625.0 : GenHiggs_pt ) );
-            else if (GenHiggs_njets30==2)      httEvent->setNNLO_ggH_weight( NNLOPSratio_pt_powheg_2jet->Eval( GenHiggs_pt > 800.0 ? 800.0 : GenHiggs_pt ) );
-            else if (GenHiggs_njets30>=3)      httEvent->setNNLO_ggH_weight( NNLOPSratio_pt_powheg_3jet->Eval( GenHiggs_pt > 925.0 ? 925.0 : GenHiggs_pt ) );
+            if      (HTXS_njets30==0)      httEvent->setNNLO_ggH_weight( NNLOPSratio_pt_powheg_0jet->Eval( HTXS_Higgs_pt > 125.0 ? 125.0 : HTXS_Higgs_pt ) );
+            else if (HTXS_njets30==1)      httEvent->setNNLO_ggH_weight( NNLOPSratio_pt_powheg_1jet->Eval( HTXS_Higgs_pt > 625.0 ? 625.0 : HTXS_Higgs_pt ) );
+            else if (HTXS_njets30==2)      httEvent->setNNLO_ggH_weight( NNLOPSratio_pt_powheg_2jet->Eval( HTXS_Higgs_pt > 800.0 ? 800.0 : HTXS_Higgs_pt ) );
+            else if (HTXS_njets30>=3)      httEvent->setNNLO_ggH_weight( NNLOPSratio_pt_powheg_3jet->Eval( HTXS_Higgs_pt > 925.0 ? 925.0 : HTXS_Higgs_pt ) );
             else                               httEvent->setNNLO_ggH_weight( 1.0 );
 
-            httEvent->setTHU_uncertainties(GenHiggs_njets30, GenHiggs_pt, GenHiggs_stage1PtJet30);
+            httEvent->setTHU_uncertainties(HTXS_njets30, HTXS_Higgs_pt, HTXS_stage_1_pTjet30);
         }
     }
 
@@ -700,6 +709,54 @@ bool HTauTauTreeFromNanoBase::jetSelection(unsigned int index, unsigned int best
                      Jet_eta[index],
                      Jet_phi[index],
                      Jet_mass[index]);
+    // recalculate jet ID
+
+//     if std::abs(Jet_eta[index] <= 2.6) {
+
+//         double nhf = Jet
+
+//         int tightJetID = (std::abs(Jet_eta[index])<=2.6 && 
+//             CEMF<0.8 && 
+//             CHM>0 && 
+//             CHF>0 && 
+//             NumConst>1 && 
+//             NEMF<0.9 && 
+//             MUF <0.8 && 
+//             NHF < 0.9 );
+//     }
+
+//     For |eta|<=2.6 Apply
+
+
+
+// For 2.6<|eta|<=2.7 Apply
+
+// tightJetID = ( abs(eta)>2.6 && abs(eta)<=2.7 && CEMF<0.8 && CHM>0 && NEMF<0.99 && MUF <0.8 && NHF < 0.9 );
+
+// For 2.7<|eta|<= 3.0 Apply
+
+// tightJetID = ( NEMF>0.02 && NEMF<0.99 && NumNeutralParticle>2 && abs(eta)>2.7 && abs(eta)<=3.0 )
+
+// For |eta|> 3.0 Apply
+
+// tightJetID = (NEMF<0.90 && NHF>0.2 && NumNeutralParticle>10 && abs(eta)>3.0 )
+
+
+//  // Apply jet ID to uncorrected jet
+//                 double nhf = jet.neutralHadronEnergy() / uncorrJet.E();
+//                 double nef = jet.neutralEmEnergy() / uncorrJet.E();
+//                 double chf = jet.chargedHadronEnergy() / uncorrJet.E();
+//                 double cef = jet.chargedEmEnergy() / uncorrJet.E();
+//                 int nconstituents = jet.numberOfDaughters();
+//                 int nch = jet.chargedMultiplicity();
+//                 bool goodJet = 
+//                   nhf < 0.99 &&
+//                   nef < 0.99 &&
+//                   chf > 0.00 &&
+//                   cef < 0.99 &&
+//                   nconstituents > 1 &&
+//                   nch > 0;
+
 
     bool passSelection = std::abs(aP4.Eta())<4.7
                          && Jet_jetId[index]>=1;//it means at least loose
@@ -713,7 +770,7 @@ bool HTauTauTreeFromNanoBase::jetSelection(unsigned int index, unsigned int best
                          && aP4.DeltaR(leg2P4) > 0.5;
     }
 
-    if( 2.65 < std::abs( aP4.Eta() ) && std::abs( aP4.Eta() ) <  3.139 && aP4.Pt() < 50) return false; // removal of jets from EE noise
+    //if( 2.65 < std::abs( aP4.Eta() ) && std::abs( aP4.Eta() ) <  3.139 && aP4.Pt() < 50) return false; // removal of jets from EE noise
     return passSelection;
 }
 /////////////////////////////////////////////////
@@ -967,8 +1024,8 @@ void HTauTauTreeFromNanoBase::fillLeptons()
                                             LeptonCuts::Di.Electron.pt
 
                                           } );
-
-        if (Electron_eCorr[iEl]>0) e_pt/=Electron_eCorr[iEl];
+        // No Electron_eCorr
+        //if (Electron_eCorr[iEl]>0) e_pt/=Electron_eCorr[iEl];
         if( !(e_pt>loosestElectronPtCut) ) continue;
         debugWayPoint("[fillLeptons] Electron passes loosest pt cut",{(double)e_pt,(double)loosestElectronPtCut },{}, {"pt","cut"} );
         HTTParticle aLepton;
@@ -1960,7 +2017,7 @@ void HTauTauTreeFromNanoBase::applyMetRecoilCorrections(HTTPair &aPair)
 
     // Shift met by jec if there is not best pair or recoilCorrector is not initialized
     TVector2 met; met.SetMagPhi(MET_pt, MET_phi);
-    aPair.setMETMatrix(MET_covXX, MET_covXY, MET_covXY, MET_covYY);
+    //aPair.setMETMatrix(MET_covXX, MET_covXY, MET_covXY, MET_covYY);
 
     if( recoilCorrector_==nullptr
         || httPairCollection.empty()

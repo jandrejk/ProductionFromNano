@@ -308,6 +308,7 @@ void HTTJetCollection::clear()
 void HTTJetCollection::initForPromoteDemote()
 {
   usePromoteDemote = true;
+  //FIXME new csv file needs to be added here
   calib = BTagCalibration("deepCSV", "utils/BTagCalibration/data/DeepCSV_94XSF_V3_B_F.csv");
   reader = BTagCalibrationReader(BTagEntry::OP_MEDIUM, "central",{"up","down"});
   reader.load(calib,  BTagEntry::FLAV_B, "comb");
@@ -413,7 +414,7 @@ void HTTJetCollection::fillCurrentCollections(string uncert, bool up)
 
         if(jet.Pt() > 20 && abs(jet.Eta()) < 2.4 )
         {
-          if( jet.getProperty(PropertyEnum::btagDeepB)>0.4941 )
+          if( jet.getProperty(PropertyEnum::btagDeepB)> 0.4184) // changes according to https://github.com/CMS-HTT/2018-sync 
           {
             btagCollection.push_back( jet );
 

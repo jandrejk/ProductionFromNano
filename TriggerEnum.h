@@ -10,5 +10,6 @@ HLT_MediumChargedIsoPFTau180HighPtRelaxedIso_Trk50_eta2p1,
 HLT_DoubleTightChargedIsoPFTau35_Trk1_TightID_eta2p1_Reg,
 HLT_DoubleMediumChargedIsoPFTau40_Trk1_TightID_eta2p1_Reg,
 HLT_DoubleTightChargedIsoPFTau40_Trk1_eta2p1_Reg,
+HLT_DoubleMediumChargedIsoPFTauHPS35_Trk1_eta2p1_Reg,
 NONE
 };

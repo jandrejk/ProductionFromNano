@@ -27,7 +27,8 @@ def main():
     parser.add_argument('-o', dest='outdir', help='Where to write output when running on batch.', type=str, default = '/afs/hephy.at/data/higgs01')
     parser.add_argument('-d', dest='debug', help='Debug', action = "store_true")
     parser.add_argument('-f', dest='force', help="Forces submission to batch when status in submit_log is 'NEW'", action = "store_true")
-    parser.add_argument('--cert', dest='cert', help='Cert when running over data.', type=str, default =  'Cert_294927-306462_13TeV_EOY2017ReReco_Collisions17_JSON.txt')
+    parser.add_argument('--cert', dest='cert', help='Cert when running over data.', type=str, choices=[  'Cert_294927-306462_13TeV_EOY2017ReReco_Collisions17_JSON.txt','Cert_314472-325175_13TeV_PromptReco_Collisions18_JSON.txt'],
+                        default = 'Cert_314472-325175_13TeV_PromptReco_Collisions18_JSON.txt')
     parser.add_argument('--event', dest='event', help='Debug', default = 0)
     parser.add_argument('--massfit', dest='massfit', help='Calculate massfit mass', choices=['svfit','fastmtt'], default='')
     parser.add_argument('--sync', dest='sync', help='Produce sync ntuple', action = "store_true")     
@@ -119,7 +120,7 @@ class SteerNanoProduction():
 
         if debug:
             self.nthreads = 1
-            self.nevents = 101 if not event else -1
+            self.nevents = 10001 if not event else -1
         else:
             self.nthreads = nthreads
             self.nevents = -1

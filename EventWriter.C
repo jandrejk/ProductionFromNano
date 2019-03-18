@@ -8,11 +8,10 @@ const int gen_mu_map[24]={ 6, 2,6,6,6,6, 6,6,6,6,6, 6,6,6,6,4, 6,6,6,6,6, 6,6,6 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void EventWriter::fill(HTTEvent *ev, HTTJetCollection *jets, std::vector<HTTParticle> leptons, HTTPair *pair){
-
     // Make sure that current Collections are filled
     jets->setCurrentUncertShift( "", true );
     pair->setCurrentMETShift("");
-
+  
     channel = pair->getFinalState();
 
     leg1 = pair->getLeg1();
@@ -20,7 +19,7 @@ void EventWriter::fill(HTTEvent *ev, HTTJetCollection *jets, std::vector<HTTPart
 
     leg1P4=leg1.getP4();
     leg2P4=leg2.getP4();
-
+  
     gen_match_1=leg1.getProperty(PropertyEnum::mc_match);
     gen_match_2=leg2.getProperty(PropertyEnum::mc_match);
 
@@ -32,21 +31,25 @@ void EventWriter::fill(HTTEvent *ev, HTTJetCollection *jets, std::vector<HTTPart
     evt_syncro=ev->getEventId();
     //  entry=DEF; //filled in main loop
     //  fileEntry=DEF; //filled in main loop
-
+  
     unsigned genFlav1=leg1.getProperty(PropertyEnum::genPartFlav);
     unsigned genFlav2=leg2.getProperty(PropertyEnum::genPartFlav);
-
+  
     npv=ev->getNPV();
     npvGood=DEF;
     npu=ev->getNPU();
     rho=ev->getRho();
-
+  
     fillLeg1Branches();
+    
     fillLeg2Branches();
+    
     fillJetBranches(jets);
+    
     fillPairBranches(pair, jets);
+    
     fillAdditionalLeptons( leptons, pair );
-
+  
     gen_top_pt_1=DEF;
     gen_top_pt_2=DEF;
     genJets=DEF;
@@ -57,7 +60,7 @@ void EventWriter::fill(HTTEvent *ev, HTTJetCollection *jets, std::vector<HTTPart
     failCloneGlobalMuonTagger=DEF;
     Flag_duplicateMuons=DEF;
     Flag_noBadMuons=DEF;
-
+  
 
     Flag_goodVertices =                       ev->getFilter(FilterEnum::Flag_goodVertices);
     Flag_globalTightHalo2016Filter =          ev->getFilter(FilterEnum::Flag_globalTightHalo2016Filter);
@@ -81,7 +84,7 @@ void EventWriter::fill(HTTEvent *ev, HTTJetCollection *jets, std::vector<HTTPart
                     && Flag_ecalBadCalibFilter;
 
     if(!isMC) flagMETFilter &= Flag_eeBadScFilter; // only for data
-
+  
     //////////////////////////////////////////////////////////////////  
 
     extramuon_veto=ev->checkSelectionBit(SelectionBitsEnum::extraMuonVeto);
@@ -107,7 +110,7 @@ void EventWriter::fill(HTTEvent *ev, HTTJetCollection *jets, std::vector<HTTPart
     THU_ggH_PT60 =  THU[6];
     THU_ggH_PT120 = THU[7];
     THU_ggH_qmtop = THU[8];
-
+  
 
     //////////////////////////////////////////////////////////////////
     if (channel == HTTAnalysis::TauTau) passesIsoCuts=byVLooseIsolationMVArun2017v2DBoldDMwLT2017_1 
@@ -115,7 +118,7 @@ void EventWriter::fill(HTTEvent *ev, HTTJetCollection *jets, std::vector<HTTPart
     else passesIsoCuts=byVLooseIsolationMVArun2017v2DBoldDMwLT2017_2; //etau/mutau
 
     if (pdg1==11 || pdg1==13) passesLepIsoCuts=(iso_1<0.1);
-
+   
 
     //////////////////////////////////////////////////////////////////
 
@@ -151,12 +154,15 @@ void EventWriter::fill(HTTEvent *ev, HTTJetCollection *jets, std::vector<HTTPart
     {
         trg_singletau_leading= leg1.hasTriggerMatch(TriggerEnum::HLT_MediumChargedIsoPFTau180HighPtRelaxedIso_Trk50_eta2p1);
         trg_singletau_trailing= leg2.hasTriggerMatch(TriggerEnum::HLT_MediumChargedIsoPFTau180HighPtRelaxedIso_Trk50_eta2p1);
-
+        
         trg_doubletau_40_tightiso=          ( leg1.hasTriggerMatch(TriggerEnum::HLT_DoubleTightChargedIsoPFTau40_Trk1_eta2p1_Reg) && leg2.hasTriggerMatch(TriggerEnum::HLT_DoubleTightChargedIsoPFTau40_Trk1_eta2p1_Reg) ) && pt_1 > 45 && pt_2 > 45;
         trg_doubletau_40_mediso_tightid=    ( leg1.hasTriggerMatch(TriggerEnum::HLT_DoubleMediumChargedIsoPFTau40_Trk1_TightID_eta2p1_Reg) && leg2.hasTriggerMatch(TriggerEnum::HLT_DoubleMediumChargedIsoPFTau40_Trk1_TightID_eta2p1_Reg) ) && pt_1 > 45 && pt_2 > 45;
         trg_doubletau_35_tightiso_tightid=  ( leg1.hasTriggerMatch(TriggerEnum::HLT_DoubleTightChargedIsoPFTau35_Trk1_TightID_eta2p1_Reg) && leg2.hasTriggerMatch(TriggerEnum::HLT_DoubleTightChargedIsoPFTau35_Trk1_TightID_eta2p1_Reg) ) && pt_1 > 40 && pt_2 > 40;
+        
+        trg_doubletau_35_mediso_HPS =  ( leg1.hasTriggerMatch(TriggerEnum::HLT_DoubleMediumChargedIsoPFTauHPS35_Trk1_eta2p1_Reg) && leg2.hasTriggerMatch(TriggerEnum::HLT_DoubleMediumChargedIsoPFTauHPS35_Trk1_eta2p1_Reg) ) && pt_1 > 40 && pt_2 > 40;
+        
     }
-
+   
     trg_muonelectron=DEF; //fires HLT_Mu8_TrkIsoVVL_Ele23_CaloIdL_TrackIdL_IsoVL or HLT_Mu23_TrkIsoVVL_Ele12_CaloIdL_TrackIdL_IsoVL
 
 
@@ -177,7 +183,7 @@ void EventWriter::fill(HTTEvent *ev, HTTJetCollection *jets, std::vector<HTTPart
 
     topPtReweightWeightRun2=ev->getTopPtReWeight(false);
     topPtReweightWeightRun1=ev->getTopPtReWeight(true);
-
+   
     if(ev->getSampleType() == HTTEvent::DY )
     { 
         w->var("z_gen_mass")->setVal(  ll.M()  );
@@ -185,7 +191,7 @@ void EventWriter::fill(HTTEvent *ev, HTTJetCollection *jets, std::vector<HTTPart
         zPtReweightWeight=w->function("zptmass_weight_nom")->getVal();
         zPtReweightWeight1D=w->function("zpt_weight_nom")->getVal();
     }
-
+   
     NNLO_ggH_weight = ev->getNNLO_ggH_weight();
 
     zpt_weight_nom=DEFWEIGHT;
@@ -227,11 +233,11 @@ void EventWriter::fill(HTTEvent *ev, HTTJetCollection *jets, std::vector<HTTPart
         NUP=-1;
         lumiWeight=DEFWEIGHT;
     }
-
+   
     // Make sure this weight is up to date. 
     // Trigger sf need to be applied according to what triggers are used
     weight = puWeight*stitchedWeight*genWeight*eleTauFakeRateWeight*muTauFakeRateWeight*idisoweight_1*idisoweight_2*sf_trk*sf_reco;
-
+   
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -442,7 +448,7 @@ void EventWriter::fillJetBranches(HTTJetCollection *jets)
             {
                 jm_1=   jets->getJet(0).M();
                 jrawf_1=jets->getJet(0).getProperty(PropertyEnum::rawFactor);
-                jmva_1= jets->getJet(0).getProperty(PropertyEnum::puIdDisc);
+                //jmva_1= jets->getJet(0).getProperty(PropertyEnum::puIdDisc);
                 jcsv_1= jets->getJet(0).getProperty(PropertyEnum::btagDeepB);
             }
         }
@@ -463,7 +469,7 @@ void EventWriter::fillJetBranches(HTTJetCollection *jets)
             {
                 jm_2=   jets->getJet(1).M();
                 jrawf_2=jets->getJet(1).getProperty(PropertyEnum::rawFactor);
-                jmva_2= jets->getJet(1).getProperty(PropertyEnum::puIdDisc);
+                //jmva_2= jets->getJet(1).getProperty(PropertyEnum::puIdDisc);
                 jcsv_2= jets->getJet(1).getProperty(PropertyEnum::btagDeepB);
                 jeta1eta2=jeta_1[shift]*jeta_2[shift];
                 lep_etacentrality=TMath::Exp( -4/pow(jeta_1[shift]-jeta_2[shift],2) * pow( (eta_1-( jeta_1[shift]+jeta_2[shift] )*0.5), 2 ) );
@@ -481,7 +487,7 @@ void EventWriter::fillJetBranches(HTTJetCollection *jets)
             beta_1[shift]=  jets->getBtagJet(0).Eta();
             bphi_1[shift]=  jets->getBtagJet(0).Phi();
             brawf_1[shift]= jets->getBtagJet(0).getProperty(PropertyEnum::rawFactor);
-            bmva_1[shift]=  jets->getBtagJet(0).getProperty(PropertyEnum::puIdDisc);
+            //bmva_1[shift]=  jets->getBtagJet(0).getProperty(PropertyEnum::puIdDisc);
             bcsv_1[shift]=  jets->getBtagJet(0).getProperty(PropertyEnum::btagDeepB);
         }
 
@@ -491,7 +497,7 @@ void EventWriter::fillJetBranches(HTTJetCollection *jets)
             beta_2[shift]=  jets->getBtagJet(1).Eta();
             bphi_2[shift]=  jets->getBtagJet(1).Phi();
             brawf_2[shift]= jets->getBtagJet(1).getProperty(PropertyEnum::rawFactor);
-            bmva_2[shift]=  jets->getBtagJet(1).getProperty(PropertyEnum::puIdDisc);
+            //bmva_2[shift]=  jets->getBtagJet(1).getProperty(PropertyEnum::puIdDisc);
             bcsv_2[shift]=  jets->getBtagJet(1).getProperty(PropertyEnum::btagDeepB);
         }
 
@@ -507,10 +513,10 @@ void EventWriter::fillPairBranches(HTTPair *pair, HTTJetCollection *jets)
 {
 
 
-    metcov00=pair->getMETMatrix().at(0);
-    metcov01=pair->getMETMatrix().at(1);
-    metcov10=pair->getMETMatrix().at(2);
-    metcov11=pair->getMETMatrix().at(3);
+    // metcov00=pair->getMETMatrix().at(0);
+    // metcov01=pair->getMETMatrix().at(1);
+    // metcov10=pair->getMETMatrix().at(2);
+    // metcov11=pair->getMETMatrix().at(3);
 
     for(unsigned int shift = 0; shift<metShifts.size(); ++shift )
     {
@@ -818,39 +824,50 @@ void EventWriter::fillScalefactors()
     sf_DoubleTauTight = DEFWEIGHT;
     sf_DoubleTauVTight = DEFWEIGHT;
 
+
+
     if( channel == HTTAnalysis::MuTau )
     {
         w->var("m_pt")->setVal(  pt_1  );
+        // std::cout<<"0.1"<<std::endl;
         w->var("m_eta")->setVal( eta_1 );
-        w->var("m_iso")->setVal( iso_1 );
+        // std::cout<<w->var("m_eta")<<std::endl;
+        // std::cout<<"0.2"<<std::endl;
+        // std::cout<<w->var("m_iso")<<std::endl;
+        // seems that scale factors only depend on pt and eta, do not need iso
+        // w->var("m_iso")->setVal( iso_1 );
 
-        singleTriggerSFLeg1 = w->function("m_trg24_27_binned_kit_ratio")->getVal();
-        s1_data = w->function("m_trg24_27_binned_kit_data")->getVal();
-        s1_mc   = w->function("m_trg24_27_binned_kit_mc")->getVal();
-
+        // std::cout<<"1"<<std::endl;
+        singleTriggerSFLeg1 = w->function("m_trgIsoMu24orIsoMu27_desy_ratio")->getVal();
+        // std::cout<<"1.1"<<std::endl;
+        s1_data = w->function("m_trgIsoMu24orIsoMu27_desy_data")->getVal();
+        // std::cout<<"1.2"<<std::endl;
+        s1_mc   = w->function("m_trgIsoMu24orIsoMu27_desy_mc")->getVal();
+        // std::cout<<"2"<<std::endl;
         if( std::abs(eta_1) < 2.1 )
         {
-            xTriggerSFLeg1 = w->function("m_trg20_ratio")->getVal();
-            x1_data = w->function("m_trg20_data")->getVal();
-            x1_mc   = w->function("m_trg20_mc")->getVal();
+            // std::cout<<"3"<<std::endl;
+            xTriggerSFLeg1 = w->function("m_trgIsoMu20_desy_ratio")->getVal(); 
+            x1_data = w->function("m_trgIsoMu20_desy_data")->getVal();
+            x1_mc   = w->function("m_trgIsoMu20_desy_mc")->getVal();
         }
-        if( std::abs(eta_2) < 2.1 )
-        {
-            xTriggerSFLeg2 = tauTrigSFTight->getMuTauScaleFactor( pt_2 ,  eta_2 ,  phi_2 );
-            x2_data        = tauTrigSFTight->getMuTauEfficiencyData( pt_2 ,  eta_2 ,  phi_2 );
-            x2_mc          = tauTrigSFTight->getMuTauEfficiencyMC( pt_2 ,  eta_2 ,  phi_2 );
-        }
+        // if( std::abs(eta_2) < 2.1 )
+        // {
+        //     xTriggerSFLeg2 = tauTrigSFTight->getMuTauScaleFactor( pt_2 ,  eta_2 ,  phi_2 );
+        //     x2_data        = tauTrigSFTight->getMuTauEfficiencyData( pt_2 ,  eta_2 ,  phi_2 );
+        //     x2_mc          = tauTrigSFTight->getMuTauEfficiencyMC( pt_2 ,  eta_2 ,  phi_2 );
+        // }
 
-        idWeight_1  = w->function("m_id_kit_ratio")->getVal();
-        isoWeight_1 = w->function("m_iso_binned_kit_ratio")->getVal();
-        idisoweight_1 =  idWeight_1 * isoWeight_1 ;
+        // idWeight_1  = w->function("m_id_kit_ratio")->getVal();
+        // isoWeight_1 = w->function("m_iso_binned_kit_ratio")->getVal();
+        // above 2 lines not needed anymore
+        idisoweight_1 =  w->function("m_idiso_desy_ratio")->getVal();
 
-        sf_trk = w->function("m_trk_ratio")->getVal();
+        // sf_trk = w->function("m_trk_ratio")->getVal(); // not needed anymore
 
-        sf_SingleOrCrossTrigger = (s1_data*(1 - x2_data ) + x1_data*x2_data ) / (s1_mc*(1 - x2_mc ) + x1_mc*x2_mc );
-
-        if(pt_1 > 25) sf_SingleXorCrossTrigger = singleTriggerSFLeg1;
-        else          sf_SingleXorCrossTrigger = xTriggerSFLeg1*xTriggerSFLeg2;
+        // sf_SingleOrCrossTrigger = (s1_data*(1 - x2_data ) + x1_data*x2_data ) / (s1_mc*(1 - x2_mc ) + x1_mc*x2_mc );
+        // if(pt_1 > 25) sf_SingleXorCrossTrigger = singleTriggerSFLeg1;
+        // else          sf_SingleXorCrossTrigger = xTriggerSFLeg1*xTriggerSFLeg2;
 
         sf_SingleTrigger = singleTriggerSFLeg1;
     }
@@ -859,49 +876,49 @@ void EventWriter::fillScalefactors()
     {
         w->var("e_pt")->setVal(  pt_1  );
         w->var("e_eta")->setVal( eta_1 );
-        w->var("e_iso")->setVal( iso_1 );
+        // w->var("e_iso")->setVal( iso_1 ); 
 
-        singleTriggerSFLeg1 = w->function("e_trg27_trg32_trg35_binned_kit_ratio")->getVal();
-        s1_data = w->function("e_trg27_trg32_trg35_binned_kit_data")->getVal();
-        s1_mc   = w->function("e_trg27_trg32_trg35_binned_kit_mc")->getVal();
+        singleTriggerSFLeg1 = w->function("e_trgEle32orEle35_desy_ratio")->getVal();
+        s1_data = w->function("e_trgEle32orEle35_desy_data")->getVal();
+        s1_mc   = w->function("e_trgEle32orEle35_desy_mc")->getVal();
 
         if( std::abs(eta_1) < 2.1 )
         {
-            xTriggerSFLeg1 = w->function("e_trg_EleTau_Ele24Leg_desy_ratio")->getVal();
-            x1_data = w->function("e_trg_EleTau_Ele24Leg_desy_data")->getVal();
-            x1_mc   = w->function("e_trg_EleTau_Ele24Leg_desy_mc")->getVal();
+            xTriggerSFLeg1 = w->function("e_trgEle24leg_desy_ratio")->getVal();
+            x1_data = w->function("e_trgEle24leg_desy_data")->getVal();
+            x1_mc   = w->function("e_trgEle24leg_desy_mc")->getVal();
         }       
-        if( std::abs(eta_2) < 2.1 )
-        {
-            xTriggerSFLeg2 = tauTrigSFTight->getETauScaleFactor( pt_2 ,  eta_2 ,  phi_2 );
-            x2_data        = tauTrigSFTight->getETauEfficiencyData( pt_2 ,  eta_2 ,  phi_2 );
-            x2_mc          = tauTrigSFTight->getETauEfficiencyMC( pt_2 ,  eta_2 ,  phi_2 );
-        }    
+        // if( std::abs(eta_2) < 2.1 )
+        // {
+        //     xTriggerSFLeg2 = tauTrigSFTight->getETauScaleFactor( pt_2 ,  eta_2 ,  phi_2 );
+        //     x2_data        = tauTrigSFTight->getETauEfficiencyData( pt_2 ,  eta_2 ,  phi_2 );
+        //     x2_mc          = tauTrigSFTight->getETauEfficiencyMC( pt_2 ,  eta_2 ,  phi_2 );
+        // }    
 
-        idWeight_1  = w->function("e_id90_kit_ratio")->getVal();
-        isoWeight_1 = w->function("e_iso_binned_kit_ratio")->getVal();
-        idisoweight_1 =  idWeight_1 * isoWeight_1 ;
+        // idWeight_1  = w->function("e_id90_kit_ratio")->getVal();
+        // isoWeight_1 = w->function("e_iso_binned_kit_ratio")->getVal();
+        idisoweight_1 = w->function("e_idiso_desy_ratio")->getVal();
 
-        sf_trk = w->function("e_trk_ratio")->getVal();
-        sf_SingleOrCrossTrigger = (s1_data*(1 - x2_data ) + x1_data*x2_data ) / (s1_mc*(1 - x2_mc ) + x1_mc*x2_mc );
+        // sf_trk = w->function("e_trk_ratio")->getVal();
+        // sf_SingleOrCrossTrigger = (s1_data*(1 - x2_data ) + x1_data*x2_data ) / (s1_mc*(1 - x2_mc ) + x1_mc*x2_mc );
 
-        if(pt_1 > 28) sf_SingleXorCrossTrigger = singleTriggerSFLeg1;
-        else          sf_SingleXorCrossTrigger = xTriggerSFLeg1*xTriggerSFLeg2;
+        // if(pt_1 > 28) sf_SingleXorCrossTrigger = singleTriggerSFLeg1;
+        // else          sf_SingleXorCrossTrigger = xTriggerSFLeg1*xTriggerSFLeg2;
 
         sf_SingleTrigger = singleTriggerSFLeg1;
     }
 
     if( channel == HTTAnalysis::TauTau )
     {
-        xTriggerSFLeg1 = tauTrigSFTight->getDiTauScaleFactor(  pt_1 ,  eta_1 ,  phi_1  );
-        xTriggerSFLeg2 = tauTrigSFTight->getDiTauScaleFactor(  pt_2 ,  eta_2 ,  phi_2  );
+        // xTriggerSFLeg1 = tauTrigSFTight->getDiTauScaleFactor(  pt_1 ,  eta_1 ,  phi_1  );
+        // xTriggerSFLeg2 = tauTrigSFTight->getDiTauScaleFactor(  pt_2 ,  eta_2 ,  phi_2  );
 
-        sf_DoubleTauTight = xTriggerSFLeg1*xTriggerSFLeg2;
+        // sf_DoubleTauTight = xTriggerSFLeg1*xTriggerSFLeg2;
 
-        xTriggerSFLeg1 = tauTrigSFVTight->getDiTauScaleFactor(  pt_1 ,  eta_1 ,  phi_1  );
-        xTriggerSFLeg2 = tauTrigSFVTight->getDiTauScaleFactor(  pt_2 ,  eta_2 ,  phi_2  );
+        // xTriggerSFLeg1 = tauTrigSFVTight->getDiTauScaleFactor(  pt_1 ,  eta_1 ,  phi_1  );
+        // xTriggerSFLeg2 = tauTrigSFVTight->getDiTauScaleFactor(  pt_2 ,  eta_2 ,  phi_2  );
 
-        sf_DoubleTauVTight = xTriggerSFLeg1*xTriggerSFLeg2;
+        // sf_DoubleTauVTight = xTriggerSFLeg1*xTriggerSFLeg2;
     }
 
 }
@@ -1104,6 +1121,7 @@ void EventWriter::setDefault(){
     trg_doubletau_40_tightiso=false;
     trg_doubletau_40_mediso_tightid=false;
     trg_doubletau_35_tightiso_tightid=false;
+    trg_doubletau_35_mediso_HPS=false;
     trg_muonelectron=DEF; //fires HLT_Mu8_TrkIsoVVL_Ele23_CaloIdL_TrackIdL_IsoVL or HLT_Mu23_TrkIsoVVL_Ele12_CaloIdL_TrackIdL_IsoVL
     Flag_HBHENoiseFilter=DEF;
     Flag_HBHENoiseIsoFilter=DEF;
@@ -1438,7 +1456,7 @@ void EventWriter::initTree(TTree *t, vector< pair< string, pair<string,bool> > >
     tauTrigSFTight = new TauTriggerSFs2017("utils/TauTriggerSFs2017/data/tauTriggerEfficiencies2017_New.root", "utils/TauTriggerSFs2017/data/tauTriggerEfficiencies2017.root","tight","MVA");
     tauTrigSFVTight = new TauTriggerSFs2017("utils/TauTriggerSFs2017/data/tauTriggerEfficiencies2017_New.root", "utils/TauTriggerSFs2017/data/tauTriggerEfficiencies2017.root","vtight","MVA");
 
-    TFile wsp("utils/CorrectionWorkspaces/htt_scalefactors_2017_v3.root");
+    TFile wsp("utils/CorrectionWorkspaces/htt_scalefactors_v5.root");
     w = (RooWorkspace*)wsp.Get("w");
 
 
@@ -1890,6 +1908,7 @@ void EventWriter::initTree(TTree *t, vector< pair< string, pair<string,bool> > >
     t->Branch("trg_doubletau_40_tightiso", &trg_doubletau_40_tightiso);
     t->Branch("trg_doubletau_40_mediso_tightid", &trg_doubletau_40_mediso_tightid);
     t->Branch("trg_doubletau_35_tightiso_tightid", &trg_doubletau_35_tightiso_tightid);
+    t->Branch("trg_doubletau_35_mediso_HPS", &trg_doubletau_35_mediso_HPS);
 
     t->Branch("fileEntry", &fileEntry);
     t->Branch("entry", &entry);

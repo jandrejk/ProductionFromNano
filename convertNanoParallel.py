@@ -56,7 +56,7 @@ print "-"*30
 
 if not "root://" in aFile: aFile = "file://" + aFile
 
-
+print aFile
 aROOTFile = TFile.Open(aFile)
 aTree = aROOTFile.Get("Events")
 remoteEvts = aTree.GetEntries()

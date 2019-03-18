@@ -11,8 +11,8 @@ import ROOT as R
 
 def getSamples():
     samples = set()
-    for file in glob("{CMSSW_BASE}/src/WawTools/NanoAODTools/samples/mc/*/*".format(**os.environ) ):
-        samples.add( file.replace(".txt","").split("/")[-1] )
+    for file in glob("{CMSSW_BASE}/src/WawTools/NanoAODTools/samples/mc/dy/*".format(**os.environ) ):
+        samples.add( file.replace(".txt","").split("/")[-1][:-22] )
     return samples
 
 def mergeFragments():
@@ -22,14 +22,16 @@ def mergeFragments():
         os.makedirs("./MCpuHistograms/usedHistos")
 
     for sample in getSamples() :
-        #print key  
         save_name = './MCpuHistograms/merged/'+sample+'.root'
+        #print sample
+        #print 'MCpuHistograms/*'+ sample +'*'
         if glob( 'MCpuHistograms/*'+ sample +'*'):
             cmd = 'hadd '+save_name+' MCpuHistograms/*'+ sample +'*'
             mvcmd = 'mv ./MCpuHistograms/*'+sample+'*root ./MCpuHistograms/usedHistos/'
-            os.system(cmd)
-            os.system(mvcmd)
-
+            print cmd
+            #os.system(cmd)
+            #os.system(mvcmd)
+    
 def  createPUHistos():
     if not os.path.exists("./MCpuHistograms") :
         os.makedirs("./MCpuHistograms")
@@ -59,7 +61,8 @@ def  createPUHistos():
 
 def makePuweights():
     os.chdir("{CMSSW_BASE}/src/WawTools/NanoAODTools/utils/puweight/".format(**os.environ))
-    input_file = R.TFile("pileup_distribution_data2017.root")
+    #input_file = R.TFile("pileup_distribution_data2017.root")
+    input_file = R.TFile("pileup_distribution_data2018.root")
 
     data_hist = input_file.Get("pileup")
     data_hist.Scale( 1/ data_hist.Integral() )

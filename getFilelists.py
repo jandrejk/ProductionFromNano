@@ -105,7 +105,7 @@ def buildFileName(link, run, creation):
     if "_ext" in parts[2]:
         ext = "_ext" + parts[2].split("_ext")[1].split("-")[0]
 
-    return "_".join([parts[1],run, creation]) + ext + ".txt"
+    return "_".join([parts[1].replace("-","_"),run, creation]) + ext + ".txt"
 
 
 
