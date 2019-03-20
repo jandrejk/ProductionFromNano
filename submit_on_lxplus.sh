@@ -24,7 +24,7 @@ eval `scramv1 runtime -sh`
 git cms-addpkg PhysicsTools/NanoAOD
 git cms-addpkg FWCore/MessageLogger
 git clone https://github.com/cms-nanoAOD/nanoAOD-tools.git PhysicsTools/NanoAODTools
-git clone https://github.com/svfit/ClassicSVfit.git TauAnalysis/ClassicSVfit -b release_2018Mar20
+git clone https://github.com/svfit/ClassicSVfit.git TauAnalysis/ClassicSVfit -b fastMTT_21_06_2018
 git clone https://github.com/svfit/SVfitTF.git TauAnalysis/SVfitTF
 git clone https://github.com/CMS-HTT/RecoilCorrections.git  HTT-utilities/RecoilCorrections
 git clone https://github.com/jandrejk/ProductionFromNano.git WawTools/NanoAODTools -b SM2018
