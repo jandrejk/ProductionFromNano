@@ -162,9 +162,8 @@ void EventWriter::fill(HTTEvent *ev, HTTJetCollection *jets, std::vector<HTTPart
         trg_doubletau_35_mediso_HPS =  ( leg1.hasTriggerMatch(TriggerEnum::HLT_DoubleMediumChargedIsoPFTauHPS35_Trk1_eta2p1_Reg) && leg2.hasTriggerMatch(TriggerEnum::HLT_DoubleMediumChargedIsoPFTauHPS35_Trk1_eta2p1_Reg) ) && pt_1 > 40 && pt_2 > 40;
         
     }
-   
+    
     trg_muonelectron=DEF; //fires HLT_Mu8_TrkIsoVVL_Ele23_CaloIdL_TrackIdL_IsoVL or HLT_Mu23_TrkIsoVVL_Ele12_CaloIdL_TrackIdL_IsoVL
-
 
 
     genPt_1=DEF;
@@ -184,13 +183,19 @@ void EventWriter::fill(HTTEvent *ev, HTTJetCollection *jets, std::vector<HTTPart
     topPtReweightWeightRun2=ev->getTopPtReWeight(false);
     topPtReweightWeightRun1=ev->getTopPtReWeight(true);
    
-    if(ev->getSampleType() == HTTEvent::DY )
-    { 
-        w->var("z_gen_mass")->setVal(  ll.M()  );
-        w->var("z_gen_pt")->setVal( ll.Pt() );
-        zPtReweightWeight=w->function("zptmass_weight_nom")->getVal();
-        zPtReweightWeight1D=w->function("zpt_weight_nom")->getVal();
-    }
+    // This is obsolete and not included in correction workspace
+    // if(ev->getSampleType() == HTTEvent::DY )
+    // {
+    //     std::cout<<"111"<<std::endl;
+    //     w->var("z_gen_mass")->setVal(  ll.M()  );
+    //     std::cout<<"112"<<std::endl;
+    //     w->var("z_gen_pt")->setVal( ll.Pt() );
+    //     std::cout<<"113"<<std::endl;
+    //     zPtReweightWeight=w->function("zptmass_weight_nom")->getVal();
+    //     std::cout<<"114"<<std::endl;
+    //     zPtReweightWeight1D=w->function("zpt_weight_nom")->getVal();
+    //     std::cout<<"115"<<std::endl;
+    // }
    
     NNLO_ggH_weight = ev->getNNLO_ggH_weight();
 
