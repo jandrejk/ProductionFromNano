@@ -390,7 +390,6 @@ void HTauTauTreeFromNanoBase::Loop(Long64_t nentries_max, unsigned int sync_even
 
         if( !eventInJson() ) continue;
         debugWayPoint("[Loop] passes json");
-
         unsigned int bestPairIndex = Cut(ientry);
         debugWayPoint("[Loop] best pair index", {}, {(int)bestPairIndex});
 
@@ -404,7 +403,8 @@ void HTauTauTreeFromNanoBase::Loop(Long64_t nentries_max, unsigned int sync_even
 
         if(bestPairIndex<9999)
         {
-
+            //std::cout<<"jentry "<<jentry<<std::endl;
+        
             debugWayPoint("[Loop] good pair index found");
 
             ///Call pairSelection again to set selection bits for the selected pair.
@@ -414,28 +414,36 @@ void HTauTauTreeFromNanoBase::Loop(Long64_t nentries_max, unsigned int sync_even
             if(!isSync && !httEvent->checkSelectionBit(SelectionBitsEnum::antiLeptonId) ) continue;
 
             fillJets(bestPairIndex);
+            //std::cout<<"1"<<std::endl;
             fillGenLeptons();
+            //std::cout<<"1"<<std::endl;
             fillPairs(bestPairIndex);
+            //std::cout<<"1"<<std::endl;
             fillEvent(bestPairIndex);
             HTTPair & bestPair = httPairCollection[0];
             applyMetRecoilCorrections(bestPair); // Adds met to pair 
-
+            //std::cout<<"1"<<std::endl;
+            
             if( !httEvent->checkSelectionBit(SelectionBitsEnum::thirdLeptonVeto)
                 && !httEvent->checkSelectionBit(SelectionBitsEnum::diLeptonVeto)
             ){
                 bool fastMTT = false;
                 computeSvFit(bestPair,fastMTT);
             }
-            
+            //std::cout<<"2.1"<<std::endl;
             evtWriter->fill(httEvent.get(), &httJetCollection, httLeptonCollection, &bestPair);
+            //std::cout<<"2.2"<<std::endl;
             evtWriter->entry=entry++;
             evtWriter->fileEntry=jentry;
             t_TauCheck->Fill();
-
+            //std::cout<<"1"<<std::endl;
+            
             
             hStats->Fill(2);//Number of events saved to ntuple
             hStats->Fill(3,httEvent->getMCWeight());//Sum of weights saved to ntuple
             if(firstWarningOccurence_) firstWarningOccurence_ = false; //stop to warn once the first pair is found and filled
+            //std::cout<<"1"<<std::endl;
+            
         }
     }
 

@@ -881,7 +881,6 @@ void EventWriter::fillScalefactors()
         singleTriggerSFLeg1 = w->function("e_trgEle32orEle35_desy_ratio")->getVal();
         s1_data = w->function("e_trgEle32orEle35_desy_data")->getVal();
         s1_mc   = w->function("e_trgEle32orEle35_desy_mc")->getVal();
-
         if( std::abs(eta_1) < 2.1 )
         {
             xTriggerSFLeg1 = w->function("e_trgEle24leg_desy_ratio")->getVal();
@@ -898,7 +897,7 @@ void EventWriter::fillScalefactors()
         // idWeight_1  = w->function("e_id90_kit_ratio")->getVal();
         // isoWeight_1 = w->function("e_iso_binned_kit_ratio")->getVal();
         idisoweight_1 = w->function("e_idiso_desy_ratio")->getVal();
-
+        
         // sf_trk = w->function("e_trk_ratio")->getVal();
         // sf_SingleOrCrossTrigger = (s1_data*(1 - x2_data ) + x1_data*x2_data ) / (s1_mc*(1 - x2_mc ) + x1_mc*x2_mc );
 
