@@ -21,22 +21,22 @@ Port of [tools by A. Kalinowski, M. Bluj et al. based on KLUB/LLR trees](https:/
 
 ---
 
-Installation recipe for CMSSW_9_4_4
+Installation recipe for CMSSW_10_2_10
 ```
-scram project -n CMSSW_9_4_4_fromNano CMSSW CMSSW_9_4_4
-cd CMSSW_9_4_4_fromNano/src/
+scram project -n CMSSW_10_2_10 CMSSW CMSSW_10_2_10
+cd CMSSW_10_2_10/src/
 eval `scramv1 runtime -sh`
 # NanoAOD and tools 
 git cms-addpkg PhysicsTools/NanoAOD #not mandatory, but it initializes git for CMSSW which is already useful
 git cms-addpkg FWCore/MessageLogger
 git clone https://github.com/cms-nanoAOD/nanoAOD-tools.git PhysicsTools/NanoAODTools # not used for now, but can be in future, e.g. JES?
 # SVFit
-git clone https://github.com/svfit/ClassicSVfit.git TauAnalysis/ClassicSVfit -b release_2018Mar20
+git clone https://github.com/svfit/ClassicSVfit.git TauAnalysis/ClassicSVfit -b fastMTT_21_06_2018
 git clone https://github.com/svfit/SVfitTF.git TauAnalysis/SVfitTF
 # MET recoil corrections
 git clone https://github.com/CMS-HTT/RecoilCorrections.git  HTT-utilities/RecoilCorrections
 # production tools based on WawTools from NanoAOD
-git clone https://github.com/mflechl/ProductionFromNano.git WawTools/NanoAODTools -b SM2017ML
+git clone https://github.com/jandrejk/ProductionFromNano.git WawTools/NanoAODTools -b SM2018
 # This is just needed to get rid of warnings
 cat FWCore/MessageLogger/interface/MessageDrop.h | sed s#CMS_THREAD_SAFE##g > FWCore/MessageLogger/interface/MessageDrop.h2
 mv FWCore/MessageLogger/interface/MessageDrop.h2 FWCore/MessageLogger/interface/MessageDrop.h 
