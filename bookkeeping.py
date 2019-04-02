@@ -7,6 +7,8 @@ import shutil
 import string
 import subprocess as sp
 import argparse
+import time
+from datetime import datetime
 from runUtils import checkProxy, checkTokens, useToken, getSystem, getHeplxPublicFolder
 
 def main():
@@ -20,7 +22,7 @@ def main():
 
   args = parser.parse_args()
 
-  if not checkTokens(): sys.exit()
+  # if not checkTokens(): sys.exit()
 
   B = Bookkeeping(args.verbose)
 
@@ -46,7 +48,7 @@ class Bookkeeping():
     if "hephy" in host: 
       self.system = "hephybatch"
     elif "cern" in host: 
-      useToken("hephy")
+      # useToken("hephy")
       self.system = "lxplus"
     else:
       print "Dont know host you are on. Only heplx and lxplus!"   
@@ -64,7 +66,7 @@ class Bookkeeping():
     self.runningJobs = self.getRunningJobs()
     self.summary = {}
     self.failed_paths = []
-    self.outdir = "/afs/hephy.at/data/higgs01"
+    self.outdir = "srm://hephyse.oeaw.ac.at//dpm/oeaw.ac.at/home/cms/store/user/mspanrin/condor_production"
 
     for sample in self.log:
       if len( glob.glob( "samples/*/*/{0}.txt".format(sample) ) ) == 0: continue
@@ -91,8 +93,10 @@ class Bookkeeping():
 
           if self.log[sample][channel][shift]["status"] != "NEW": continue
 
-          for file in glob.glob(  "{0}/{1}/{2}-{3}*root".format(self.outdir, sample, channel, shift) ):
-            if self.log[sample][channel][shift]["submit_time"] < os.path.getmtime(file):
+          # for file in glob.glob(  "{0}/{1}/{2}-{3}*root".format(self.outdir, sample, channel, shift) ):
+          for timestamp, file in lsDPM( self.outdir, sample, channel, shift ):
+            # if self.log[sample][channel][shift]["submit_time"] < os.path.getmtime(file):
+            if self.log[sample][channel][shift]["submit_time"] < timestamp:
               self.summary[sample][shift][channel]["finished_files"].append(file)
 
           self.summary[sample][shift][channel]["total"] = ntotal
@@ -105,13 +109,17 @@ class Bookkeeping():
     with open(self.logpath,"w") as FSO:
       json.dump(self.log, FSO, indent = 2)
 
+
   def getRunningJobs(self):
     runningJobs = {}
     if self.system == "lxplus":
 
 
-      # proc = sp.Popen( shlex.split('bjobs -UF'), stdout=sp.PIPE )
-      # (out, err) = proc.communicate()
+      proc = sp.Popen( shlex.split('condor_q --json'), stdout=sp.PIPE )
+      (out, err) = proc.communicate()
+
+      out = json.loads(out)
+
       (out, err) = "", ""
 
       for entry in out.splitlines():
@@ -331,7 +339,19 @@ class Bookkeeping():
     print "FAILED:  ", failed_total
     print
 
+def lsDPM(outdir, sample, channel, shift):
 
+  proc = sp.Popen( shlex.split( "gfal-ls -l --time-style long-iso  {0}/{1}".format(outdir, sample) ), stdout=sp.PIPE )
+  (out, err) = proc.communicate()
+  files = []
+
+  for file in out.splitlines():
+    if ".root" in file and "{0}-{1}".format(channel, shift) in file:
+      file = [i for i in file.split(" ") if i]
+      # Need to get UTC under control ....
+      timestamp = int( datetime.strptime(" ".join( [file[5], file[6]] ),"%Y-%m-%d %H:%M").strftime("%s") ) + 7200
+      files.append( (timestamp, "{0}/{1}/{2}".format(outdir, sample, file[-1] ) ) )
+  return files
 
 def cS(string, color):
   
