@@ -118,7 +118,7 @@ class Bookkeeping():
       proc = sp.Popen( shlex.split('condor_q --json'), stdout=sp.PIPE )
       (out, err) = proc.communicate()
 
-      out = json.loads(out)
+      #out = json.loads(out)
 
       (out, err) = "", ""
 
