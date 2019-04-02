@@ -87,7 +87,7 @@ def getHeplxPublicFolder():
 
     user = os.environ["USER"]
     first = user[0]
-    if user == 'jaandrej' :
+    if user == 'jaandrej' and getSystem()=="hephy.at":
         second = 'jandrejkovic'
     else :
         second = user[:8]
