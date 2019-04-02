@@ -20,7 +20,7 @@ for filename in files:
 	tmpfile = R.TFile(filename)
 	if tmpfile.IsOpen() and not tmpfile.IsZombie() and not tmpfile.TestBit(R.TFile.kRecovered) and len(tmpfile.GetListOfKeys()) > 0:
 		# shutil.copyfile(filename, "/".join([outdir,filename]) )
-		os.system( "xrdcp -f --posc {0} {1}".format(filename, "/".join([outdir,filename]) ) )
+		os.system( "xrdcp -f --posc {0} {1}".format(filename, "/".join([outdir.replace("DPM","root"),filename]) ) )
 	# 	remotefile = R.TFile("/".join([outdir,filename]))
 	# 	print "/".join([outdir,filename])
 	# 	if remotefile.IsOpen() and not remotefile.IsZombie():

@@ -24,7 +24,7 @@ def main():
                                                                                                       'eeu','eed'], default = [''])
     parser.add_argument('-t', dest='submit', help='Where to submit the job',choices = ['condor','batch','local'], default = 'local')
     parser.add_argument('-j', dest='jobs', help='If set to NJOBS > 0: Run NJOBS in parallel on heplx. Otherwise submit to batch.', type=int, default = 8)
-    parser.add_argument('-o', dest='outdir', help='Where to write output when running on batch.', type=str, default = 'srm://hephyse.oeaw.ac.at//dpm/oeaw.ac.at/home/cms/store/user/mspanrin/condor_production')
+    parser.add_argument('-o', dest='outdir', help='Where to write output when running on batch.', type=str, default = 'DPM://hephyse.oeaw.ac.at//dpm/oeaw.ac.at/home/cms/store/user/mspanrin/condor_production')
     parser.add_argument('-d', dest='debug', help='Debug', action = "store_true")
     parser.add_argument('-f', dest='force', help="Forces submission to batch when status in submit_log is 'NEW'", action = "store_true")
     parser.add_argument('--cert', dest='cert', help='Cert when running over data.', type=str, choices=[  'Cert_294927-306462_13TeV_EOY2017ReReco_Collisions17_JSON.txt','Cert_314472-325175_13TeV_PromptReco_Collisions18_JSON.txt'],
@@ -153,7 +153,7 @@ class SteerNanoProduction():
         self.certJson = cert
 
     def runOneSample(self, sample, channel, use_shift):
-        useToken("hephy")
+        # useToken("hephy")
         threads = []
         os.chdir(self.basedir)
 
@@ -168,8 +168,7 @@ class SteerNanoProduction():
 
         
         outdir = "/".join([self.outdir, sample])
-        print outdir
-        os.system("gfal-mkdir -p {outdir}".format(outdir=outdir))
+        os.system("gfal-mkdir -p {outdir}".format(outdir=outdir.replace("DPM","srm") ))
         # if not os.path.exists(outdir):
         #     os.makedirs(outdir)
 
