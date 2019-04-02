@@ -24,7 +24,7 @@ def main():
                                                                                                       'eeu','eed'], default = [''])
     parser.add_argument('-t', dest='submit', help='Where to submit the job',choices = ['condor','batch','local'], default = 'local')
     parser.add_argument('-j', dest='jobs', help='If set to NJOBS > 0: Run NJOBS in parallel on heplx. Otherwise submit to batch.', type=int, default = 8)
-    parser.add_argument('-o', dest='outdir', help='Where to write output when running on batch.', type=str, default = '/afs/hephy.at/data/higgs01')
+    parser.add_argument('-o', dest='outdir', help='Where to write output when running on batch.', type=str, default = 'DPM://hephyse.oeaw.ac.at//dpm/oeaw.ac.at/home/cms/store/user/mspanrin/condor_production')
     parser.add_argument('-d', dest='debug', help='Debug', action = "store_true")
     parser.add_argument('-f', dest='force', help="Forces submission to batch when status in submit_log is 'NEW'", action = "store_true")
     parser.add_argument('--cert', dest='cert', help='Cert when running over data.', type=str, choices=[  'Cert_294927-306462_13TeV_EOY2017ReReco_Collisions17_JSON.txt','Cert_314472-325175_13TeV_PromptReco_Collisions18_JSON.txt'],
@@ -39,7 +39,7 @@ def main():
     #2017 sync
     # sample = 'VBFHToTauTau_M125_13TeV_powheg_pythia8'
     if not checkProxy(): sys.exit()
-    if not checkTokens(): sys.exit()
+    # if not checkTokens(): sys.exit()
     if not os.environ.get("CMSSW_BASE", False):
         print "You forgot to source cmssw"
         sys.exit()
@@ -69,6 +69,7 @@ def makeSubmitList( sample, channel ):
         if sample == "mc": samples = glob("samples/mc/*/*")
         if sample == "data": samples = glob("samples/data/*/*")
         if sample == "dy": samples = glob("samples/mc/dy/*")
+        if sample == "dy_lowmass": samples = glob("samples/mc/dy_lowmass/*")
         if sample == "diboson": samples = glob("samples/mc/diboson/*")
         if sample == "ewk": samples = glob("samples/mc/ewk/*")
         if sample == "signal": samples = glob("samples/mc/signal/*")
@@ -152,7 +153,7 @@ class SteerNanoProduction():
         self.certJson = cert
 
     def runOneSample(self, sample, channel, use_shift):
-        useToken("hephy")
+        # useToken("hephy")
         threads = []
         os.chdir(self.basedir)
 
@@ -167,8 +168,9 @@ class SteerNanoProduction():
 
         
         outdir = "/".join([self.outdir, sample])
-        if not os.path.exists(outdir):
-            os.makedirs(outdir)
+        os.system("gfal-mkdir -p {outdir}".format(outdir=outdir.replace("DPM","srm") ))
+        # if not os.path.exists(outdir):
+        #     os.makedirs(outdir)
 
         sleeping = 0
         runpaths  = []
@@ -251,7 +253,7 @@ class SteerNanoProduction():
 
             with open(run_file,"w") as FSO:
                 FSO.write(condor_templ.substitute(rundir=runpath+"*"))
-            useToken("cern")
+            # useToken("cern")
             os.system("condor_submit {0}".format(run_file))
 
 
