@@ -69,6 +69,7 @@ def makeSubmitList( sample, channel ):
         if sample == "mc": samples = glob("samples/mc/*/*")
         if sample == "data": samples = glob("samples/data/*/*")
         if sample == "dy": samples = glob("samples/mc/dy/*")
+        if sample == "dy_lowmass": samples = glob("samples/mc/dy_lowmass/*")
         if sample == "diboson": samples = glob("samples/mc/diboson/*")
         if sample == "ewk": samples = glob("samples/mc/ewk/*")
         if sample == "signal": samples = glob("samples/mc/signal/*")
