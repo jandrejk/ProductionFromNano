@@ -67,6 +67,7 @@ class Bookkeeping():
     self.outdir = "/afs/hephy.at/data/higgs01"
 
     for sample in self.log:
+      if len( glob.glob( "samples/*/*/{0}.txt".format(sample) ) ) == 0: continue
       with open( glob.glob( "samples/*/*/{0}.txt".format(sample) )[0], "r" ) as FSO:
         ntotal = len(FSO.read().splitlines() )
       for channel in self.log[sample]:
@@ -109,8 +110,9 @@ class Bookkeeping():
     if self.system == "lxplus":
 
 
-      proc = sp.Popen( shlex.split('bjobs -UF'), stdout=sp.PIPE )
-      (out, err) = proc.communicate()
+      # proc = sp.Popen( shlex.split('bjobs -UF'), stdout=sp.PIPE )
+      # (out, err) = proc.communicate()
+      (out, err) = "", ""
 
       for entry in out.splitlines():
         if 'Job <' in entry:
