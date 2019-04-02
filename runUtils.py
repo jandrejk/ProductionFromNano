@@ -91,7 +91,7 @@ def getHeplxPublicFolder():
         second = 'jandrejkovic'
     else :
         second = user[:8]
-    return glob.glob( "/afs/hephy.at//user/{0}/{1}*/public".format(first,second) )[0]
+    return glob.glob( "/afs/{0}//user/{1}/{2}*/public".format(getSystem(),first,second) )[0]
 
 def getSystem(inverse = False):
     host = os.environ["HOSTNAME"]
