@@ -13,6 +13,8 @@ def main():
 			xsecs =   [0]*5
 			nevents = [0]*5
 			for sample in stitch_info[mergename]["samples"]:
+				if "DYJetsToLL_M_10to50_" in sample or "EWK" in sample : continue # low-mass DY and EWK contributions are not relevant for the stiching weight
+				print sample
 				nj = getJets(sample)
 				xsecs[nj] = tag_map[sample]["xsec"]
 				nevents[nj] = tag_map[sample]["nevents"]
