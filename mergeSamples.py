@@ -9,13 +9,15 @@ import shlex
 import sys
 import numpy as np
 import argparse
+from datetime import datetime
 from runUtils import checkProxy, checkTokens, getSystem, getHeplxPublicFolder
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument('-v', dest='version', help='Version of the merged samples', default = "v1")
+    parser.add_argument('-v', dest='version', help='Version of the merged samples')
     parser.add_argument('-c', dest='channel', help='Dataset channel',choices = ['mt','et','tt'], default = 'mt')
     parser.add_argument('-s', dest='stitch', help='Stitch samples',action="store_true")
+
 
 
     args = parser.parse_args()
@@ -25,6 +27,9 @@ def main():
     M = Merger(version=args.version, channel = args.channel)
     M.createSamples()
     if args.stitch: M.mergeSamples()
+
+
+
 
 class Merger():
 
@@ -43,23 +48,47 @@ class Merger():
             self.log = json.load(FSO)
 
         self.outdir = "/afs/hephy.at/data/higgs01/"
+        self.indir  = "srm://hephyse.oeaw.ac.at//dpm/oeaw.ac.at/home/cms/store/user/mspanrin/condor_production"
 
-        self.samples = self.collectFiles()
+        self.samples = self.collectFilesDPM()
+        #self.samples = self.collectFiles()
+        
         self.mergekeys = self.mapCompletedJobs()
-
+        #print self.mergekeys
+        
     def __del__(self):
 
         with open(self.logpath,"w") as FSO:
             json.dump(self.log, FSO, indent=2)
+    
+    def lsDPM(self, sample, shift):
+        print "gfal-ls -l --time-style long-iso  {0}/{1}".format(self.indir, sample)
+        proc = sp.Popen( shlex.split( "gfal-ls -l --time-style long-iso  {0}/{1}".format(self.indir, sample) ), stdout=sp.PIPE )
+        (out, err) = proc.communicate()
+        files = []
+
+        for file in out.splitlines():
+            #print file
+            if ".root" in file and "{0}-{1}".format(self.channel, shift) in file:
+                file = [i for i in file.split(" ") if i]
+                # Need to get UTC under control ....
+                timestamp = int( datetime.strptime(" ".join( [file[5], file[6]] ),"%Y-%m-%d %H:%M").strftime("%s") ) + 7200
+                #print (timestamp, "{0}/{1}/{2}".format(self.indir, sample, file[-1] ) )
+                files.append( (timestamp, "{0}/{1}/{2}".format(self.indir, sample, file[-1] ) ) )
+        return files
+
 
     def createSamples(self):
 
         for m in self.mergekeys:
             mergedir = "/".join([self.outdir,m[0],self.version])
+            #print mergedir
             if not os.path.exists(mergedir):
                 os.makedirs(mergedir)
 
             outfile = "/".join([mergedir, "{1}-{2}_{0}.root".format( *m ) ])
+            #print outfile
+
             if os.path.exists(outfile):
                 shutil.rmtree(outfile, ignore_errors=True)
 
@@ -75,7 +104,8 @@ class Merger():
             FM.OutputFile(outfile)
             success = True
             print "Adding files for merging... "
-            for f in self.samples[m[0]][m[1]][m[2]]["files"]:
+            for f in self.samples[m[0]][m[1]][m[2]]["files"] :
+                f = f.replace("srm:","root:")
                 if not FM.AddFile(f,False):
                     success = False
                     break
@@ -171,6 +201,55 @@ class Merger():
                         mergekeys.append((sample,channel,shift))
         return np.array(mergekeys)
 
+    def lsDPM(self, sample, shift):
+        print "gfal-ls -l --time-style long-iso  {0}/{1}".format(self.indir, sample)
+        proc = sp.Popen( shlex.split( "gfal-ls -l --time-style long-iso  {0}/{1}".format(self.indir, sample) ), stdout=sp.PIPE )
+        (out, err) = proc.communicate()
+        files = []
+
+        for file in out.splitlines():
+            #print file
+            if ".root" in file and "{0}-{1}".format(self.channel, shift) in file:
+                file = [i for i in file.split(" ") if i]
+                # Need to get UTC under control ....
+                timestamp = int( datetime.strptime(" ".join( [file[5], file[6]] ),"%Y-%m-%d %H:%M").strftime("%s") ) + 7200
+                #print (timestamp, "{0}/{1}/{2}".format(self.indir, sample, file[-1] ) )
+                files.append( (timestamp, "{0}/{1}/{2}".format(self.indir, sample, file[-1] ) ) )
+        return files
+
+
+    def collectFilesDPM (self):
+        
+        samples = {}
+        
+        proc = sp.Popen( shlex.split( "gfal-ls {0}".format(self.indir) ), stdout=sp.PIPE )
+        (out, err) = proc.communicate()
+        
+        #files = []
+
+        for samplename in out.splitlines():
+            if ".root" in samplename : continue # This is a root file not a sample directory
+            samples[samplename] = {}
+
+            proc = sp.Popen( shlex.split( "gfal-ls {0}/{1}".format(self.indir,samplename) ), stdout=sp.PIPE )
+            (out2, err2) = proc.communicate()
+            
+            for file in out2.splitlines() :
+                root_file = file.split("/")[-1]
+                channel = root_file.split("-")[0]
+                shift = root_file.split("_")[0].replace(channel+"-","")
+
+                if not samples[samplename].get(channel,False): samples[samplename][channel] = {}
+                if not samples[samplename][channel].get(shift,False): samples[samplename][channel][shift] = {"files":[]}
+
+                samples[samplename][channel][shift]["files"].append( "{0}/{1}/{2}".format(self.indir,samplename,root_file))
+                # print samplename
+                # print root_file
+                # print channel
+                # print shift
+                # print "-"*80
+        return samples
+
     def collectFiles(self):
 
         samples = {}
@@ -187,6 +266,11 @@ class Merger():
                 if not samples[samplename][channel].get(shift,False): samples[samplename][channel][shift] = {"files":[]}
 
                 samples[samplename][channel][shift]["files"].append( "/".join([sample,root_file]))
+                print samplename
+                print channel
+                print shift
+                print "/".join([sample,root_file])
+
 
         return samples
 
