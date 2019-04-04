@@ -220,8 +220,7 @@ void HTauTauTreeFromNanoBase::initHTTTree(const TTree *tree, std::string prefix)
     // 7 = hltOverlapFilterIsoEle*PFTau*
     // 8 = hltOverlapFilterIsoMu*PFTau*
     // 9 = hltDoublePFTau*TrackPt1*ChargedIsolation*
-            
-
+           
 
     triggerBits_.push_back(aTrgData);
     triggerBits_.back().path_name="HLT_IsoMu24";
@@ -335,11 +334,11 @@ void HTauTauTreeFromNanoBase::initHTTTree(const TTree *tree, std::string prefix)
     triggerBits_.push_back(aTrgData);
     triggerBits_.back().path_name="HLT_DoubleMediumChargedIsoPFTauHPS35_Trk1_eta2p1_Reg";
     triggerBits_.back().leg1Id=15;
-    triggerBits_.back().leg1BitMask=(1<<1) + (1<<6);
-
+    triggerBits_.back().leg1BitMask=(1<<1) + (1<<4);
+    
     triggerBits_.back().leg2Id=15;
-    triggerBits_.back().leg2BitMask=(1<<1) + (1<<6);
-
+    triggerBits_.back().leg2BitMask=(1<<1) + (1<<4);
+    
 
     ////////////////////////////////////////////////////////////
     ///Filter bits to check
