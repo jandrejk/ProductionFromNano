@@ -5,6 +5,7 @@ import shutil
 import os 
 from runUtils import checkProxy
 import argparse
+import ROOT as R
 
 def main():
     parser = argparse.ArgumentParser()
@@ -12,10 +13,19 @@ def main():
     args = parser.parse_args()
 
     if args.location == "private": 
-        getfromPrivate("/dpm/oeaw.ac.at/home/cms/store/user/jaandrej/nanoAOD/20190318/")
+        getfromPrivate("/dpm/oeaw.ac.at/home/cms/store/user/jaandrej/nanoAOD/20190424/")
+        #getfromPrivate("/dpm/oeaw.ac.at/home/cms/store/user/jaandrej/nanoAOD/20190318/")
         #getfromPrivate("/dpm/oeaw.ac.at/home/cms/store/user/jaandrej/")
     else:
         getfromDAS()
+
+def getNumberOfEvents (files) :
+    nevents = 0
+    for f in files:
+        ch = R.TChain("Events")
+        ch.Add(f)
+        nevents += ch.GetEntries()
+    return nevents
 
 def getfromPrivate(location):
 
@@ -34,6 +44,20 @@ def getfromPrivate(location):
                 if not os.path.exists( "/".join([tier, sub]) ):
                     os.mkdir( "/".join([ tier, sub]) )
 
+                print folder
+                print "No of events: "
+                Nevents = getNumberOfEvents(files=folders[folder])
+                print Nevents
+                
+                
+                with open("tagMapping.json","r+") as FSO:
+                    tagmap = json.load(FSO)
+                tagmap[folder.split('/')[-1]]["nevents_from_DAS"] = Nevents
+                tagmap[folder.split('/')[-1]]["nevents"] = Nevents
+                
+                with open("tagMapping.json", "w") as jsonFile:
+                    json.dump(tagmap, jsonFile,indent=4,sort_keys=True)
+        
                 with open( "/".join([tier,sub, folder.replace(location+tier,"").split("/")[2]]) + ".txt","w") as FSO:
                     FSO.write( "\n".join( folders[folder] ) )
 
