@@ -1,5 +1,6 @@
 {
     "DY1JetsToLL_M_50_TuneCP5_13TeV_madgraphMLM_pythia8_102X_upgrade2018_realistic_v15_v1": {
+        "fromDAS": "False", 
         "nevents": 68814495, 
         "nevents_from_DAS": 68814495, 
         "putag": "DYJetsToLL_M-50_TuneCP5_13TeV-madgraphMLM-pythia8", 
@@ -13,6 +14,7 @@
         "xsec": 877.8
     }, 
     "DY2JetsToLL_M_50_TuneCP5_13TeV_madgraphMLM_pythia8_102X_upgrade2018_realistic_v15_v1": {
+        "fromDAS": "False", 
         "nevents": 20456037, 
         "nevents_from_DAS": 20456037, 
         "putag": "DYJetsToLL_M-50_TuneCP5_13TeV-madgraphMLM-pythia8", 
@@ -26,6 +28,7 @@
         "xsec": 304.4
     }, 
     "DY3JetsToLL_M_50_TuneCP5_13TeV_madgraphMLM_pythia8_102X_upgrade2018_realistic_v15_v1": {
+        "fromDAS": "False", 
         "nevents": 5652357, 
         "nevents_from_DAS": 5652357, 
         "putag": "DYJetsToLL_M-50_TuneCP5_13TeV-madgraphMLM-pythia8", 
@@ -39,6 +42,7 @@
         "xsec": 111.5
     }, 
     "DY4JetsToLL_M_50_TuneCP5_13TeV_madgraphMLM_pythia8_102X_upgrade2018_realistic_v15_v1": {
+        "fromDAS": "False", 
         "nevents": 2817812, 
         "nevents_from_DAS": 2817812, 
         "putag": "DYJetsToLL_M-50_TuneCP5_13TeV-madgraphMLM-pythia8", 
@@ -52,6 +56,7 @@
         "xsec": 44.03
     }, 
     "DYJetsToLL_M_10to50_TuneCP5_13TeV_madgraphMLM_pythia8_102X_upgrade2018_realistic_v15_v2": {
+        "fromDAS": "False", 
         "nevents": 39299355, 
         "nevents_from_DAS": 39299355, 
         "putag": "DYJetsToLL_M-50_TuneCP5_13TeV-madgraphMLM-pythia8", 
@@ -65,6 +70,7 @@
         "xsec": 21658.0
     }, 
     "DYJetsToLL_M_50_TuneCP5_13TeV_madgraphMLM_pythia8_102X_upgrade2018_realistic_v15_v1": {
+        "fromDAS": "False", 
         "nevents": 100194597, 
         "nevents_from_DAS": 100194597, 
         "putag": "DYJetsToLL_M-50_TuneCP5_13TeV-madgraphMLM-pythia8", 
@@ -78,6 +84,7 @@
         "xsec": 5765.4
     }, 
     "ST_tW_antitop_5f_inclusiveDecays_TuneCP5_13TeV_powheg_pythia8_102X_upgrade2018_realistic_v15_ext1_v1": {
+        "fromDAS": "False", 
         "nevents": 7401000, 
         "nevents_from_DAS": 7401000, 
         "putag": "DYJetsToLL_M-50_TuneCP5_13TeV-madgraphMLM-pythia8", 
@@ -91,6 +98,7 @@
         "xsec": 35.85
     }, 
     "ST_tW_top_5f_inclusiveDecays_TuneCP5_13TeV_powheg_pythia8_102X_upgrade2018_realistic_v15_ext1_v1": {
+        "fromDAS": "False", 
         "nevents": 9598000, 
         "nevents_from_DAS": 9598000, 
         "putag": "DYJetsToLL_M-50_TuneCP5_13TeV-madgraphMLM-pythia8", 
@@ -104,6 +112,7 @@
         "xsec": 35.895980005
     }, 
     "ST_t_channel_antitop_4f_InclusiveDecays_TuneCP5_13TeV_powheg_madspin_pythia8_102X_upgrade2018_realistic_v15_v1": {
+        "fromDAS": "False", 
         "nevents": 79090800, 
         "nevents_from_DAS": 79090800, 
         "putag": "DYJetsToLL_M-50_TuneCP5_13TeV-madgraphMLM-pythia8", 
@@ -117,6 +126,7 @@
         "xsec": 80.95
     }, 
     "ST_t_channel_top_5f_TuneCP5_13TeV_powheg_pythia8_102X_upgrade2018_realistic_v15_v1": {
+        "fromDAS": "False", 
         "nevents": 5903676, 
         "nevents_from_DAS": 5903676, 
         "putag": "DYJetsToLL_M-50_TuneCP5_13TeV-madgraphMLM-pythia8", 
@@ -151,6 +161,7 @@
         "xsec": 365.35
     }, 
     "W1JetsToLNu_TuneCP5_13TeV_madgraphMLM_pythia8_102X_upgrade2018_realistic_v15_v2": {
+        "fromDAS": "False", 
         "nevents": 51082776, 
         "nevents_from_DAS": 51082776, 
         "putag": "DYJetsToLL_M-50_TuneCP5_13TeV-madgraphMLM-pythia8", 
@@ -164,6 +175,7 @@
         "xsec": 8104.0
     }, 
     "W2JetsToLNu_TuneCP5_13TeV_madgraphMLM_pythia8_102X_upgrade2018_realistic_v15_v2": {
+        "fromDAS": "False", 
         "nevents": 23290710, 
         "nevents_from_DAS": 23290710, 
         "putag": "DYJetsToLL_M-50_TuneCP5_13TeV-madgraphMLM-pythia8", 
@@ -177,6 +189,7 @@
         "xsec": 2793.0
     }, 
     "W3JetsToLNu_TuneCP5_13TeV_madgraphMLM_pythia8_102X_upgrade2018_realistic_v15_v2": {
+        "fromDAS": "False", 
         "nevents": 14508481, 
         "nevents_from_DAS": 14508481, 
         "putag": "DYJetsToLL_M-50_TuneCP5_13TeV-madgraphMLM-pythia8", 
@@ -190,6 +203,7 @@
         "xsec": 992.5
     }, 
     "W4JetsToLNu_TuneCP5_13TeV_madgraphMLM_pythia8_102X_upgrade2018_realistic_v15_v2": {
+        "fromDAS": "False", 
         "nevents": 10082747, 
         "nevents_from_DAS": 10082747, 
         "putag": "DYJetsToLL_M-50_TuneCP5_13TeV-madgraphMLM-pythia8", 
@@ -203,12 +217,14 @@
         "xsec": 544.3
     }, 
     "WJetsToLNu_TuneCP5_13TeV_madgraphMLM_pythia8_102X_upgrade2018_realistic_v15_v2": {
+        "fromDAS": "False", 
         "nevents": 66443486, 
         "nevents_from_DAS": 66443486, 
         "putag": "DYJetsToLL_M-50_TuneCP5_13TeV-madgraphMLM-pythia8", 
         "xsec": 61526.7
     }, 
     "WW_TuneCP5_13TeV_pythia8_102X_upgrade2018_realistic_v15_v2": {
+        "fromDAS": "False", 
         "nevents": 7850000, 
         "nevents_from_DAS": 7850000, 
         "putag": "DYJetsToLL_M-50_TuneCP5_13TeV-madgraphMLM-pythia8", 
@@ -222,6 +238,7 @@
         "xsec": 118.7
     }, 
     "WZ_TuneCP5_13TeV_pythia8_102X_upgrade2018_realistic_v15_v3": {
+        "fromDAS": "False", 
         "nevents": 3885000, 
         "nevents_from_DAS": 3885000, 
         "putag": "DYJetsToLL_M-50_TuneCP5_13TeV-madgraphMLM-pythia8", 
@@ -235,6 +252,7 @@
         "xsec": 27.57
     }, 
     "ZZ_TuneCP5_13TeV_pythia8_102X_upgrade2018_realistic_v15_v2": {
+        "fromDAS": "False", 
         "nevents": 1979000, 
         "nevents_from_DAS": 1979000, 
         "putag": "DYJetsToLL_M-50_TuneCP5_13TeV-madgraphMLM-pythia8", 

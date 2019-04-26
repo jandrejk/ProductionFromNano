@@ -10,10 +10,11 @@ import ROOT as R
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('-l', dest='location', help='Get samples from local or DAS', choices=["das","private"], default = "das")
+    parser.add_argument('--tagMap', dest='update', help='update tagMapping.json', action = "store_true")
     args = parser.parse_args()
 
     if args.location == "private": 
-        getfromPrivate("/dpm/oeaw.ac.at/home/cms/store/user/jaandrej/nanoAOD/20190424/")
+        getfromPrivate("/dpm/oeaw.ac.at/home/cms/store/user/jaandrej/nanoAOD/20190424/",update=args.update)
         #getfromPrivate("/dpm/oeaw.ac.at/home/cms/store/user/jaandrej/nanoAOD/20190318/")
         #getfromPrivate("/dpm/oeaw.ac.at/home/cms/store/user/jaandrej/")
     else:
@@ -27,7 +28,7 @@ def getNumberOfEvents (files) :
         nevents += ch.GetEntries()
     return nevents
 
-def getfromPrivate(location):
+def getfromPrivate(location,update):
 
     if not os.path.exists( "samples" ):
         os.mkdir( "samples" )
@@ -40,26 +41,34 @@ def getfromPrivate(location):
         k.sort()
         for folder in k:
             if folders[folder]:
-                sub = folder.replace(location+tier,"").split("/")[1]
-                if not os.path.exists( "/".join([tier, sub]) ):
-                    os.mkdir( "/".join([ tier, sub]) )
-
-                print folder
-                print "No of events: "
-                Nevents = getNumberOfEvents(files=folders[folder])
-                print Nevents
-                
-                
+                # sub = folder.replace(location+tier,"").split("/")[1]
+                # if not os.path.exists( "/".join([tier, sub]) ):
+                #     os.mkdir( "/".join([ tier, sub]) )
                 with open("tagMapping.json","r+") as FSO:
-                    tagmap = json.load(FSO)
-                tagmap[folder.split('/')[-1]]["nevents_from_DAS"] = Nevents
-                tagmap[folder.split('/')[-1]]["nevents"] = Nevents
+                        tagmap = json.load(FSO)
+
+                if update :
+                    print folder
+                    print "No of events: "
+                    Nevents = getNumberOfEvents(files=folders[folder])
+                    print Nevents
+                    
+                    
+                    # with open("tagMapping.json","r+") as FSO:
+                    #     tagmap = json.load(FSO)
+                    tagmap[folder.split('/')[-1]]["nevents_from_DAS"] = Nevents
+                    tagmap[folder.split('/')[-1]]["nevents"] = Nevents
+                    
+                    with open("tagMapping.json", "w") as jsonFile:
+                        json.dump(tagmap, jsonFile,indent=4,sort_keys=True)
                 
-                with open("tagMapping.json", "w") as jsonFile:
-                    json.dump(tagmap, jsonFile,indent=4,sort_keys=True)
-        
-                with open( "/".join([tier,sub, folder.replace(location+tier,"").split("/")[2]]) + ".txt","w") as FSO:
-                    FSO.write( "\n".join( folders[folder] ) )
+                if tagmap[folder.split('/')[-1]]["fromDAS"] == 'False' :
+                    sub = folder.replace(location+tier,"").split("/")[1]
+                    if not os.path.exists( "/".join([tier, sub]) ):
+                        os.mkdir( "/".join([ tier, sub]) )
+
+                    with open( "/".join([tier,sub, folder.replace(location+tier,"").split("/")[2]]) + ".txt","w") as FSO:
+                        FSO.write( "\n".join( folders[folder] ) )
 
 def getPrivateFiles(source):
 
