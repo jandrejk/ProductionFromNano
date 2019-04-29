@@ -47,22 +47,32 @@ def getfromPrivate(location,update):
                 with open("tagMapping.json","r+") as FSO:
                         tagmap = json.load(FSO)
 
-                if update :
+                isMC = "_Run2018" not in folder 
+                print isMC
+                if update and isMC:
                     print folder
                     print "No of events: "
                     Nevents = getNumberOfEvents(files=folders[folder])
                     print Nevents
                     
                     
-                    # with open("tagMapping.json","r+") as FSO:
-                    #     tagmap = json.load(FSO)
+                    with open("tagMapping.json","r+") as FSO:
+                        tagmap = json.load(FSO)
                     tagmap[folder.split('/')[-1]]["nevents_from_DAS"] = Nevents
                     tagmap[folder.split('/')[-1]]["nevents"] = Nevents
                     
                     with open("tagMapping.json", "w") as jsonFile:
                         json.dump(tagmap, jsonFile,indent=4,sort_keys=True)
                 
-                if tagmap[folder.split('/')[-1]]["fromDAS"] == 'False' :
+                if isMC :
+                    if (tagmap[folder.split('/')[-1]]["fromDAS"] == 'False') :
+                        sub = folder.replace(location+tier,"").split("/")[1]
+                        if not os.path.exists( "/".join([tier, sub]) ):
+                            os.mkdir( "/".join([ tier, sub]) )
+
+                        with open( "/".join([tier,sub, folder.replace(location+tier,"").split("/")[2]]) + ".txt","w") as FSO:
+                            FSO.write( "\n".join( folders[folder] ) )
+                else :
                     sub = folder.replace(location+tier,"").split("/")[1]
                     if not os.path.exists( "/".join([tier, sub]) ):
                         os.mkdir( "/".join([ tier, sub]) )

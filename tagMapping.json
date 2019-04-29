@@ -139,6 +139,13 @@
         "putag": "DYJetsToLL_M-50_TuneCP5_13TeV-madgraphMLM-pythia8", 
         "xsec": 136.02
     }, 
+    "TTTo2L2Nu_TuneCP5_13TeV_powheg_pythia8_102X_upgrade2018_realistic_v15_v1": {
+        "fromDAS": "False", 
+        "nevents": 64310000, 
+        "nevents_from_DAS": 64310000, 
+        "putag": "DYJetsToLL_M-50_TuneCP5_13TeV-madgraphMLM-pythia8", 
+        "xsec": 88.29
+    }, 
     "TTTo2L2Nu_TuneCP5_13TeV_powheg_pythia8_RunIIAutumn18NanoAOD_14Dec2018": {
         "fromDAS": "True", 
         "nevents": 64310000, 
@@ -146,12 +153,26 @@
         "putag": "DYJetsToLL_M-50_TuneCP5_13TeV-madgraphMLM-pythia8", 
         "xsec": 88.29
     }, 
+    "TTToHadronic_TuneCP5_13TeV_powheg_pythia8_102X_upgrade2018_realistic_v15_v1": {
+        "fromDAS": "False", 
+        "nevents": 133808000, 
+        "nevents_from_DAS": 133808000, 
+        "putag": "DYJetsToLL_M-50_TuneCP5_13TeV-madgraphMLM-pythia8", 
+        "xsec": 377.96
+    }, 
     "TTToHadronic_TuneCP5_13TeV_powheg_pythia8_RunIIAutumn18NanoAOD_14Dec2018": {
         "fromDAS": "True", 
         "nevents": 133808000, 
         "nevents_from_DAS": 133808000, 
         "putag": "DYJetsToLL_M-50_TuneCP5_13TeV-madgraphMLM-pythia8", 
         "xsec": 377.96
+    }, 
+    "TTToSemiLeptonic_TuneCP5_13TeV_powheg_pythia8_102X_upgrade2018_realistic_v15_v1": {
+        "fromDAS": "False", 
+        "nevents": 101500000, 
+        "nevents_from_DAS": 101500000, 
+        "putag": "DYJetsToLL_M-50_TuneCP5_13TeV-madgraphMLM-pythia8", 
+        "xsec": 365.35
     }, 
     "TTToSemiLeptonic_TuneCP5_13TeV_powheg_pythia8_RunIIAutumn18NanoAOD_14Dec2018": {
         "fromDAS": "True", 
