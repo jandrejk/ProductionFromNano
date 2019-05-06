@@ -4,12 +4,12 @@
 		"stitching":true,
 		"NNLO_xsec":5765.4,
 		"samples":[
-			"DY1JetsToLL_M_50_TuneCP5_13TeV_madgraphMLM_pythia8_RunIIAutumn18NanoAOD_14Dec2018",
-			"DY2JetsToLL_M_50_TuneCP5_13TeV_madgraphMLM_pythia8_RunIIAutumn18NanoAOD_14Dec2018",
-			"DY3JetsToLL_M_50_TuneCP5_13TeV_madgraphMLM_pythia8_RunIIAutumn18NanoAOD_14Dec2018",
-			"DY4JetsToLL_M_50_TuneCP5_13TeV_madgraphMLM_pythia8_RunIIAutumn18NanoAOD_14Dec2018",
-			"DYJetsToLL_M_50_TuneCP5_13TeV_madgraphMLM_pythia8_RunIIAutumn18NanoAOD_14Dec2018",
-			"DYJetsToLL_M_10to50_TuneCP5_13TeV_madgraphMLM_pythia8_RunIIAutumn18NanoAOD_14Dec2018"
+			"DY1JetsToLL_M_50_TuneCP5_13TeV_madgraphMLM_pythia8_102X_upgrade2018_realistic_v15_v1",
+			"DY2JetsToLL_M_50_TuneCP5_13TeV_madgraphMLM_pythia8_102X_upgrade2018_realistic_v15_v1",
+			"DY3JetsToLL_M_50_TuneCP5_13TeV_madgraphMLM_pythia8_102X_upgrade2018_realistic_v15_v1",
+			"DY4JetsToLL_M_50_TuneCP5_13TeV_madgraphMLM_pythia8_102X_upgrade2018_realistic_v15_v1",
+			"DYJetsToLL_M_10to50_TuneCP5_13TeV_madgraphMLM_pythia8_102X_upgrade2018_realistic_v15_v2",
+			"DYJetsToLL_M_50_TuneCP5_13TeV_madgraphMLM_pythia8_102X_upgrade2018_realistic_v15_v1"
 		]
 	},
 	"BASIS_ntuple_WJets":{
@@ -17,10 +17,10 @@
 		"stitching":true,
 		"NNLO_xsec":61526.7,
 		"samples":[
-			"W1JetsToLNu_TuneCP5_13TeV_madgraphMLM_pythia8_RunIIAutumn18NanoAOD_14Dec2018",
-			"W2JetsToLNu_TuneCP5_13TeV_madgraphMLM_pythia8_RunIIAutumn18NanoAOD_14Dec2018",
-			"W3JetsToLNu_TuneCP5_13TeV_madgraphMLM_pythia8_RunIIAutumn18NanoAOD_14Dec2018",
-			"W4JetsToLNu_TuneCP5_13TeV_madgraphMLM_pythia8_RunIIAutumn18NanoAOD_14Dec2018",
+			"W1JetsToLNu_TuneCP5_13TeV_madgraphMLM_pythia8_102X_upgrade2018_realistic_v15_v2",
+			"W2JetsToLNu_TuneCP5_13TeV_madgraphMLM_pythia8_102X_upgrade2018_realistic_v15_v2",
+			"W3JetsToLNu_TuneCP5_13TeV_madgraphMLM_pythia8_102X_upgrade2018_realistic_v15_v2",
+			"W4JetsToLNu_TuneCP5_13TeV_madgraphMLM_pythia8_102X_upgrade2018_realistic_v15_v2",
 			"WJetsToLNu_TuneCP5_13TeV_madgraphMLM_pythia8_102X_upgrade2018_realistic_v15_v2"
 		]
 	},
@@ -28,52 +28,52 @@
 		"data":false,
 		"stitching":false,
 		"samples":	[
-			"TTTo2L2Nu_TuneCP5_13TeV_powheg_pythia8_RunIIAutumn18NanoAOD_14Dec2018",
-			"TTToHadronic_TuneCP5_13TeV_powheg_pythia8_RunIIAutumn18NanoAOD_14Dec2018",
-			"TTToSemiLeptonic_TuneCP5_13TeV_powheg_pythia8_RunIIAutumn18NanoAOD_14Dec2018"
+			"TTTo2L2Nu_TuneCP5_13TeV_powheg_pythia8_102X_upgrade2018_realistic_v15_v1",
+			"TTToHadronic_TuneCP5_13TeV_powheg_pythia8_102X_upgrade2018_realistic_v15_v1",
+			"TTToSemiLeptonic_TuneCP5_13TeV_powheg_pythia8_102X_upgrade2018_realistic_v15_v1"
 		]
 	},
 	"BASIS_ntuple_VV":{
 		"data":false,
 		"stitching":false,
 		"samples":[
-			"WW_TuneCP5_13TeV_pythia8_RunIIAutumn18NanoAOD_14Dec2018",
-			"WZ_TuneCP5_13TeV_pythia8_RunIIAutumn18NanoAOD_14Dec2018",
-			"ZZ_TuneCP5_13TeV_pythia8_RunIIAutumn18NanoAOD_14Dec2018",
-			"ST_t_channel_antitop_4f_InclusiveDecays_TuneCP5_13TeV_powheg_madspin_pythia8_RunIIAutumn18NanoAOD_14Dec2018",
-			"ST_t_channel_top_5f_TuneCP5_13TeV_powheg_pythia8_RunIIAutumn18NanoAOD_14Dec2018",
-			"ST_tW_antitop_5f_inclusiveDecays_TuneCP5_13TeV_powheg_pythia8_RunIIAutumn18NanoAOD_14Dec2018_ext1",
-			"ST_tW_top_5f_inclusiveDecays_TuneCP5_13TeV_powheg_pythia8_RunIIAutumn18NanoAOD_14Dec2018_ext1"
+			"WW_TuneCP5_13TeV_pythia8_102X_upgrade2018_realistic_v15_v2",
+			"WZ_TuneCP5_13TeV_pythia8_102X_upgrade2018_realistic_v15_v3",
+			"ZZ_TuneCP5_13TeV_pythia8_102X_upgrade2018_realistic_v15_v2",
+			"ST_tW_antitop_5f_inclusiveDecays_TuneCP5_13TeV_powheg_pythia8_102X_upgrade2018_realistic_v15_ext1_v1",
+			"ST_tW_top_5f_inclusiveDecays_TuneCP5_13TeV_powheg_pythia8_102X_upgrade2018_realistic_v15_ext1_v1",
+			"ST_t_channel_antitop_4f_InclusiveDecays_TuneCP5_13TeV_powheg_madspin_pythia8_102X_upgrade2018_realistic_v15_v1",
+			"ST_t_channel_top_5f_TuneCP5_13TeV_powheg_pythia8_102X_upgrade2018_realistic_v15_v1"
 		]
 	},
 	"BASIS_ntuple_SingleElectron":{
 		"data":true,
 		"stitching":false,
 		"samples":[
-			"EGamma_Run2018A_14Dec2018",
-			"EGamma_Run2018B_14Dec2018",
-			"EGamma_Run2018C_14Dec2018",
-			"EGamma_Run2018D_14Dec2018"
+			"EGamma_Run2018A_17Sep2018_v2",
+			"EGamma_Run2018B_17Sep2018_v1",
+			"EGamma_Run2018C_17Sep2018_v1",
+			"EGamma_Run2018D_PromptReco_v2"
 		]
 	},
 	"BASIS_ntuple_SingleMuon":{
 		"data":true,
 		"stitching":false,
 		"samples":[
-			"SingleMuon_Run2018A_14Dec2018",
-			"SingleMuon_Run2018B_14Dec2018",
-			"SingleMuon_Run2018C_14Dec2018",
-			"SingleMuon_Run2018D_14Dec2018"
+			"SingleMuon_Run2018A_17Sep2018_v2",
+			"SingleMuon_Run2018B_17Sep2018_v1",
+			"SingleMuon_Run2018C_17Sep2018_v1",
+			"SingleMuon_Run2018D_PromptReco_v2"
 		]
 	},
 	"BASIS_ntuple_Tau":{
 		"data":true,
 		"stitching":false,
 		"samples":[
-			"Tau_Run2018A_14Dec2018",
-			"Tau_Run2018B_14Dec2018",
-			"Tau_Run2018C_14Dec2018",
-			"Tau_Run2018D_14Dec2018"
+			"Tau_Run2018A_17Sep2018_v1",
+			"Tau_Run2018B_17Sep2018_v1",
+			"Tau_Run2018C_17Sep2018_v1",
+			"Tau_Run2018D_PromptReco_v2"
 		]
 	}
 }
