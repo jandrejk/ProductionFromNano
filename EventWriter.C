@@ -185,7 +185,6 @@ void EventWriter::fill(HTTEvent *ev, HTTJetCollection *jets, std::vector<HTTPart
    
     // This is obsolete and not included in correction workspace
     if(ev->getSampleType() == HTTEvent::DY || ev->getSampleType() == HTTEvent::DYLowM ) {
-        std::cout<<"bla"<<std::endl;
         //std::cout<<"111"<<std::endl;
         w->var("z_gen_mass")->setVal(  ll.M()  );
         // std::cout<<"112"<<std::endl;
