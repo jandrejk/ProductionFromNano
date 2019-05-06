@@ -184,18 +184,18 @@ void EventWriter::fill(HTTEvent *ev, HTTJetCollection *jets, std::vector<HTTPart
     topPtReweightWeightRun1=ev->getTopPtReWeight(true);
    
     // This is obsolete and not included in correction workspace
-    // if(ev->getSampleType() == HTTEvent::DY )
-    // {
-    //     std::cout<<"111"<<std::endl;
-    //     w->var("z_gen_mass")->setVal(  ll.M()  );
-    //     std::cout<<"112"<<std::endl;
-    //     w->var("z_gen_pt")->setVal( ll.Pt() );
-    //     std::cout<<"113"<<std::endl;
-    //     zPtReweightWeight=w->function("zptmass_weight_nom")->getVal();
-    //     std::cout<<"114"<<std::endl;
-    //     zPtReweightWeight1D=w->function("zpt_weight_nom")->getVal();
-    //     std::cout<<"115"<<std::endl;
-    // }
+    if(ev->getSampleType() == HTTEvent::DY || ev->getSampleType() == HTTEvent::DYLowM ) {
+        std::cout<<"bla"<<std::endl;
+        //std::cout<<"111"<<std::endl;
+        w->var("z_gen_mass")->setVal(  ll.M()  );
+        // std::cout<<"112"<<std::endl;
+        w->var("z_gen_pt")->setVal( ll.Pt() );
+        // std::cout<<"113"<<std::endl;
+        zPtReweightWeight=w->function("zptmass_weight_nom")->getVal();
+        // std::cout<<"114"<<std::endl;
+        // zPtReweightWeight1D=w->function("zpt_weight_nom")->getVal();
+        // std::cout<<"115"<<std::endl;
+    }
    
     NNLO_ggH_weight = ev->getNNLO_ggH_weight();
 
@@ -1890,7 +1890,7 @@ void EventWriter::initTree(TTree *t, vector< pair< string, pair<string,bool> > >
     t->Branch("THU_ggH_PT120", &THU_ggH_PT120);
     t->Branch("THU_ggH_qmtop", &THU_ggH_qmtop);
 
-    // t->Branch("zpt_weight_nom",&zpt_weight_nom);
+    t->Branch("zpt_weight_nom",&zpt_weight_nom);
     // t->Branch("zpt_weight_esup",&zpt_weight_esup);
     // t->Branch("zpt_weight_esdown",&zpt_weight_esdown);
     // t->Branch("zpt_weight_ttup",&zpt_weight_ttup);

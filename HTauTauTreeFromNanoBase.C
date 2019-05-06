@@ -619,9 +619,11 @@ void HTauTauTreeFromNanoBase::fillEvent(unsigned int bestPairIndex)
 
             if( ( httEvent->getSampleType() == HTTEvent::DY || httEvent->getSampleType() == HTTEvent::DYLowM ) )
             {
+                std::cout<<"calculating zpt for DY/DYlowmass"<<std::endl;
                 zPtReWeight = getZPtReweight(genBosonP4);
             }
         }
+        std::cout<<"setting the following zpt reweight "<<std::endl;
         httEvent->setZPtReWeight(zPtReWeight);
         /////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -1841,15 +1843,17 @@ double HTauTauTreeFromNanoBase::getZPtReweight(const TLorentzVector &genBosonP4,
     double weight = 1.0;
 
     //Z pt reweighting
-    
+    std::cout<<"gen boson mass = "<<genBosonP4.M()<<std::endl;
     if(genBosonP4.M()>1E-3)
     {
+        std::cout<<"computing z pt weight"<<std::endl;
         TH2D *hWeight = zptmass_histo;
         double mass = genBosonP4.M();
         double pt = genBosonP4.Perp();    
         int massBin = hWeight->GetXaxis()->FindBin(mass);
         int ptBin = hWeight->GetYaxis()->FindBin(pt);
         weight = hWeight->GetBinContent(massBin,ptBin);
+        std::cout<<"z pt weight = "<<weight<<std::endl;
     }
     return weight;
 }
