@@ -64,6 +64,27 @@
 			"VBFHToTauTau_M125_13TeV_powheg_pythia8_PU2017_12Apr2018_94X_mc2017_realistic_v14_v1"
 		]
 	},
+	"BASIS_ntuple_ttH125":{
+		"data":false,
+		"stitching":false,
+		"samples":	[
+			"ttHToTauTau_M125_TuneCP5_13TeV_powheg_pythia8_PU2017_12Apr2018_new_pmx_94X_mc2017_realistic_v14_v1"
+		]
+	},
+	"BASIS_ntuple_qqHWW":{
+		"data":false,
+		"stitching":false,
+		"samples":	[
+			"VBFHToWWTo2L2Nu_M125_13TeV_powheg2_JHUGenV714_pythia8_PU2017_12Apr2018_94X_mc2017_realistic_v14_v1"
+		]
+	},
+	"BASIS_ntuple_ggHWW":{
+		"data":false,
+		"stitching":false,
+		"samples":	[
+			"GluGluHToWWTo2L2Nu_M125_13TeV_powheg2_JHUGenV714_pythia8_PU2017_12Apr2018_94X_mc2017_realistic_v14_v1"
+		]
+	},
 	"BASIS_ntuple_ggH":{
 		"data":false,
 		"stitching":false,
