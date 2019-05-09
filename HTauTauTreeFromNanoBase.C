@@ -137,21 +137,29 @@ void HTauTauTreeFromNanoBase::initHTTTree(const TTree *tree, std::string prefix)
         applyRecoil = Settings["recoil"].get<bool>() ;       
     }
 
+    // Building vector of uncertainties needed for MET
     if(applyRecoil)
     {
-        // Don't judge me... Not very nice way to implement met uncerts
-        // TODO: Put it in a smart container that calculates shifts and has knowledge of shift names
-        metShifts.push_back( make_pair("",                                       make_pair(MEtSys::SysType::Response,   MEtSys::SysShift::Up ) ) ); // Dummy shifts for nominal
+        metShifts.clear();
+        metShifts.push_back( "" );
+        metShifts.push_back( "uncorrected" );
+        metShifts.push_back( "CMS_scale_met_unclustered_13TeVUp");
+        metShifts.push_back( "CMS_scale_met_unclustered_13TeVDown");
+        metShifts.push_back( "CMS_htt_boson_reso_met_13TeVUp");
+        metShifts.push_back( "CMS_htt_boson_reso_met_13TeVDown");
+        metShifts.push_back( "CMS_htt_boson_scale_met_13TeVUp");
+        metShifts.push_back( "CMS_htt_boson_scale_met_13TeVDown");
 
-        metShifts.push_back( make_pair("CMS_scale_met_unclustered_13TeVUp",      make_pair(MEtSys::SysType::Response,   MEtSys::SysShift::Up ) ) );    // SysType is dummy
-        metShifts.push_back( make_pair("CMS_scale_met_unclustered_13TeVDown",    make_pair(MEtSys::SysType::Response,   MEtSys::SysShift::Down ) ) );  // SysType is dummy
-
-        metShifts.push_back( make_pair("CMS_htt_boson_reso_met_13TeVUp",         make_pair(MEtSys::SysType::Response,   MEtSys::SysShift::Up ) ) );
-        metShifts.push_back( make_pair("CMS_htt_boson_reso_met_13TeVDown",       make_pair(MEtSys::SysType::Response,   MEtSys::SysShift::Down ) ) );
-
-        metShifts.push_back( make_pair("CMS_htt_boson_scale_met_13TeVUp",        make_pair(MEtSys::SysType::Resolution, MEtSys::SysShift::Up ) ) );
-        metShifts.push_back( make_pair("CMS_htt_boson_scale_met_13TeVDown",      make_pair(MEtSys::SysType::Resolution, MEtSys::SysShift::Down ) ) );
-
+    } else
+    {
+        metShifts.clear();
+        // nominal: metShifts.push_back( "" )  is part of JECShifts
+        metShifts.push_back( "CMS_scale_met_unclustered_13TeVUp");
+        metShifts.push_back( "CMS_scale_met_unclustered_13TeVDown");
+        for(auto shift : httJetCollection.getNeededJECShifts() )
+        {
+            metShifts.push_back( shift.first );
+        }        
     }
     
 
@@ -1918,15 +1926,7 @@ void HTauTauTreeFromNanoBase::computeSvFit(HTTPair &aPair, bool fastMTT)
     TLorentzVector p4SVFit;
     vector<string> shifts;
 
-    if(applyRecoil)
-    {
-        for(auto shift : metShifts)                              shifts.push_back( shift.first );
-    }else
-    {
-        for(auto shift : httJetCollection.getNeededJECShifts() ) shifts.push_back( shift.first );
-    }
-
-    for(auto shift : shifts )
+    for(auto shift : metShifts )
     {
         p4SVFit.SetPtEtaPhiM(-10,-.10,-10,-10);
 
@@ -2035,6 +2035,7 @@ void HTauTauTreeFromNanoBase::applyMetRecoilCorrections(HTTPair &aPair)
         || !applyRecoil
     )
     {
+        addMetUnclusteredUncertainty(aPair,MET_pt,MET_phi);
         for(auto shift : httJetCollection.getNeededJECShifts() )
         {
             aPair.setMET( met - httJetCollection.getTotalJetShift(shift.second.first, shift.second.second), shift.first );
@@ -2048,6 +2049,7 @@ void HTauTauTreeFromNanoBase::applyMetRecoilCorrections(HTTPair &aPair)
                                                               (double)met.Mod()},{},
                                                               {"met_px","met_py","met_pt"} ) ;
     aPair.setMET(met,""); // Set Met to propagate tes
+    aPair.setMET(met,"uncorrected"); // Add Met before recoil corrections
 
     TLorentzVector genBosonP4 = httEvent->getGenBosonP4();
     TLorentzVector genBosonVisP4 = httEvent->getGenBosonP4(true);
@@ -2061,7 +2063,7 @@ void HTauTauTreeFromNanoBase::applyMetRecoilCorrections(HTTPair &aPair)
     float gen_ll_vis_py = genBosonVisP4.Py();
 
     int nJets = httJetCollection.getNJets(20);
-    if(httEvent->getDecayModeBoson()>=10) nJets++; //W, add jet for fake tau
+    if(httEvent->getSampleType() == HTTEvent::WJets) nJets++; //W, add jet for fake tau
       
 
     debugWayPoint("[applyMetRecoilCorrections] met after applying tes   ",{(double)MEtPx,
@@ -2093,45 +2095,61 @@ void HTauTauTreeFromNanoBase::applyMetRecoilCorrections(HTTPair &aPair)
                                                                                           (double)TVector2(corrMEtPx,corrMEtPy).Mod()},{},
                                                                                           {"met_px","met_py","met_pt"} ) ;
 
+    aPair.setMET( TVector2(corrMEtPx,corrMEtPy), "", false );
+    addMetUnclusteredUncertainty(aPair,corrMEtPx,corrMEtPy);
+    addMetSysUncertainties(aPair,nJets,gen_ll_px, gen_ll_py, gen_ll_vis_px, gen_ll_vis_py, corrMEtPx,corrMEtPy);
+
+    return ;
+}
+
+void HTauTauTreeFromNanoBase::addMetUnclusteredUncertainty(HTTPair &aPair, float met_px, float met_py)
+{
+    // Adding MET unclustered uncertainties.
+    // No need to make a loop for these two. 
+    float met_scale_x, met_scale_y;
+
+    met_scale_x = met_px;
+    met_scale_y = met_py;
+    met_scale_x += MET_MetUnclustEnUpDeltaX; 
+    met_scale_y += MET_MetUnclustEnUpDeltaY;
+    aPair.setMET( TVector2(met_scale_x,met_scale_y), "CMS_scale_met_unclustered_13TeVUp", false);
+
+    met_scale_x = met_px;
+    met_scale_y = met_py;
+    met_scale_x -= MET_MetUnclustEnUpDeltaX; 
+    met_scale_y -= MET_MetUnclustEnUpDeltaY;
+    aPair.setMET( TVector2(met_scale_x,met_scale_y), "CMS_scale_met_unclustered_13TeVDown", false);
+    aPair.setCurrentMETShift("");
+}
+
+void HTauTauTreeFromNanoBase::addMetSysUncertainties(HTTPair &aPair, int nJets, float gen_ll_px,float gen_ll_py,float gen_ll_vis_px,float gen_ll_vis_py,float met_px, float met_py)
+{
+    // Adding MET sys uncertainties
+    vector< pair< string, pair< MEtSys::SysType, MEtSys::SysShift > > > metSyst;
+
+    metSyst.push_back( make_pair("CMS_htt_boson_reso_met_13TeVUp",         make_pair(MEtSys::SysType::Response,   MEtSys::SysShift::Up ) ) );
+    metSyst.push_back( make_pair("CMS_htt_boson_reso_met_13TeVDown",       make_pair(MEtSys::SysType::Response,   MEtSys::SysShift::Down ) ) );
+
+    metSyst.push_back( make_pair("CMS_htt_boson_scale_met_13TeVUp",        make_pair(MEtSys::SysType::Resolution, MEtSys::SysShift::Up ) ) );
+    metSyst.push_back( make_pair("CMS_htt_boson_scale_met_13TeVDown",      make_pair(MEtSys::SysType::Resolution, MEtSys::SysShift::Down ) ) );
 
     float met_scale_x, met_scale_y;
-    for(auto shift : metShifts )
+    for(auto shift : metSyst )
     {
-        met_scale_x = corrMEtPx;
-        met_scale_y = corrMEtPy;
-        // Do not apply shift for nominal
-        if(shift.first.find("unclustered") != std::string::npos )
-        {
-            if(shift.second.second == MEtSys::SysShift::Up)
-            {
-                met_scale_x += MET_MetUnclustEnUpDeltaX; 
-                met_scale_y += MET_MetUnclustEnUpDeltaY;
-            }
-            if(shift.second.second == MEtSys::SysShift::Down)
-            {
-                met_scale_x -= MET_MetUnclustEnUpDeltaX; 
-                met_scale_y -= MET_MetUnclustEnUpDeltaY;
-            }            
+        metSys_->ApplyMEtSys(
+            met_px, met_py,
+            gen_ll_px,gen_ll_py,
+            gen_ll_vis_px,gen_ll_vis_py,
+            nJets,
+            MEtSys::ProcessType::BOSON,
+            shift.second.first,
+            shift.second.second,
+            met_scale_x,met_scale_y
+        );
 
-        } else if(strcmp(shift.first.c_str(),"") != 0)
-        {
-            metSys_->ApplyMEtSys(
-                corrMEtPx, corrMEtPy,        
-                gen_ll_px,gen_ll_py,         
-                gen_ll_vis_px,gen_ll_vis_py, 
-                nJets,                       
-                MEtSys::ProcessType::BOSON,  
-                shift.second.first,   
-                shift.second.second,        
-                met_scale_x,met_scale_y      
-            );
-        }     
         aPair.setMET( TVector2(met_scale_x,met_scale_y), shift.first, false); // Set met without applying tes a second time
     }
     aPair.setCurrentMETShift("");
-
-
-    return ;
 }
 /////////////////////////////////////////////////
 /////////////////////////////////////////////////
