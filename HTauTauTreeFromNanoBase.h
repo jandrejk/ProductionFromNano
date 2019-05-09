@@ -49,16 +49,6 @@ public :
   /// Lorentz vector
   typedef ROOT::Math::LorentzVector<ROOT::Math::PxPyPzE4D<double> > LorentzVector;
   typedef ROOT::Math::LorentzVector<ROOT::Math::PtEtaPhiM4D<double> > PolarLorentzVector;
-  /// Trigger data struct
-  struct TriggerData {
-    std::string path_name;
-    unsigned int leg1Id=0,         leg2Id=0;//0-undefined, 11-electron, 13-muon, 15-tau
-    int          leg1BitMask=0,    leg2BitMask=0;//definition depends on Id, cf. PhysicsTools/NanoAOD/python/triggerObjects_cff.py
-    float        leg1Pt=0.,        leg2Pt=0.;
-    float        leg1L1Pt=0.,      leg2L1Pt=0.;
-    float        leg1Eta=0.,       leg2Eta=0.;
-    float        leg1OfflinePt=0., leg2OfflinePt=0.;
-  };
 
   virtual void initHTTTree(const TTree *tree, std::string prefix="HTT");
   void debugWayPoint(std::string description, std::vector<double> dbls = {}, std::vector<int> ints = {}, vector<string> descr = {""});
