@@ -1433,20 +1433,13 @@ void EventWriter::setDefault(){
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-void EventWriter::initTree(TTree *t, vector< pair< string, pair<string,bool> > > jecShifts_,  bool isMC_, bool isSync_, vector< pair< string, pair< MEtSys::SysType, MEtSys::SysShift > > > metShifts_ ){
+void EventWriter::initTree(TTree *t, vector< pair< string, pair<string,bool> > > jecShifts_,  bool isMC_, bool isSync_, vector<string> metShifts_ ){
 
     isMC=isMC_;
     isSync=isSync_;
 
     jecShifts = jecShifts_;
-    metShifts.clear();
-    if(metShifts_.size() > 0)
-    {
-        for(auto shift : metShifts_)  metShifts.push_back( shift.first );
-    }else
-    {
-        for(auto shift : jecShifts_ ) metShifts.push_back( shift.first );
-    }
+    metShifts = metShifts_;
 
     btagShifts.clear();
     btagShifts.push_back( make_pair( "",           make_pair("central","central") ) );

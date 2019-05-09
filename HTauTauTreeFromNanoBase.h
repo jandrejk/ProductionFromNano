@@ -68,7 +68,11 @@ public :
   virtual void fillJets(unsigned int bestPairIndex);
   virtual void fillLeptons();
   virtual void fillGenLeptons();
+
   void applyMetRecoilCorrections(HTTPair &aPair);
+  void addMetUnclusteredUncertainty(HTTPair &aPair, float met_px, float met_py);
+  void addMetSysUncertainties(HTTPair &aPair, int nJets, float gen_ll_px,float gen_ll_py,float gen_ll_vis_px,float gen_ll_vis_py,float met_px, float met_py);
+
   virtual bool thirdLeptonVeto(unsigned int signalLeg1Index, unsigned int signalLeg2Index, int leptonPdg, double dRmin=-1);
   virtual bool extraMuonVeto(unsigned int signalLeg1Index, unsigned int signalLeg2Index, double dRmin=-1);
   virtual bool extraElectronVeto(unsigned int signalLeg1Index, unsigned int signalLeg2Index, double dRmin=-1);
@@ -139,7 +143,7 @@ public :
   TH1F* hStats;
   TH2D* zptmass_histo;  
 
-  vector< pair< string, pair< MEtSys::SysType, MEtSys::SysShift > > > metShifts;
+  vector<string> metShifts;
   
   std::unique_ptr<ClassicSVfit> svFitAlgo_;
   std::unique_ptr<RecoilCorrector> recoilCorrector_;

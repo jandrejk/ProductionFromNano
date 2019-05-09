@@ -399,7 +399,7 @@ class EventWriter
 
   void setDefault();
   void fill(HTTEvent *ev, HTTJetCollection *jets, std::vector<HTTParticle> leptons, HTTPair *pair);
-  void initTree(TTree *t, vector< pair< string, pair<string,bool> > >jecShifts_, bool isMC_, bool isSync_, vector< pair< string, pair< MEtSys::SysType, MEtSys::SysShift > > > metShifts);
+  void initTree(TTree *t, vector< pair< string, pair<string,bool> > >jecShifts_, bool isMC_, bool isSync_, vector<string> metShifts);
 
   double calcSphericity(std::vector<TLorentzVector> p);
   double calcSphericityFromMatrix(TMatrixD M);
