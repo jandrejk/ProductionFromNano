@@ -32,6 +32,7 @@
 #include "TauAnalysis/ClassicSVfit/interface/ClassicSVfit.h"
 #include "TauAnalysis/ClassicSVfit/interface/MeasuredTauLepton.h"
 #include "TauAnalysis/ClassicSVfit/interface/svFitHistogramAdapter.h"
+#include "TauAnalysis/ClassicSVfit/interface/FastMTT.h"
 
 #include "CondFormats/JetMETObjects/interface/JetCorrectorParameters.h"
 #include "CondFormats/JetMETObjects/interface/JetCorrectionUncertainty.h"
@@ -73,7 +74,7 @@ public :
   virtual bool pairSelection(unsigned int index);
   virtual unsigned int bestPair(std::vector<unsigned int> &pairIndexes);
 
-  void computeSvFit(HTTPair &aPair, bool fastMTT);
+  void computeSvFit(HTTPair &aPair);
   TLorentzVector runSVFitAlgo(const std::vector<classic_svFit::MeasuredTauLepton> & measuredTauLeptons,
 			      const TVector2 &aMET, const TMatrixD &covMET);
   TLorentzVector runFastMttAlgo(const std::vector<classic_svFit::MeasuredTauLepton> & measuredTauLeptons,
@@ -149,6 +150,7 @@ public :
   unsigned int check_event_number;
   unsigned int bestPairIndex_;
 
+  std::string massfit;
 
   std::vector<std::string> leptonPropertiesList, genLeptonPropertiesList, jecUncertList;
   std::vector<JetCorrectionUncertainty*> jecUncerts;
