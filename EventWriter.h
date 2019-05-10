@@ -27,17 +27,15 @@ class EventWriter
 
   bool isSync;
   bool isMC;
-  bool applyRecoil;
 
   Float_t lumiWeight;
-  Int_t run_syncro;
-  Float_t lumi_syncro;
-  ULong64_t evt_syncro;
+  Int_t runID;
+  Float_t lumiBlock;
+  ULong64_t eventNr;
   int entry;
   Int_t fileEntry;
 
   int npv;
-  int npvGood;
   float npu;
   float rho;
   int gen_match_1;
@@ -64,13 +62,8 @@ class EventWriter
   float genWeight;
   float xsec;
   float genNEventsWeight;
-  float trigweight_1;
-  float anti_trigweight_1;
-  float trigweight_2;
   float idisoweight_1;
-  float anti_idisoweight_1;
   float idisoweight_2;
-  float effweight;
   float NNLO_ggH_weight;
   float THU_ggH_Mu;
   float THU_ggH_Res;
@@ -95,17 +88,7 @@ class EventWriter
   float topPtReweightWeightRun2;
   float zPtReweightWeight;
   float zPtReweightWeight1D;
-  float zpt_weight_nom;
-  float zpt_weight_esup;
-  float zpt_weight_esdown;
-  float zpt_weight_ttup;
-  float zpt_weight_ttdown;
-  float zpt_weight_statpt0up;
-  float zpt_weight_statpt0down;
-  float zpt_weight_statpt40up;
-  float zpt_weight_statpt40down;
-  float zpt_weight_statpt80up;
-  float zpt_weight_statpt80down;
+
   float gen_Mll;
   float gen_ll_px;
   float gen_ll_py;
@@ -117,8 +100,6 @@ class EventWriter
   float gen_top_pt_1;
   float gen_top_pt_2;
   int genJets;
-  int genJet_match_1;
-  int genJet_match_2;
   //////////////////////////////////////////////////////////////////  
   int trg_singletau_leading;
   int trg_singletau_trailing;
@@ -132,7 +113,7 @@ class EventWriter
   int trg_doubletau_40_tightiso;
   int trg_doubletau_40_mediso_tightid;
   int trg_doubletau_35_tightiso_tightid;
-  int trg_muonelectron; //fires HLT_Mu8_TrkIsoVVL_Ele23_CaloIdL_TrackIdL_IsoVL or HLT_Mu23_TrkIsoVVL_Ele12_CaloIdL_TrackIdL_IsoVL
+
   int flagMETFilter;
   int Flag_METFilters;
   int Flag_goodVertices;
@@ -145,11 +126,6 @@ class EventWriter
   int Flag_BadChargedCandidateFilter;
   int Flag_eeBadScFilter;
   int Flag_ecalBadCalibFilter;
-  int failBadGlobalMuonTagger;
-  int failCloneGlobalMuonTagger;
-  int Flag_duplicateMuons;
-  int Flag_badMuons;
-  int Flag_noBadMuons;
 
   //////////////////////////////////////////////////////////////////  
   float pt_1;
@@ -172,9 +148,6 @@ class EventWriter
   int againstMuonTight3_1;
 
   float byCombinedIsolationDeltaBetaCorrRaw3Hits_1;
-  int byLooseCombinedIsolationDeltaBetaCorr3Hits_1;
-  int byMediumCombinedIsolationDeltaBetaCorr3Hits_1;
-  int byTightCombinedIsolationDeltaBetaCorr3Hits_1;
 
   float byIsolationMVA3newDMwoLTraw_1;
   float byIsolationMVA3oldDMwoLTraw_1;
@@ -190,18 +163,7 @@ class EventWriter
   int byTightIsolationMVArun2017v2DBoldDMwLT2017_1;
   int byVTightIsolationMVArun2017v2DBoldDMwLT2017_1;
   int byVVTightIsolationMVArun2017v2DBoldDMwLT2017_1;
-  // int byVLooseIsolationMVArun2v1DBnewDMwLT_1;
-  // int byLooseIsolationMVArun2v1DBnewDMwLT_1;
-  // int byMediumIsolationMVArun2v1DBnewDMwLT_1;
-  // int byTightIsolationMVArun2v1DBnewDMwLT_1;
-  // int byVTightIsolationMVArun2v1DBnewDMwLT_1;
-  // int NewMVAIDVLoose_1;
-  // int NewMVAIDLoose_1;
-  // int NewMVAIDMedium_1;
-  // int NewMVAIDTight_1;
-  // int NewMVAIDVTight_1;
-  // int NewMVAIDVVTight_1;
-  // float idMVANewDM_1;
+
   float chargedIsoPtSum_1;
   float neutralIsoPtSum_1;
   float puCorrPtSum_1;
@@ -211,7 +173,6 @@ class EventWriter
   float id_m_loose_1;
   float id_m_medium_1;
   float id_m_tight_1;
-  float id_m_tightnovtx_1;
   float id_m_highpt_1;
   float id_e_cut_veto_1;
   float id_e_cut_loose_1;
@@ -238,9 +199,6 @@ class EventWriter
   int againstMuonTight3_2;
 
   float byCombinedIsolationDeltaBetaCorrRaw3Hits_2;
-  int byLooseCombinedIsolationDeltaBetaCorr3Hits_2;
-  int byMediumCombinedIsolationDeltaBetaCorr3Hits_2;
-  int byTightCombinedIsolationDeltaBetaCorr3Hits_2;
 
   float byIsolationMVA3newDMwoLTraw_2;
   float byIsolationMVA3oldDMwoLTraw_2;
@@ -256,18 +214,7 @@ class EventWriter
   int byTightIsolationMVArun2017v2DBoldDMwLT2017_2;
   int byVTightIsolationMVArun2017v2DBoldDMwLT2017_2;
   int byVVTightIsolationMVArun2017v2DBoldDMwLT2017_2;
-  // int byVLooseIsolationMVArun2v1DBnewDMwLT_2;
-  // int byLooseIsolationMVArun2v1DBnewDMwLT_2;
-  // int byMediumIsolationMVArun2v1DBnewDMwLT_2;
-  // int byTightIsolationMVArun2v1DBnewDMwLT_2;
-  // int byVTightIsolationMVArun2v1DBnewDMwLT_2;
-  // int NewMVAIDVLoose_2;
-  // int NewMVAIDLoose_2;
-  // int NewMVAIDMedium_2;
-  // int NewMVAIDTight_2;
-  // int NewMVAIDVTight_2;
-  // int NewMVAIDVVTight_2;
-  // float idMVANewDM_2;
+
   float chargedIsoPtSum_2;
   float neutralIsoPtSum_2;
   float puCorrPtSum_2;
@@ -313,23 +260,10 @@ class EventWriter
   float bcsv_1[5];
   float bcsv_2[5];
   //////////////////////////////////////////////////////////////////
-  float uncorrmet;  
   float corrmet;
   float corrmet_ex;
   float corrmet_ey;
   float corrmetphi;
-  float mvamet;
-  float mvamet_ex;
-  float mvamet_ey;
-  float mvametphi;
-  float corrmvamet_ex;
-  float corrmvamet_ey;
-  float corrmvamet;
-  float corrmvametphi;
-  float mvacov00;
-  float mvacov01;
-  float mvacov10;
-  float mvacov11;
   float metcov00;
   float metcov01;
   float metcov10;
@@ -356,15 +290,12 @@ class EventWriter
   float muTauFakeRateWeight;
   float antilep_tauscaling;
   //////////////////////////////////////////////////////////////////
-  bool passesIsoCuts;
-  bool passesLepIsoCuts;
   bool passesTauLepVetos;
   bool passesThirdLepVeto;
   bool passesDiMuonVeto;
   bool passesDiElectronVeto;
   bool diMuonVeto;
   bool diElectronVeto;
-  //////////////////////////////////////////////////////////////////
   bool dilepton_veto;
   bool extramuon_veto;
   bool extraelec_veto;
@@ -380,13 +311,9 @@ class EventWriter
   float m_coll;
   float dphi;
   //////////////////////////////////////////////////////////////////
-  float pfmt_1;
-  float pfmt_2;
-  float pfpt_sum;
   float dr_leptau;
   float jeta1eta2;
   float met_centrality;
-  float mvamet_centrality;
   float lep_etacentrality;
   float sphericity;
   //////////////////////////////////////////////////////////////////
@@ -477,17 +404,7 @@ class EventWriter
   vector<int> addtau_byMediumIsolationMVArun2v1DBoldDMwLT;
   vector<int> addtau_byTightIsolationMVArun2v1DBoldDMwLT;
   vector<int> addtau_byVTightIsolationMVArun2v1DBoldDMwLT;
-  // vector<int> addtau_byVLooseIsolationMVArun2v1DBnewDMwLT;
-  // vector<int> addtau_byLooseIsolationMVArun2v1DBnewDMwLT;
-  // vector<int> addtau_byMediumIsolationMVArun2v1DBnewDMwLT;
-  // vector<int> addtau_byTightIsolationMVArun2v1DBnewDMwLT;
-  // vector<int> addtau_byVTightIsolationMVArun2v1DBnewDMwLT;
-  // vector<int> addtau_NewMVAIDVLoose;
-  // vector<int> addtau_NewMVAIDLoose;
-  // vector<int> addtau_NewMVAIDMedium;
-  // vector<int> addtau_NewMVAIDTight;
-  // vector<int> addtau_NewMVAIDVTight;
-  // vector<int> addtau_NewMVAIDVVTight;
+
   vector<int> addtau_passesTauLepVetos;
   vector<int> addtau_decayMode;
   vector<double> addtau_d0;
@@ -496,40 +413,6 @@ class EventWriter
   vector<double> addtau_mt;
   vector<double> addtau_mvis;
   //////////////////////////////////////////////////////////////////
-
-  /*
-  BTagCalibration calib;
-  BTagCalibrationReader reader;
-
-  int whichDilepton;
-  int whichDilepton_addTaus;
-
-  vector<float> top_pt;
-  vector<RecObj> v_mu;
-  vector<RecObj> v_trailMu;
-  vector<RecObj> v_mu_add;
-  vector<RecObj> v_el_add;
-  vector<RecObj> v_mu_veto;
-  vector<RecObj> v_tau;
-  vector<RecObj> v_el;
-  vector<RecObj> v_el_veto;
-  vector<RecObj> v_jet;
-  vector<RecObj> v_jetUp;
-  vector<RecObj> v_jetDown;
-  vector<RecObj> v_bjet;
-  vector<RecObj> v_antibjet;
-  // vector<RecObj> v_ele_pos;
-  // vector<RecObj> v_ele_neg;
-  // vector<RecObj> v_mu_pos;
-  // vector<RecObj> v_mu_neg;
-  RecObj s_leg1;
-  RecObj s_leg2;
-  RecObj s_jet;
-  RecObj s_bjet;
-  RecObj s_MVAmet;
-  RecObj s_PFmet_NoRecoilCorr;
-  RecObj s_PFmet;
-  */
 
 };
 #endif
