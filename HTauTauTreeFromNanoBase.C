@@ -236,7 +236,6 @@ void HTauTauTreeFromNanoBase::Loop(Long64_t nentries_max, unsigned int sync_even
         hStats->Fill(0);//Number of events analyzed
         // hStats->Fill(1,httEvent->getMCWeight());//Sum of weights
 
-        if ( failsGlobalSelection() ) continue;
         debugWayPoint("[Loop] passes global selection");
 
         bestPairIndex_ = bestPairIndex;
@@ -279,27 +278,8 @@ void HTauTauTreeFromNanoBase::Loop(Long64_t nentries_max, unsigned int sync_even
     }
 
     cout << "Found " << entry << " pairs" << endl;
-
-   //if you change any of the lists, uncomment and execute in this directory (i.e. not running parallel in another) and then run again.
-   //  Or, if you run in another directory, copy the *Enum*h over after running the first time, then run again.
-   
-   // writeJECSourceHeader(jecSources_);
-   // writePropertiesHeader(leptonPropertiesList);
-   // writeTriggersHeader(triggerBits_);
-   // writeFiltersHeader(filterBits_);
    
 }
-/////////////////////////////////////////////////
-/////////////////////////////////////////////////
-bool HTauTauTreeFromNanoBase::failsGlobalSelection()
-{
-
-  //  if ( getMetFilterBits() != passMask_ ) return true;
-
-
-  return false;
-}
-
 /////////////////////////////////////////////////
 /*
 
@@ -411,19 +391,8 @@ void HTauTauTreeFromNanoBase::fillEvent(unsigned int bestPairIndex)
     httEvent->setNPV(PV_npvs);
     httEvent->setRho(fixedGridRhoFastjetAll);
 
-    httEvent->setAODPV(TVector3(PV_x,PV_y,PV_z));
-    httEvent->setRefittedPV(TVector3(PV_x,PV_y,PV_z));//FIXME
-    httEvent->setIsRefit(false);//FIXME
-
-    TVector2 metPF;
-    metPF.SetMagPhi(MET_pt, MET_phi);
-    httEvent->setMET(metPF);
-    httEvent->setMET_uncorr(metPF);
-
     std::vector<Int_t> aFilters = getFilters(filterBits_);
     httEvent->setFilters(aFilters);
-
-    httEvent->setMETFilterDecision(getMetFilterBits());
 
     if( isMC )//Assume that all those are filled for MC
     {
@@ -796,9 +765,6 @@ void HTauTauTreeFromNanoBase::fillLeptons()
         std::vector<Double_t> aProperties = getProperties(leptonPropertiesList, iMu, p4, "Muon");
         aLepton.setProperties(aProperties);
         aLepton.setP4(p4);
-        aLepton.setChargedP4(p4);//same as p4 for muon
-        //aLepton.setNeutralP4(p4Neutral); not defined for muon
-        aLepton.setPCA(pca);
 
         aLepton.setCutBitmask( muonSelection(aLepton) );
 
@@ -832,9 +798,6 @@ void HTauTauTreeFromNanoBase::fillLeptons()
         std::vector<Double_t> aProperties = getProperties(leptonPropertiesList, iEl, p4, "Electron");
         aLepton.setProperties(aProperties);
         aLepton.setP4(p4);
-        aLepton.setChargedP4(p4);//same as p4 for electron
-        //aLepton.setNeutralP4(p4Neutral); not defined for electron
-        aLepton.setPCA(pca);
 
         aLepton.setCutBitmask( electronSelection(aLepton) );
         httLeptonCollection.push_back(aLepton);
@@ -876,12 +839,6 @@ void HTauTauTreeFromNanoBase::fillLeptons()
                                leadTkPhi,
                                0.13957); //pi+/- mass
 
-        aLepton.setChargedP4(chargedP4);
-        aLepton.setNeutralP4( aLepton.getP4() -chargedP4);
-
-        TVector3 pca;//FIXME: can partly recover with dxy,dz and momentum?
-        aLepton.setPCA(pca);
-
         httLeptonCollection.push_back(aLepton);
     }//Taus
 
@@ -915,10 +872,6 @@ void HTauTauTreeFromNanoBase::fillGenLeptons()
 
         HTTParticle aLepton;
         aLepton.setP4(p4);
-        aLepton.setChargedP4(getGenComponentP4(daughterIndexes,1));
-        aLepton.setNeutralP4(getGenComponentP4(daughterIndexes,0));
-        //TVector3 pca(genpart_pca_x->at(iGenPart), genpart_pca_y->at(iGenPart), genpart_pca_z->at(iGenPart));
-        //aLepton.setPCA(pca);
 
         //std::vector<Double_t> aProperties = getProperties(genLeptonPropertiesList, iGenPart);
         //set properties by hand (keep correct order)
@@ -931,43 +884,7 @@ void HTauTauTreeFromNanoBase::fillGenLeptons()
 
     }
 }
-/////////////////////////////////////////////////
-/////////////////////////////////////////////////
-TLorentzVector HTauTauTreeFromNanoBase::getGenComponentP4(std::vector<unsigned int> &indexes, unsigned int iAbsCharge)
-{
 
-    TLorentzVector aNeutralP4, aChargedP4, aLeptonP4;
-
-    for(unsigned int idx=0;idx<indexes.size();++idx){
-        unsigned int iGenPart = indexes[idx];
-        unsigned int pdg_id = std::abs(GenPart_pdgId[iGenPart]);
-        if(pdg_id == 11 || pdg_id == 13){
-            aLeptonP4.SetPtEtaPhiM(GenPart_pt[iGenPart],
-                                   GenPart_eta[iGenPart],
-                                   GenPart_phi[iGenPart],
-                                   (pdg_id==11?0.51100e-3:0.10566));//set mass
-
-        }else if(pdg_id == 211 || pdg_id == 321 ){
-            aChargedP4.SetPtEtaPhiM(GenPart_pt[iGenPart],
-                                    GenPart_eta[iGenPart],
-                                    GenPart_phi[iGenPart],
-                                    (pdg_id==211?0.1396:0.4937));//set mass
-
-        }else if(pdg_id == 111 || pdg_id == 130 || pdg_id == 310 || pdg_id == 311 ){
-            aNeutralP4.SetPtEtaPhiM(GenPart_pt[iGenPart],
-                                    GenPart_eta[iGenPart],
-                                    GenPart_phi[iGenPart],
-                                    (pdg_id==111?0.1350:0.4976));//set mass
-        }
-    }
-
-    TLorentzVector aP4;
-    if(iAbsCharge==0) aP4 = aNeutralP4;
-    else if(aChargedP4.E()>0) aP4 = aChargedP4;
-    else if(aLeptonP4.E()>0) aP4 = aLeptonP4;
-
-    return aP4;
-}
 /////////////////////////////////////////////////
 /////////////////////////////////////////////////
 int HTauTauTreeFromNanoBase::getGenMatch(unsigned int index, std::string colType) //overloaded
@@ -1310,71 +1227,6 @@ Double_t  HTauTauTreeFromNanoBase::getProperty(std::string name, unsigned int in
 //     outputFile<<"};"<<std::endl;
 //     outputFile.close();
 // }
-/////////////////////////////////////////////////
-/////////////////////////////////////////////////
-void  HTauTauTreeFromNanoBase::writeTriggersHeader(const std::vector<TriggerData> &triggerBits)
-{
-    ofstream outputFile("TriggerEnum.h");
-    outputFile<<"enum class TriggerEnum { ";
-
-    for(unsigned int iBit=0;iBit<triggerBits.size();++iBit)
-    {
-        std::string name = triggerBits[iBit].path_name;
-        outputFile<<name<<" = "<<iBit<<", "<<std::endl;
-    }
-    outputFile<<"NONE"<<" = "<<triggerBits.size()<<std::endl;
-    outputFile<<"};"<<std::endl;
-    outputFile.close();
-}
-/////////////////////////////////////////////////
-/////////////////////////////////////////////////
-void  HTauTauTreeFromNanoBase::writeFiltersHeader(const std::vector<std::string> &filterBits)
-{
-    ofstream outputFile("FilterEnum.h");
-    outputFile<<"enum class FilterEnum { ";
-
-    for(unsigned int iItem=0;iItem<filterBits.size();++iItem){
-        std::string name = filterBits[iItem];
-        outputFile<<name<<" = "<<iItem<<", "<<std::endl;
-    }
-    outputFile<<"NONE"<<" = "<<filterBits.size()<<std::endl;
-    outputFile<<"};"<<std::endl;
-    outputFile.close();
-}
-/////////////////////////////////////////////////
-/////////////////////////////////////////////////
-void  HTauTauTreeFromNanoBase::writePropertiesHeader(const std::vector<std::string> & propertiesList)
-{
-
-    ofstream outputFile("PropertyEnum.h");
-    outputFile<<"enum class PropertyEnum { ";
-
-    for(unsigned int iItem=0;iItem<propertiesList.size();++iItem)
-    {
-        std::string name = propertiesList[iItem];
-        std::string pattern = "daughters_";
-        if(name.find(pattern)!=std::string::npos) name.erase(name.find(pattern), pattern.size());
-        pattern = "Daughters";
-        if(name.find(pattern)!=std::string::npos) name.erase(name.find(pattern), pattern.size());
-        pattern = "jets_";
-        if(name.find(pattern)!=std::string::npos) name.erase(name.find(pattern), pattern.size());
-        pattern = "Jet_";
-        if(name.find(pattern)!=std::string::npos) name.erase(name.find(pattern), pattern.size());
-        pattern = "Tau_";
-        if(name.find(pattern)!=std::string::npos) name.erase(name.find(pattern), pattern.size());
-        pattern = "Muon_";
-        if(name.find(pattern)!=std::string::npos) name.erase(name.find(pattern), pattern.size());
-        pattern = "Electron_";
-        if(name.find(pattern)!=std::string::npos) name.erase(name.find(pattern), pattern.size());
-        outputFile<<name<<" = "<<iItem<<", "<<std::endl;
-    }
-    outputFile<<"NONE"<<" = "<<propertiesList.size()<<std::endl;
-    outputFile<<"};"<<std::endl;
-    outputFile.close();
-}
-/////////////////////////////////////////////////
-/////////////////////////////////////////////////
-
 std::vector<Int_t>  HTauTauTreeFromNanoBase::getFilters(const std::vector<std::string> & filtersList)
 {
     std::vector<Int_t> aFilters;
@@ -1385,13 +1237,7 @@ std::vector<Int_t>  HTauTauTreeFromNanoBase::getFilters(const std::vector<std::s
 }
 /////////////////////////////////////////////////
 /////////////////////////////////////////////////
-bool HTauTauTreeFromNanoBase::isGoodToMatch(unsigned int ind)
-{  
-    //MB: This method not mandatory as selection of good to match is applied upper in the flow. Anyway, an trivial implementation kept.
-    return true;
-}
-/////////////////////////////////////////////////
-/////////////////////////////////////////////////
+
 int HTauTauTreeFromNanoBase::getTriggerMatching(unsigned int index, TLorentzVector p4_1, bool checkBit, std::string colType)
 {
     //  TLorentzVector p4_1;
@@ -1486,25 +1332,6 @@ int HTauTauTreeFromNanoBase::getTriggerMatching(unsigned int index, TLorentzVect
             continue;
         }
         ////////////////////////////////////////////////////////////////////// 
-    }
-    return firedBits;
-}
-/////////////////////////////////////////////////
-/////////////////////////////////////////////////
-int HTauTauTreeFromNanoBase::getMetFilterBits()
-{
-    int firedBits=0;
-    for(unsigned int iFlt=0; iFlt<filterBits_.size(); ++iFlt)
-    {
-        bool decision = false;
-        //check if trigger is fired
-        TBranch *branch = fChain->GetBranch(filterBits_[iFlt].c_str());
-        if(branch!=nullptr)
-        {
-            TLeaf *leaf = branch->FindLeaf(filterBits_[iFlt].c_str());
-            decision = leaf!=nullptr ? leaf->GetValue() : false;
-        }
-        if(decision) firedBits |= (1<<iFlt);
     }
     return firedBits;
 }
@@ -1977,26 +1804,7 @@ bool HTauTauTreeFromNanoBase::comparePairs(const HTTPair& i, const HTTPair& j)
 
     return false;
 }
-/////////////////////////////////////////////////
-/////////////////////////////////////////////////
-// int HTauTauTreeFromNanoBase::isGenPartDaughterPdgId(int index, unsigned int absPdgId){
-//   if(index>nGenPart || index<0 || GenPart_genPartIdxMother[index]<0) return -1;
-//   if(std::abs(GenPart_pdgId[GenPart_genPartIdxMother[index]])==absPdgId)
-//     return GenPart_genPartIdxMother[index];
-//   else
-//     return isGenPartDaughterPdgId(GenPart_genPartIdxMother[index],absPdgId);
-// }
-/////////////////////////////////////////////////
-/////////////////////////////////////////////////
-// bool HTauTauTreeFromNanoBase::isGenPartDaughterIdx(int index, int mother){
-//   if(index>nGenPart || index<0 || GenPart_genPartIdxMother[index]<0) return false;
-//   if(GenPart_genPartIdxMother[index]==mother)
-//     return true;
-//   else
-//     return isGenPartDaughterIdx(GenPart_genPartIdxMother[index],mother);
-// }
-/////////////////////////////////////////////////
-/////////////////////////////////////////////////
+
 bool HTauTauTreeFromNanoBase::getDirectDaughterIndexes(std::vector<unsigned int> &indexes, unsigned int motherIndex, bool ignoreNeutrinos)
 {  
     indexes.clear();

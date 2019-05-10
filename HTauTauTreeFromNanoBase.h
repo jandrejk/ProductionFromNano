@@ -65,24 +65,26 @@ public :
   virtual bool thirdLeptonVeto(unsigned int signalLeg1Index, unsigned int signalLeg2Index, int leptonPdg, double dRmin=-1);
   virtual bool extraMuonVeto(unsigned int signalLeg1Index, unsigned int signalLeg2Index, double dRmin=-1);
   virtual bool extraElectronVeto(unsigned int signalLeg1Index, unsigned int signalLeg2Index, double dRmin=-1);
+
   int muonSelection(HTTParticle aLepton);
   int electronSelection(HTTParticle aLepton);
   int tauSelection(HTTParticle aLepton);
-  bool failsGlobalSelection();
+
   virtual bool pairSelection(unsigned int index);
   virtual unsigned int bestPair(std::vector<unsigned int> &pairIndexes);
-  void computeSvFit(HTTPair &aPair);
+
+  void computeSvFit(HTTPair &aPair, bool fastMTT);
   TLorentzVector runSVFitAlgo(const std::vector<classic_svFit::MeasuredTauLepton> & measuredTauLeptons,
 			      const TVector2 &aMET, const TMatrixD &covMET);
+  TLorentzVector runFastMttAlgo(const std::vector<classic_svFit::MeasuredTauLepton> & measuredTauLeptons,
+            const TVector2 &aMET, const TMatrixD &covMET);
+
   bool jetSelection(unsigned int index, unsigned int bestPairIndex);
   int getGenMatch(unsigned int index, std::string colType="");
   int getGenMatch(TLorentzVector selObj);
   //  int getTriggerMatching(unsigned int index, bool checkBit=false, std::string colType="");
   int getTriggerMatching(unsigned int index, TLorentzVector p4_1, bool checkBit=false, std::string colType="");
-  int getMetFilterBits();
   double getZPtReweight(const TLorentzVector &genBosonP4, bool doSUSY=false);
-  bool isGoodToMatch(unsigned int ind);
-  TLorentzVector getGenComponentP4(std::vector<unsigned int> &indexes, unsigned int iAbsCharge);
   bool eventInJson();
 
   template<typename T> T getBranchValue(const char *branchAddress, unsigned int index);
@@ -94,19 +96,14 @@ public :
   Int_t getFilter(std::string name);
   std::vector<Int_t> getFilters(const std::vector<std::string> & propertiesList);
 
-  void writeJECSourceHeader(const std::vector<string> &jecSources);
-  void writePropertiesHeader(const std::vector<std::string> & propertiesList);
-  void writeTriggersHeader(const std::vector<TriggerData> &triggerBits);
-  void writeFiltersHeader(const std::vector<std::string> &filterBits);
-
   void initJecUnc(std::string correctionFile);
   double getJecUnc(unsigned int index, unsigned int isrc, bool up=true);
   std::map<string, double> getValuesAfterJecSplitting(unsigned int iJet);
 
   static bool compareLeptons(const HTTParticle& i, const HTTParticle& j);
   static bool comparePairs(const HTTPair& i, const HTTPair& j);
-  //int isGenPartDaughterPdgId(int index, unsigned int aPdgId);
-  //bool isGenPartDaughterIdx(int index, int mother);
+
+
   bool getDirectDaughterIndexes(std::vector<unsigned int> & indexes, unsigned int motherIndex, bool ignoreNeutrinos=true);
   unsigned int findFinalCopy(unsigned int index);
   unsigned int findFirstCopy(unsigned int index);
@@ -149,7 +146,6 @@ public :
   bool isMC;
   bool isSync;
   bool applyRecoil;
-  int passMask_;
   unsigned int check_event_number;
   unsigned int bestPairIndex_;
 
