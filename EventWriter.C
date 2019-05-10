@@ -53,7 +53,6 @@ void EventWriter::fill(HTTEvent *ev, HTTJetCollection *jets, std::vector<HTTPart
     gen_top_pt_1=DEF;
     gen_top_pt_2=DEF;
     genJets=DEF;
-    uncorrmet=ev->getMET_uncorr().Mod();
     //////////////////////////////////////////////////////////////////  
 
     failBadGlobalMuonTagger=DEF;
@@ -1303,7 +1302,6 @@ void EventWriter::setDefault(){
         bcsv_2[i]=DEF;
     }
     //////////////////////////////////////////////////////////////////
-    uncorrmet=DEF;
     corrmet=DEF;
     corrmet_ex=DEF;
     corrmet_ey=DEF;
@@ -1736,7 +1734,6 @@ void EventWriter::initTree(TTree *t, vector< pair< string, pair<string,bool> > >
     t->Branch("extraelec_veto", &extraelec_veto);
     t->Branch("extramuon_veto", &extramuon_veto);
 
-    t->Branch("uncorrmet", &uncorrmet );
     t->Branch("corrmet", &corrmet);
     t->Branch("corrmetphi", &corrmetphi);
     t->Branch("corrmet_ex", &corrmet_ex);
