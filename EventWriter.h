@@ -114,6 +114,7 @@ class EventWriter
   int trg_doubletau_40_mediso_tightid;
   int trg_doubletau_35_tightiso_tightid;
   int trg_doubletau_35_mediso_HPS;
+  int trg_doubletau;
 
   int flagMETFilter;
   int Flag_METFilters;

@@ -141,7 +141,15 @@ void EventWriter::fill(HTTEvent *ev, HTTJetCollection *jets, std::vector<HTTPart
         trg_doubletau_35_tightiso_tightid=  ( leg1.hasTriggerMatch(TriggerEnum::HLT_DoubleTightChargedIsoPFTau35_Trk1_TightID_eta2p1_Reg) && leg2.hasTriggerMatch(TriggerEnum::HLT_DoubleTightChargedIsoPFTau35_Trk1_TightID_eta2p1_Reg) ) && pt_1 > 40 && pt_2 > 40;
         
         trg_doubletau_35_mediso_HPS =  ( leg1.hasTriggerMatch(TriggerEnum::HLT_DoubleMediumChargedIsoPFTauHPS35_Trk1_eta2p1_Reg) && leg2.hasTriggerMatch(TriggerEnum::HLT_DoubleMediumChargedIsoPFTauHPS35_Trk1_eta2p1_Reg) ) && pt_1 > 40 && pt_2 > 40;
-        
+
+        // HPS only available in data in the middle of 2018
+        if(isMC){
+            trg_doubletau = trg_doubletau_35_mediso_HPS;
+        } else
+        {
+            trg_doubletau = ( (trg_doubletau_40_tightiso || trg_doubletau_40_mediso_tightid || trg_doubletau_35_tightiso_tightid) && runID < 317509 )
+                             || ( trg_doubletau_35_mediso_HPS && runID >= 317509 );
+        }
     }
     
     TLorentzVector ll=ev->getGenBosonP4(false);
@@ -1012,6 +1020,7 @@ void EventWriter::setDefault(){
     trg_doubletau_40_mediso_tightid=DEFFLAG;
     trg_doubletau_35_tightiso_tightid=DEFFLAG;
     trg_doubletau_35_mediso_HPS=DEFFLAG;
+    trg_doubletau=DEFFLAG;
 
     Flag_goodVertices = DEFFLAG;
     Flag_globalTightHalo2016Filter = DEFFLAG;
@@ -1627,6 +1636,7 @@ void EventWriter::initTree(TTree *t, vector< pair< string, pair<string,bool> > >
     t->Branch("trg_doubletau_40_mediso_tightid", &trg_doubletau_40_mediso_tightid);
     t->Branch("trg_doubletau_35_tightiso_tightid", &trg_doubletau_35_tightiso_tightid);
     t->Branch("trg_doubletau_35_mediso_HPS", &trg_doubletau_35_mediso_HPS);
+    t->Branch("trg_doubletau", &trg_doubletau);
 
     t->Branch("fileEntry", &fileEntry);
     t->Branch("entry", &entry);
