@@ -154,9 +154,10 @@ void EventWriter::fill(HTTEvent *ev, HTTJetCollection *jets, std::vector<HTTPart
     topPtReweightWeightRun1=ev->getTopPtReWeight(true);
    
     if(ev->getSampleType() == HTTEvent::DY || ev->getSampleType() == HTTEvent::DYLowM ) {
-        w->var("z_gen_mass")->setVal(  ll.M()  );
-        w->var("z_gen_pt")->setVal( ll.Pt() );
-        zPtReweightWeight=w->function("zptmass_weight_nom")->getVal();
+        // w->var("z_gen_mass")->setVal(  ll.M()  );
+        // w->var("z_gen_pt")->setVal( ll.Pt() );
+        // zPtReweightWeight=w->function("zptmass_weight_nom")->getVal();
+        zPtReweightWeight=ev->getZPtReWeight();
     }
 
     if(isMC)
@@ -218,39 +219,37 @@ void EventWriter::fillLeptonFakeRateWeights()
     muTauFakeRateWeight = 1.0;
     antilep_tauscaling = 1.0;
 
-    //values taken from here: https://indico.cern.ch/event/803335/contributions/3359969/attachments/1829820/2996253/TauPOG_HTT_workshop_20190415_v0.pdf
-
     if(channel == HTTAnalysis::MuTau)
     {
 
         if((gen_match_2 == 1 || gen_match_2 == 3) && againstElectronVLooseMVA6_2 > 0.5 )
         {
-            if( std::abs(eta_2) < 1.448 )       eleTauFakeRateWeight *= 1.089;
-            else if ( std::abs(eta_2) > 1.558 ) eleTauFakeRateWeight *= 1.189;
+            if( std::abs(eta_2) < 1.460 )       eleTauFakeRateWeight *= 1.09;
+            else if ( std::abs(eta_2) > 1.558 ) eleTauFakeRateWeight *= 1.19;
         }
         if((gen_match_2 == 2 || gen_match_2 == 4) && againstMuonTight3_2 > 0.5 )
         {
-            if( std::abs(eta_2) < 0.4 )       muTauFakeRateWeight *= 1.28;
-            else if ( std::abs(eta_2) < 0.8 ) muTauFakeRateWeight *= 1.2;
-            else if ( std::abs(eta_2) < 1.2 ) muTauFakeRateWeight *= 1.08;
-            else if ( std::abs(eta_2) < 1.7 ) muTauFakeRateWeight *= 1.0;
-            else if ( std::abs(eta_2) < 2.3 ) muTauFakeRateWeight *= 2.3;
+            if( std::abs(eta_2) < 0.4 )       muTauFakeRateWeight *= 1.17;
+            else if ( std::abs(eta_2) < 0.8 ) muTauFakeRateWeight *= 1.29;
+            else if ( std::abs(eta_2) < 1.2 ) muTauFakeRateWeight *= 1.14;
+            else if ( std::abs(eta_2) < 1.7 ) muTauFakeRateWeight *= 0.93;
+            else if ( std::abs(eta_2) < 2.3 ) muTauFakeRateWeight *= 1.61;
         }        
     }
     if(channel == HTTAnalysis::EleTau)
     {
         if((gen_match_2 == 1 || gen_match_2 == 3) && againstElectronTightMVA6_2 > 0.5 )
         {
-            if( std::abs(eta_2) < 1.448 )       eleTauFakeRateWeight *= 1.78;
-            else if ( std::abs(eta_2) > 1.558 ) eleTauFakeRateWeight *= 1.55;
+            if( std::abs(eta_2) < 1.460 )       eleTauFakeRateWeight *= 1.80;
+            else if ( std::abs(eta_2) > 1.558 ) eleTauFakeRateWeight *= 1.53;
         }
         if((gen_match_2 == 2 || gen_match_2 == 4) && againstMuonLoose3_2> 0.5 )
         {
             if( std::abs(eta_2) < 0.4 )       muTauFakeRateWeight *= 1.06;
-            else if ( std::abs(eta_2) < 0.8 ) muTauFakeRateWeight *= 0.96;
-            else if ( std::abs(eta_2) < 1.2 ) muTauFakeRateWeight *= 1.05;
-            else if ( std::abs(eta_2) < 1.7 ) muTauFakeRateWeight *= 1.23;
-            else if ( std::abs(eta_2) < 2.3 ) muTauFakeRateWeight *= 1.19;
+            else if ( std::abs(eta_2) < 0.8 ) muTauFakeRateWeight *= 1.02;
+            else if ( std::abs(eta_2) < 1.2 ) muTauFakeRateWeight *= 1.10;
+            else if ( std::abs(eta_2) < 1.7 ) muTauFakeRateWeight *= 1.03;
+            else if ( std::abs(eta_2) < 2.3 ) muTauFakeRateWeight *= 1.94;
         }        
     }
     if(channel == HTTAnalysis::TauTau)
@@ -258,30 +257,30 @@ void EventWriter::fillLeptonFakeRateWeights()
 
         if((gen_match_1 == 1 || gen_match_1 == 3) && againstElectronVLooseMVA6_1 > 0.5 )
         {
-            if( std::abs(eta_1) < 1.448 )       eleTauFakeRateWeight *= 1.089;
-            else if ( std::abs(eta_1) > 1.558 ) eleTauFakeRateWeight *= 1.189;
+            if( std::abs(eta_1) < 1.460 )       eleTauFakeRateWeight *= 1.09;
+            else if ( std::abs(eta_1) > 1.558 ) eleTauFakeRateWeight *= 1.19;
         }
         if((gen_match_1 == 2 || gen_match_1 == 4) && againstMuonLoose3_1> 0.5 )
         {
             if( std::abs(eta_1) < 0.4 )       muTauFakeRateWeight *= 1.06;
-            else if ( std::abs(eta_1) < 0.8 ) muTauFakeRateWeight *= 0.96;
-            else if ( std::abs(eta_1) < 1.2 ) muTauFakeRateWeight *= 1.05;
-            else if ( std::abs(eta_1) < 1.7 ) muTauFakeRateWeight *= 1.23;
-            else if ( std::abs(eta_1) < 2.3 ) muTauFakeRateWeight *= 1.19;
+            else if ( std::abs(eta_1) < 0.8 ) muTauFakeRateWeight *= 1.02;
+            else if ( std::abs(eta_1) < 1.2 ) muTauFakeRateWeight *= 1.10;
+            else if ( std::abs(eta_1) < 1.7 ) muTauFakeRateWeight *= 1.03;
+            else if ( std::abs(eta_1) < 2.3 ) muTauFakeRateWeight *= 1.94;
         } 
 
         if((gen_match_2 == 1 || gen_match_2 == 3) && againstElectronVLooseMVA6_2 > 0.5 )
         {
-            if( std::abs(eta_2) < 1.448 )       eleTauFakeRateWeight *= 1.089;
-            else if ( std::abs(eta_2) > 1.558 ) eleTauFakeRateWeight *= 1.189;
+            if( std::abs(eta_2) < 1.460 )       eleTauFakeRateWeight *= 1.09;
+            else if ( std::abs(eta_2) > 1.558 ) eleTauFakeRateWeight *= 1.19;
         }
         if((gen_match_2 == 2 || gen_match_2 == 4) && againstMuonLoose3_2> 0.5 )
         {
             if( std::abs(eta_2) < 0.4 )       muTauFakeRateWeight *= 1.06;
-            else if ( std::abs(eta_2) < 0.8 ) muTauFakeRateWeight *= 0.96;
-            else if ( std::abs(eta_2) < 1.2 ) muTauFakeRateWeight *= 1.05;
-            else if ( std::abs(eta_2) < 1.7 ) muTauFakeRateWeight *= 1.23;
-            else if ( std::abs(eta_2) < 2.3 ) muTauFakeRateWeight *= 1.19;
+            else if ( std::abs(eta_2) < 0.8 ) muTauFakeRateWeight *= 1.02;
+            else if ( std::abs(eta_2) < 1.2 ) muTauFakeRateWeight *= 1.10;
+            else if ( std::abs(eta_2) < 1.7 ) muTauFakeRateWeight *= 1.03;
+            else if ( std::abs(eta_2) < 2.3 ) muTauFakeRateWeight *= 1.94;
         }        
     }
     antilep_tauscaling = eleTauFakeRateWeight * muTauFakeRateWeight;
@@ -321,50 +320,39 @@ void EventWriter::fillScalefactors()
     sf_DoubleTauTight = DEFWEIGHT;
     sf_DoubleTauVTight = DEFWEIGHT;
 
-
-
     if( channel == HTTAnalysis::MuTau )
     {
         w->var("m_pt")->setVal(  pt_1  );
-        // std::cout<<"0.1"<<std::endl;
         w->var("m_eta")->setVal( eta_1 );
-        // std::cout<<w->var("m_eta")<<std::endl;
-        // std::cout<<"0.2"<<std::endl;
-        // std::cout<<w->var("m_iso")<<std::endl;
-        // seems that scale factors only depend on pt and eta, do not need iso
-        // w->var("m_iso")->setVal( iso_1 );
+        w->var("m_iso")->setVal( iso_1 );
 
-        // std::cout<<"1"<<std::endl;
-        singleTriggerSFLeg1 = w->function("m_trgIsoMu24orIsoMu27_desy_ratio")->getVal();
-        // std::cout<<"1.1"<<std::endl;
-        s1_data = w->function("m_trgIsoMu24orIsoMu27_desy_data")->getVal();
-        // std::cout<<"1.2"<<std::endl;
-        s1_mc   = w->function("m_trgIsoMu24orIsoMu27_desy_mc")->getVal();
-        // std::cout<<"2"<<std::endl;
+        singleTriggerSFLeg1 = w->function("m_trg24_27_binned_kit_ratio")->getVal();
+        s1_data = w->function("m_trg24_27_binned_kit_data")->getVal();
+        s1_mc   = w->function("m_trg24_27_binned_kit_mc")->getVal();
+
         if( std::abs(eta_1) < 2.1 )
         {
-            // std::cout<<"3"<<std::endl;
-            xTriggerSFLeg1 = w->function("m_trgIsoMu20_desy_ratio")->getVal(); 
-            x1_data = w->function("m_trgIsoMu20_desy_data")->getVal();
-            x1_mc   = w->function("m_trgIsoMu20_desy_mc")->getVal();
+            xTriggerSFLeg1 = w->function("m_trg20_ratio")->getVal();
+            x1_data = w->function("m_trg20_data")->getVal();
+            x1_mc   = w->function("m_trg20_mc")->getVal();
         }
-        // if( std::abs(eta_2) < 2.1 )
-        // {
-        //     xTriggerSFLeg2 = tauTrigSFTight->getMuTauScaleFactor( pt_2 ,  eta_2 ,  phi_2 );
-        //     x2_data        = tauTrigSFTight->getMuTauEfficiencyData( pt_2 ,  eta_2 ,  phi_2 );
-        //     x2_mc          = tauTrigSFTight->getMuTauEfficiencyMC( pt_2 ,  eta_2 ,  phi_2 );
-        // }
+        if( std::abs(eta_2) < 2.1 )
+        {
+            xTriggerSFLeg2 = tauTrigSFTight->getMuTauScaleFactor( pt_2 ,  eta_2 ,  phi_2 );
+            x2_data        = tauTrigSFTight->getMuTauEfficiencyData( pt_2 ,  eta_2 ,  phi_2 );
+            x2_mc          = tauTrigSFTight->getMuTauEfficiencyMC( pt_2 ,  eta_2 ,  phi_2 );
+        }
 
-        // idWeight_1  = w->function("m_id_kit_ratio")->getVal();
-        // isoWeight_1 = w->function("m_iso_binned_kit_ratio")->getVal();
-        // above 2 lines not needed anymore
-        idisoweight_1 =  w->function("m_idiso_desy_ratio")->getVal();
+        idWeight_1  = w->function("m_id_kit_ratio")->getVal();
+        isoWeight_1 = w->function("m_iso_binned_kit_ratio")->getVal();
+        idisoweight_1 =  idWeight_1 * isoWeight_1 ;
 
-        // sf_trk = w->function("m_trk_ratio")->getVal(); // not needed anymore
+        sf_trk = w->function("m_trk_ratio")->getVal();
 
-        // sf_SingleOrCrossTrigger = (s1_data*(1 - x2_data ) + x1_data*x2_data ) / (s1_mc*(1 - x2_mc ) + x1_mc*x2_mc );
-        // if(pt_1 > 25) sf_SingleXorCrossTrigger = singleTriggerSFLeg1;
-        // else          sf_SingleXorCrossTrigger = xTriggerSFLeg1*xTriggerSFLeg2;
+        sf_SingleOrCrossTrigger = (s1_data*(1 - x2_data ) + x1_data*x2_data ) / (s1_mc*(1 - x2_mc ) + x1_mc*x2_mc );
+
+        if(pt_1 > 25) sf_SingleXorCrossTrigger = singleTriggerSFLeg1;
+        else          sf_SingleXorCrossTrigger = xTriggerSFLeg1*xTriggerSFLeg2;
 
         sf_SingleTrigger = singleTriggerSFLeg1;
     }
@@ -373,48 +361,49 @@ void EventWriter::fillScalefactors()
     {
         w->var("e_pt")->setVal(  pt_1  );
         w->var("e_eta")->setVal( eta_1 );
-        // w->var("e_iso")->setVal( iso_1 ); 
+        w->var("e_iso")->setVal( iso_1 );
 
-        singleTriggerSFLeg1 = w->function("e_trgEle32orEle35_desy_ratio")->getVal();
-        s1_data = w->function("e_trgEle32orEle35_desy_data")->getVal();
-        s1_mc   = w->function("e_trgEle32orEle35_desy_mc")->getVal();
+        singleTriggerSFLeg1 = w->function("e_trg27_trg32_trg35_binned_kit_ratio")->getVal();
+        s1_data = w->function("e_trg27_trg32_trg35_binned_kit_data")->getVal();
+        s1_mc   = w->function("e_trg27_trg32_trg35_binned_kit_mc")->getVal();
+
         if( std::abs(eta_1) < 2.1 )
         {
-            xTriggerSFLeg1 = w->function("e_trgEle24leg_desy_ratio")->getVal();
-            x1_data = w->function("e_trgEle24leg_desy_data")->getVal();
-            x1_mc   = w->function("e_trgEle24leg_desy_mc")->getVal();
+            xTriggerSFLeg1 = w->function("e_trg_EleTau_Ele24Leg_desy_ratio")->getVal();
+            x1_data = w->function("e_trg_EleTau_Ele24Leg_desy_data")->getVal();
+            x1_mc   = w->function("e_trg_EleTau_Ele24Leg_desy_mc")->getVal();
         }       
-        // if( std::abs(eta_2) < 2.1 )
-        // {
-        //     xTriggerSFLeg2 = tauTrigSFTight->getETauScaleFactor( pt_2 ,  eta_2 ,  phi_2 );
-        //     x2_data        = tauTrigSFTight->getETauEfficiencyData( pt_2 ,  eta_2 ,  phi_2 );
-        //     x2_mc          = tauTrigSFTight->getETauEfficiencyMC( pt_2 ,  eta_2 ,  phi_2 );
-        // }    
+        if( std::abs(eta_2) < 2.1 )
+        {
+            xTriggerSFLeg2 = tauTrigSFTight->getETauScaleFactor( pt_2 ,  eta_2 ,  phi_2 );
+            x2_data        = tauTrigSFTight->getETauEfficiencyData( pt_2 ,  eta_2 ,  phi_2 );
+            x2_mc          = tauTrigSFTight->getETauEfficiencyMC( pt_2 ,  eta_2 ,  phi_2 );
+        }    
 
-        // idWeight_1  = w->function("e_id90_kit_ratio")->getVal();
-        // isoWeight_1 = w->function("e_iso_binned_kit_ratio")->getVal();
-        idisoweight_1 = w->function("e_idiso_desy_ratio")->getVal();
-        
-        // sf_trk = w->function("e_trk_ratio")->getVal();
-        // sf_SingleOrCrossTrigger = (s1_data*(1 - x2_data ) + x1_data*x2_data ) / (s1_mc*(1 - x2_mc ) + x1_mc*x2_mc );
+        idWeight_1  = w->function("e_id90_kit_ratio")->getVal();
+        isoWeight_1 = w->function("e_iso_binned_kit_ratio")->getVal();
+        idisoweight_1 =  idWeight_1 * isoWeight_1 ;
 
-        // if(pt_1 > 28) sf_SingleXorCrossTrigger = singleTriggerSFLeg1;
-        // else          sf_SingleXorCrossTrigger = xTriggerSFLeg1*xTriggerSFLeg2;
+        sf_trk = w->function("e_trk_ratio")->getVal();
+        sf_SingleOrCrossTrigger = (s1_data*(1 - x2_data ) + x1_data*x2_data ) / (s1_mc*(1 - x2_mc ) + x1_mc*x2_mc );
+
+        if(pt_1 > 28) sf_SingleXorCrossTrigger = singleTriggerSFLeg1;
+        else          sf_SingleXorCrossTrigger = xTriggerSFLeg1*xTriggerSFLeg2;
 
         sf_SingleTrigger = singleTriggerSFLeg1;
     }
 
     if( channel == HTTAnalysis::TauTau )
     {
-        // xTriggerSFLeg1 = tauTrigSFTight->getDiTauScaleFactor(  pt_1 ,  eta_1 ,  phi_1  );
-        // xTriggerSFLeg2 = tauTrigSFTight->getDiTauScaleFactor(  pt_2 ,  eta_2 ,  phi_2  );
+        xTriggerSFLeg1 = tauTrigSFTight->getDiTauScaleFactor(  pt_1 ,  eta_1 ,  phi_1  );
+        xTriggerSFLeg2 = tauTrigSFTight->getDiTauScaleFactor(  pt_2 ,  eta_2 ,  phi_2  );
 
-        // sf_DoubleTauTight = xTriggerSFLeg1*xTriggerSFLeg2;
+        sf_DoubleTauTight = xTriggerSFLeg1*xTriggerSFLeg2;
 
-        // xTriggerSFLeg1 = tauTrigSFVTight->getDiTauScaleFactor(  pt_1 ,  eta_1 ,  phi_1  );
-        // xTriggerSFLeg2 = tauTrigSFVTight->getDiTauScaleFactor(  pt_2 ,  eta_2 ,  phi_2  );
+        xTriggerSFLeg1 = tauTrigSFVTight->getDiTauScaleFactor(  pt_1 ,  eta_1 ,  phi_1  );
+        xTriggerSFLeg2 = tauTrigSFVTight->getDiTauScaleFactor(  pt_2 ,  eta_2 ,  phi_2  );
 
-        // sf_DoubleTauVTight = xTriggerSFLeg1*xTriggerSFLeg2;
+        sf_DoubleTauVTight = xTriggerSFLeg1*xTriggerSFLeg2;
     }
 
 }
@@ -1005,7 +994,6 @@ void EventWriter::setDefault(){
     trg_doubletau_40_tightiso=DEFFLAG;
     trg_doubletau_40_mediso_tightid=DEFFLAG;
     trg_doubletau_35_tightiso_tightid=DEFFLAG;
-    trg_doubletau_35_mediso_HPS=DEFFLAG;
 
     Flag_goodVertices = DEFFLAG;
     Flag_globalTightHalo2016Filter = DEFFLAG;
