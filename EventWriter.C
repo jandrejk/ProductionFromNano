@@ -198,18 +198,13 @@ void EventWriter::fillStitchingWeight(HTTEvent::sampleTypeEnum sampleType)
 {
     if(sampleType == HTTEvent::DY)
     {
-        if(gen_Mll > 50)
-        {
-            if(NUP == 0) stitchedWeight = 0.05754202;
-            if(NUP == 1) stitchedWeight = 0.01043099;
-            if(NUP == 2) stitchedWeight = 0.01182316;
-            if(NUP == 3) stitchedWeight = 0.01469024;
-            if(NUP == 4) stitchedWeight = 0.01228861;
-        }
-        else{
-            //Low mass DY
-            stitchedWeight=lumiWeight;
-        }
+
+        if(NUP == 0) stitchedWeight = 0.05754202;
+        if(NUP == 1) stitchedWeight = 0.01043099;
+        if(NUP == 2) stitchedWeight = 0.01182316;
+        if(NUP == 3) stitchedWeight = 0.01469024;
+        if(NUP == 4) stitchedWeight = 0.01228861;
+
 
     } else if(sampleType == HTTEvent::WJets)
     {
