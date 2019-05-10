@@ -2,9 +2,8 @@
 
 const float DEF = -10.;
 const float DEFWEIGHT = 1.0;
+const bool DEFFLAG = 0.;
 
-const int gen_el_map[24]={ 6, 1,6,6,6,6, 6,6,6,6,6, 6,6,6,6,3, 6,6,6,6,6, 6,6,6 }; 
-const int gen_mu_map[24]={ 6, 2,6,6,6,6, 6,6,6,6,6, 6,6,6,6,4, 6,6,6,6,6, 6,6,6 }; 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void EventWriter::fill(HTTEvent *ev, HTTJetCollection *jets, std::vector<HTTParticle> leptons, HTTPair *pair){
@@ -26,17 +25,11 @@ void EventWriter::fill(HTTEvent *ev, HTTJetCollection *jets, std::vector<HTTPart
     pdg1=std::abs(leg1.getProperty(PropertyEnum::pdgId));
     pdg2=std::abs(leg2.getProperty(PropertyEnum::pdgId));
 
-    run_syncro=ev->getRunId();
-    lumi_syncro=ev->getLSId();
-    evt_syncro=ev->getEventId();
-    //  entry=DEF; //filled in main loop
-    //  fileEntry=DEF; //filled in main loop
-  
-    unsigned genFlav1=leg1.getProperty(PropertyEnum::genPartFlav);
-    unsigned genFlav2=leg2.getProperty(PropertyEnum::genPartFlav);
+    runID=ev->getRunId();
+    lumiBlock=ev->getLSId();
+    eventNr=ev->getEventId();
   
     npv=ev->getNPV();
-    npvGood=DEF;
     npu=ev->getNPU();
     rho=ev->getRho();
   
@@ -50,17 +43,9 @@ void EventWriter::fill(HTTEvent *ev, HTTJetCollection *jets, std::vector<HTTPart
     
     fillAdditionalLeptons( leptons, pair );
   
-    gen_top_pt_1=DEF;
-    gen_top_pt_2=DEF;
-    genJets=DEF;
     //////////////////////////////////////////////////////////////////  
-
-    failBadGlobalMuonTagger=DEF;
-    failCloneGlobalMuonTagger=DEF;
-    Flag_duplicateMuons=DEF;
-    Flag_noBadMuons=DEF;
-  
-
+ 
+    // Make sure that for 2016 badMuon filters are added
     Flag_goodVertices =                       ev->getFilter(FilterEnum::Flag_goodVertices);
     Flag_globalTightHalo2016Filter =          ev->getFilter(FilterEnum::Flag_globalTightHalo2016Filter);
     Flag_globalSuperTightHalo2016Filter =     ev->getFilter(FilterEnum::Flag_globalSuperTightHalo2016Filter);
@@ -86,6 +71,7 @@ void EventWriter::fill(HTTEvent *ev, HTTJetCollection *jets, std::vector<HTTPart
   
     //////////////////////////////////////////////////////////////////  
 
+    // Fill vetos 
     extramuon_veto=ev->checkSelectionBit(SelectionBitsEnum::extraMuonVeto);
     extraelec_veto=ev->checkSelectionBit(SelectionBitsEnum::extraElectronVeto);
     diMuonVeto= ev->checkSelectionBit(SelectionBitsEnum::diMuonVeto);
@@ -98,6 +84,9 @@ void EventWriter::fill(HTTEvent *ev, HTTJetCollection *jets, std::vector<HTTPart
     passesThirdLepVeto=!ev->checkSelectionBit(SelectionBitsEnum::thirdLeptonVeto); 
     passesTauLepVetos = ev->checkSelectionBit(SelectionBitsEnum::antiLeptonId);
 
+    //////////////////////////////////////////////////////////////////
+
+    // Fill stxs related branches
     htxs_stage1cat = ev->getStage1Cat();
     std::vector<double> THU = ev->getTHU_uncertainties();
     THU_ggH_Mu =    THU[0];
@@ -109,16 +98,9 @@ void EventWriter::fill(HTTEvent *ev, HTTJetCollection *jets, std::vector<HTTPart
     THU_ggH_PT60 =  THU[6];
     THU_ggH_PT120 = THU[7];
     THU_ggH_qmtop = THU[8];
+
+    NNLO_ggH_weight = ev->getNNLO_ggH_weight();
   
-
-    //////////////////////////////////////////////////////////////////
-    if (channel == HTTAnalysis::TauTau) passesIsoCuts=byVLooseIsolationMVArun2017v2DBoldDMwLT2017_1 
-                                                      && byVLooseIsolationMVArun2017v2DBoldDMwLT2017_2;//tautau
-    else passesIsoCuts=byVLooseIsolationMVArun2017v2DBoldDMwLT2017_2; //etau/mutau
-
-    if (pdg1==11 || pdg1==13) passesLepIsoCuts=(iso_1<0.1);
-   
-
     //////////////////////////////////////////////////////////////////
 
     //this is quite slow, calling the function for each trigger item...
@@ -162,12 +144,6 @@ void EventWriter::fill(HTTEvent *ev, HTTJetCollection *jets, std::vector<HTTPart
         
     }
     
-    trg_muonelectron=DEF; //fires HLT_Mu8_TrkIsoVVL_Ele23_CaloIdL_TrackIdL_IsoVL or HLT_Mu23_TrkIsoVVL_Ele12_CaloIdL_TrackIdL_IsoVL
-
-
-    genPt_1=DEF;
-    genPt_2=DEF;
-
     TLorentzVector ll=ev->getGenBosonP4(false);
     TLorentzVector llvis=ev->getGenBosonP4(true);
     gen_Mll=ll.M();
@@ -182,36 +158,11 @@ void EventWriter::fill(HTTEvent *ev, HTTJetCollection *jets, std::vector<HTTPart
     topPtReweightWeightRun2=ev->getTopPtReWeight(false);
     topPtReweightWeightRun1=ev->getTopPtReWeight(true);
    
-    // This is obsolete and not included in correction workspace
     if(ev->getSampleType() == HTTEvent::DY || ev->getSampleType() == HTTEvent::DYLowM ) {
-        //std::cout<<"111"<<std::endl;
         w->var("z_gen_mass")->setVal(  ll.M()  );
-        // std::cout<<"112"<<std::endl;
         w->var("z_gen_pt")->setVal( ll.Pt() );
-        // std::cout<<"113"<<std::endl;
         zPtReweightWeight=w->function("zptmass_weight_nom")->getVal();
-        // std::cout<<"114"<<std::endl;
-        // zPtReweightWeight1D=w->function("zpt_weight_nom")->getVal();
-        // std::cout<<"115"<<std::endl;
     }
-   
-    NNLO_ggH_weight = ev->getNNLO_ggH_weight();
-
-    zpt_weight_nom=DEFWEIGHT;
-    zpt_weight_esup=DEFWEIGHT;
-    zpt_weight_esdown=DEFWEIGHT;
-    zpt_weight_ttup=DEFWEIGHT;
-    zpt_weight_ttdown=DEFWEIGHT;
-    zpt_weight_statpt0up=DEFWEIGHT;
-    zpt_weight_statpt0down=DEFWEIGHT;
-    zpt_weight_statpt40up=DEFWEIGHT;
-    zpt_weight_statpt40down=DEFWEIGHT;
-    zpt_weight_statpt80up=DEFWEIGHT;
-    zpt_weight_statpt80down=DEFWEIGHT;
-
-    eleTauFakeRateWeight=DEFWEIGHT;
-    muTauFakeRateWeight=DEFWEIGHT;
-    antilep_tauscaling=DEFWEIGHT;
 
     if(isMC)
     {
@@ -227,7 +178,6 @@ void EventWriter::fill(HTTEvent *ev, HTTJetCollection *jets, std::vector<HTTPart
 
     } else
     {
-        effweight = DEFWEIGHT;
         xsec = DEFWEIGHT;
         genWeight = DEFWEIGHT;        
         genNEventsWeight = DEFWEIGHT;
@@ -273,6 +223,214 @@ void EventWriter::fillStitchingWeight(HTTEvent::sampleTypeEnum sampleType)
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void EventWriter::fillLeptonFakeRateWeights()
+{
+    eleTauFakeRateWeight = 1.0;
+    muTauFakeRateWeight = 1.0;
+    antilep_tauscaling = 1.0;
+
+    //values taken from here: https://indico.cern.ch/event/803335/contributions/3359969/attachments/1829820/2996253/TauPOG_HTT_workshop_20190415_v0.pdf
+
+    if(channel == HTTAnalysis::MuTau)
+    {
+
+        if((gen_match_2 == 1 || gen_match_2 == 3) && againstElectronVLooseMVA6_2 > 0.5 )
+        {
+            if( std::abs(eta_2) < 1.448 )       eleTauFakeRateWeight *= 1.089;
+            else if ( std::abs(eta_2) > 1.558 ) eleTauFakeRateWeight *= 1.189;
+        }
+        if((gen_match_2 == 2 || gen_match_2 == 4) && againstMuonTight3_2 > 0.5 )
+        {
+            if( std::abs(eta_2) < 0.4 )       muTauFakeRateWeight *= 1.28;
+            else if ( std::abs(eta_2) < 0.8 ) muTauFakeRateWeight *= 1.2;
+            else if ( std::abs(eta_2) < 1.2 ) muTauFakeRateWeight *= 1.08;
+            else if ( std::abs(eta_2) < 1.7 ) muTauFakeRateWeight *= 1.0;
+            else if ( std::abs(eta_2) < 2.3 ) muTauFakeRateWeight *= 2.3;
+        }        
+    }
+    if(channel == HTTAnalysis::EleTau)
+    {
+        if((gen_match_2 == 1 || gen_match_2 == 3) && againstElectronTightMVA6_2 > 0.5 )
+        {
+            if( std::abs(eta_2) < 1.448 )       eleTauFakeRateWeight *= 1.78;
+            else if ( std::abs(eta_2) > 1.558 ) eleTauFakeRateWeight *= 1.55;
+        }
+        if((gen_match_2 == 2 || gen_match_2 == 4) && againstMuonLoose3_2> 0.5 )
+        {
+            if( std::abs(eta_2) < 0.4 )       muTauFakeRateWeight *= 1.06;
+            else if ( std::abs(eta_2) < 0.8 ) muTauFakeRateWeight *= 0.96;
+            else if ( std::abs(eta_2) < 1.2 ) muTauFakeRateWeight *= 1.05;
+            else if ( std::abs(eta_2) < 1.7 ) muTauFakeRateWeight *= 1.23;
+            else if ( std::abs(eta_2) < 2.3 ) muTauFakeRateWeight *= 1.19;
+        }        
+    }
+    if(channel == HTTAnalysis::TauTau)
+    {
+
+        if((gen_match_1 == 1 || gen_match_1 == 3) && againstElectronVLooseMVA6_1 > 0.5 )
+        {
+            if( std::abs(eta_1) < 1.448 )       eleTauFakeRateWeight *= 1.089;
+            else if ( std::abs(eta_1) > 1.558 ) eleTauFakeRateWeight *= 1.189;
+        }
+        if((gen_match_1 == 2 || gen_match_1 == 4) && againstMuonLoose3_1> 0.5 )
+        {
+            if( std::abs(eta_1) < 0.4 )       muTauFakeRateWeight *= 1.06;
+            else if ( std::abs(eta_1) < 0.8 ) muTauFakeRateWeight *= 0.96;
+            else if ( std::abs(eta_1) < 1.2 ) muTauFakeRateWeight *= 1.05;
+            else if ( std::abs(eta_1) < 1.7 ) muTauFakeRateWeight *= 1.23;
+            else if ( std::abs(eta_1) < 2.3 ) muTauFakeRateWeight *= 1.19;
+        } 
+
+        if((gen_match_2 == 1 || gen_match_2 == 3) && againstElectronVLooseMVA6_2 > 0.5 )
+        {
+            if( std::abs(eta_2) < 1.448 )       eleTauFakeRateWeight *= 1.089;
+            else if ( std::abs(eta_2) > 1.558 ) eleTauFakeRateWeight *= 1.189;
+        }
+        if((gen_match_2 == 2 || gen_match_2 == 4) && againstMuonLoose3_2> 0.5 )
+        {
+            if( std::abs(eta_2) < 0.4 )       muTauFakeRateWeight *= 1.06;
+            else if ( std::abs(eta_2) < 0.8 ) muTauFakeRateWeight *= 0.96;
+            else if ( std::abs(eta_2) < 1.2 ) muTauFakeRateWeight *= 1.05;
+            else if ( std::abs(eta_2) < 1.7 ) muTauFakeRateWeight *= 1.23;
+            else if ( std::abs(eta_2) < 2.3 ) muTauFakeRateWeight *= 1.19;
+        }        
+    }
+    antilep_tauscaling = eleTauFakeRateWeight * muTauFakeRateWeight;
+}
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void EventWriter::fillScalefactors()
+{
+    // from https://github.com/CMS-HTT/CorrectionsWorkspace/tree/2017_17NovReRecoData_Fall17MC
+    singleTriggerSFLeg1 = DEFWEIGHT;
+    singleTriggerSFLeg2 = DEFWEIGHT;
+
+    double s1_data = DEFWEIGHT;
+    double s1_mc   = DEFWEIGHT;
+    double x1_data = DEFWEIGHT;
+    double x1_mc   = DEFWEIGHT;
+    double x2_data = DEFWEIGHT;
+    double x2_mc   = DEFWEIGHT;
+
+    isoWeight_1 = DEFWEIGHT;
+    isoWeight_2 = DEFWEIGHT;
+    idWeight_1 = DEFWEIGHT;
+    idWeight_2 = DEFWEIGHT;
+
+    idisoweight_1 = DEFWEIGHT;
+    idisoweight_2 = DEFWEIGHT;
+
+    // from https://github.com/truggles/TauTriggerSFs2017/tree/tauTriggers2017_MCv2_PreReMiniaod
+    xTriggerSFLeg1 = DEFWEIGHT;
+    xTriggerSFLeg2 = DEFWEIGHT;
+
+    sf_trk =DEFWEIGHT;
+    sf_reco=DEFWEIGHT;
+    sf_SingleOrCrossTrigger = DEFWEIGHT;
+    sf_SingleXorCrossTrigger = DEFWEIGHT;
+    sf_SingleTrigger = DEFWEIGHT;
+    sf_DoubleTauTight = DEFWEIGHT;
+    sf_DoubleTauVTight = DEFWEIGHT;
+
+
+
+    if( channel == HTTAnalysis::MuTau )
+    {
+        w->var("m_pt")->setVal(  pt_1  );
+        // std::cout<<"0.1"<<std::endl;
+        w->var("m_eta")->setVal( eta_1 );
+        // std::cout<<w->var("m_eta")<<std::endl;
+        // std::cout<<"0.2"<<std::endl;
+        // std::cout<<w->var("m_iso")<<std::endl;
+        // seems that scale factors only depend on pt and eta, do not need iso
+        // w->var("m_iso")->setVal( iso_1 );
+
+        // std::cout<<"1"<<std::endl;
+        singleTriggerSFLeg1 = w->function("m_trgIsoMu24orIsoMu27_desy_ratio")->getVal();
+        // std::cout<<"1.1"<<std::endl;
+        s1_data = w->function("m_trgIsoMu24orIsoMu27_desy_data")->getVal();
+        // std::cout<<"1.2"<<std::endl;
+        s1_mc   = w->function("m_trgIsoMu24orIsoMu27_desy_mc")->getVal();
+        // std::cout<<"2"<<std::endl;
+        if( std::abs(eta_1) < 2.1 )
+        {
+            // std::cout<<"3"<<std::endl;
+            xTriggerSFLeg1 = w->function("m_trgIsoMu20_desy_ratio")->getVal(); 
+            x1_data = w->function("m_trgIsoMu20_desy_data")->getVal();
+            x1_mc   = w->function("m_trgIsoMu20_desy_mc")->getVal();
+        }
+        // if( std::abs(eta_2) < 2.1 )
+        // {
+        //     xTriggerSFLeg2 = tauTrigSFTight->getMuTauScaleFactor( pt_2 ,  eta_2 ,  phi_2 );
+        //     x2_data        = tauTrigSFTight->getMuTauEfficiencyData( pt_2 ,  eta_2 ,  phi_2 );
+        //     x2_mc          = tauTrigSFTight->getMuTauEfficiencyMC( pt_2 ,  eta_2 ,  phi_2 );
+        // }
+
+        // idWeight_1  = w->function("m_id_kit_ratio")->getVal();
+        // isoWeight_1 = w->function("m_iso_binned_kit_ratio")->getVal();
+        // above 2 lines not needed anymore
+        idisoweight_1 =  w->function("m_idiso_desy_ratio")->getVal();
+
+        // sf_trk = w->function("m_trk_ratio")->getVal(); // not needed anymore
+
+        // sf_SingleOrCrossTrigger = (s1_data*(1 - x2_data ) + x1_data*x2_data ) / (s1_mc*(1 - x2_mc ) + x1_mc*x2_mc );
+        // if(pt_1 > 25) sf_SingleXorCrossTrigger = singleTriggerSFLeg1;
+        // else          sf_SingleXorCrossTrigger = xTriggerSFLeg1*xTriggerSFLeg2;
+
+        sf_SingleTrigger = singleTriggerSFLeg1;
+    }
+
+    if( channel == HTTAnalysis::EleTau )
+    {
+        w->var("e_pt")->setVal(  pt_1  );
+        w->var("e_eta")->setVal( eta_1 );
+        // w->var("e_iso")->setVal( iso_1 ); 
+
+        singleTriggerSFLeg1 = w->function("e_trgEle32orEle35_desy_ratio")->getVal();
+        s1_data = w->function("e_trgEle32orEle35_desy_data")->getVal();
+        s1_mc   = w->function("e_trgEle32orEle35_desy_mc")->getVal();
+        if( std::abs(eta_1) < 2.1 )
+        {
+            xTriggerSFLeg1 = w->function("e_trgEle24leg_desy_ratio")->getVal();
+            x1_data = w->function("e_trgEle24leg_desy_data")->getVal();
+            x1_mc   = w->function("e_trgEle24leg_desy_mc")->getVal();
+        }       
+        // if( std::abs(eta_2) < 2.1 )
+        // {
+        //     xTriggerSFLeg2 = tauTrigSFTight->getETauScaleFactor( pt_2 ,  eta_2 ,  phi_2 );
+        //     x2_data        = tauTrigSFTight->getETauEfficiencyData( pt_2 ,  eta_2 ,  phi_2 );
+        //     x2_mc          = tauTrigSFTight->getETauEfficiencyMC( pt_2 ,  eta_2 ,  phi_2 );
+        // }    
+
+        // idWeight_1  = w->function("e_id90_kit_ratio")->getVal();
+        // isoWeight_1 = w->function("e_iso_binned_kit_ratio")->getVal();
+        idisoweight_1 = w->function("e_idiso_desy_ratio")->getVal();
+        
+        // sf_trk = w->function("e_trk_ratio")->getVal();
+        // sf_SingleOrCrossTrigger = (s1_data*(1 - x2_data ) + x1_data*x2_data ) / (s1_mc*(1 - x2_mc ) + x1_mc*x2_mc );
+
+        // if(pt_1 > 28) sf_SingleXorCrossTrigger = singleTriggerSFLeg1;
+        // else          sf_SingleXorCrossTrigger = xTriggerSFLeg1*xTriggerSFLeg2;
+
+        sf_SingleTrigger = singleTriggerSFLeg1;
+    }
+
+    if( channel == HTTAnalysis::TauTau )
+    {
+        // xTriggerSFLeg1 = tauTrigSFTight->getDiTauScaleFactor(  pt_1 ,  eta_1 ,  phi_1  );
+        // xTriggerSFLeg2 = tauTrigSFTight->getDiTauScaleFactor(  pt_2 ,  eta_2 ,  phi_2  );
+
+        // sf_DoubleTauTight = xTriggerSFLeg1*xTriggerSFLeg2;
+
+        // xTriggerSFLeg1 = tauTrigSFVTight->getDiTauScaleFactor(  pt_1 ,  eta_1 ,  phi_1  );
+        // xTriggerSFLeg2 = tauTrigSFVTight->getDiTauScaleFactor(  pt_2 ,  eta_2 ,  phi_2  );
+
+        // sf_DoubleTauVTight = xTriggerSFLeg1*xTriggerSFLeg2;
+    }
+
+}
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void EventWriter::fillLeg1Branches()
 {
     UChar_t bitmask;
@@ -305,12 +463,8 @@ void EventWriter::fillLeg1Branches()
     againstMuonTight3_1=(againstMuon3_1 & 0x2)>0;
 
     byCombinedIsolationDeltaBetaCorrRaw3Hits_1=leg1.getProperty(PropertyEnum::rawIso);
-    byLooseCombinedIsolationDeltaBetaCorr3Hits_1=DEF; //not in nanoAOD
-    byMediumCombinedIsolationDeltaBetaCorr3Hits_1=DEF; //not in nanoAOD
-    byTightCombinedIsolationDeltaBetaCorr3Hits_1=DEF; //not in nanoAOD
-    // byIsolationMVA3newDMwoLTraw_1=DEF;
-    // byIsolationMVA3newDMwLTraw_1=DEF;
-    byIsolationMVA3oldDMwLTraw_1 =leg1.getProperty(HTTEvent::usePropertyFor.at("tauID")); //same as above!?
+
+    byIsolationMVA3oldDMwLTraw_1 =leg1.getProperty(HTTEvent::usePropertyFor.at("tauID"));
 
     byIsolationMVArun2017v2DBoldDMwLTraw2017_1=leg1.getProperty(HTTEvent::usePropertyFor.at("tauIsolation")); // Raw value
     byIsolationMVArun2017v2DBoldDMwLT2017_1=leg1.getProperty(HTTEvent::usePropertyFor.at("tauID"));    // Bitmask
@@ -323,19 +477,7 @@ void EventWriter::fillLeg1Branches()
     byVTightIsolationMVArun2017v2DBoldDMwLT2017_1  = (byIsolationMVArun2017v2DBoldDMwLT2017_1 & 0x20)>0;
     byVVTightIsolationMVArun2017v2DBoldDMwLT2017_1  = (byIsolationMVArun2017v2DBoldDMwLT2017_1 & 0x40)>0;
 
-    // byVLooseIsolationMVArun2v1DBnewDMwLT_1=DEF;
-    // byLooseIsolationMVArun2v1DBnewDMwLT_1=DEF;
-    // byMediumIsolationMVArun2v1DBnewDMwLT_1=DEF;
-    // byTightIsolationMVArun2v1DBnewDMwLT_1=DEF;
-    // byVTightIsolationMVArun2v1DBnewDMwLT_1=DEF;
 
-    // NewMVAIDVLoose_1=DEF; //?
-    // NewMVAIDLoose_1=DEF;
-    // NewMVAIDMedium_1=DEF;
-    // NewMVAIDTight_1=DEF;
-    // NewMVAIDVTight_1=DEF;
-    // NewMVAIDVVTight_1=DEF;
-    // idMVANewDM_1=DEF; //?
 
     chargedIsoPtSum_1=leg1.getProperty(PropertyEnum::chargedIso);
     neutralIsoPtSum_1=leg1.getProperty(PropertyEnum::neutralIso);
@@ -346,7 +488,6 @@ void EventWriter::fillLeg1Branches()
     if (pdg1==13) id_m_loose_1=1; //already filtered at NanoAOD production
     id_m_medium_1=leg1.getProperty(PropertyEnum::mediumId);
     id_m_tight_1=leg1.getProperty(PropertyEnum::tightId);
-    id_m_tightnovtx_1=DEF;
     bitmask=leg1.getProperty(PropertyEnum::highPtId);
     id_m_highpt_1=(bitmask & 0x2)>0;
 
@@ -390,11 +531,7 @@ void EventWriter::fillLeg2Branches()
     againstMuonTight3_2=(againstMuon3_2 & 0x2)>0;
 
     byCombinedIsolationDeltaBetaCorrRaw3Hits_2=leg2.getProperty(PropertyEnum::rawIso);
-    byLooseCombinedIsolationDeltaBetaCorr3Hits_2=DEF; //not in nanoAOD
-    byMediumCombinedIsolationDeltaBetaCorr3Hits_2=DEF; //not in nanoAOD
-    byTightCombinedIsolationDeltaBetaCorr3Hits_2=DEF; //not in nanoAOD
-    // byIsolationMVA3newDMwoLTraw_2=DEF;
-    // byIsolationMVA3newDMwLTraw_2=DEF;
+
     byIsolationMVA3oldDMwLTraw_2 =leg2.getProperty(PropertyEnum::rawMVAoldDM2017v2); //same as above!?
 
     byIsolationMVArun2017v2DBoldDMwLTraw2017_2=leg2.getProperty( HTTEvent::usePropertyFor.at("tauIsolation") ); // Raw value
@@ -407,19 +544,6 @@ void EventWriter::fillLeg2Branches()
     byTightIsolationMVArun2017v2DBoldDMwLT2017_2   = (byIsolationMVArun2017v2DBoldDMwLT2017_2 & 0x10)>0;
     byVTightIsolationMVArun2017v2DBoldDMwLT2017_2  = (byIsolationMVArun2017v2DBoldDMwLT2017_2 & 0x20)>0;
     byVVTightIsolationMVArun2017v2DBoldDMwLT2017_2  = (byIsolationMVArun2017v2DBoldDMwLT2017_2 & 0x40)>0;
-
-    // byVLooseIsolationMVArun2v1DBnewDMwLT_2=DEF;
-    // byLooseIsolationMVArun2v1DBnewDMwLT_2=DEF;
-    // byMediumIsolationMVArun2v1DBnewDMwLT_2=DEF;
-    // byTightIsolationMVArun2v1DBnewDMwLT_2=DEF;
-    // byVTightIsolationMVArun2v1DBnewDMwLT_2=DEF;
-    // NewMVAIDVLoose_2=DEF;
-    // NewMVAIDLoose_2=DEF;
-    // NewMVAIDMedium_2=DEF;
-    // NewMVAIDTight_2=DEF;
-    // NewMVAIDVTight_2=DEF;
-    // NewMVAIDVVTight_2=DEF;
-    // idMVANewDM_2=DEF;
 
     chargedIsoPtSum_2=leg2.getProperty(PropertyEnum::chargedIso);
     neutralIsoPtSum_2=leg2.getProperty(PropertyEnum::neutralIso);
@@ -718,216 +842,6 @@ void EventWriter::fillAdditionalLeptons( std::vector<HTTParticle> leptons, HTTPa
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-void EventWriter::fillLeptonFakeRateWeights()
-{
-    eleTauFakeRateWeight = 1.0;
-    muTauFakeRateWeight = 1.0;
-    antilep_tauscaling = 1.0;
-
-    //values taken from here: https://indico.cern.ch/event/803335/contributions/3359969/attachments/1829820/2996253/TauPOG_HTT_workshop_20190415_v0.pdf
-
-    if(channel == HTTAnalysis::MuTau)
-    {
-
-        if((gen_match_2 == 1 || gen_match_2 == 3) && againstElectronVLooseMVA6_2 > 0.5 )
-        {
-            if( std::abs(eta_2) < 1.448 )       eleTauFakeRateWeight *= 1.089;
-            else if ( std::abs(eta_2) > 1.558 ) eleTauFakeRateWeight *= 1.189;
-        }
-        if((gen_match_2 == 2 || gen_match_2 == 4) && againstMuonTight3_2 > 0.5 )
-        {
-            if( std::abs(eta_2) < 0.4 )       muTauFakeRateWeight *= 1.28;
-            else if ( std::abs(eta_2) < 0.8 ) muTauFakeRateWeight *= 1.2;
-            else if ( std::abs(eta_2) < 1.2 ) muTauFakeRateWeight *= 1.08;
-            else if ( std::abs(eta_2) < 1.7 ) muTauFakeRateWeight *= 1.0;
-            else if ( std::abs(eta_2) < 2.3 ) muTauFakeRateWeight *= 2.3;
-        }        
-    }
-    if(channel == HTTAnalysis::EleTau)
-    {
-        if((gen_match_2 == 1 || gen_match_2 == 3) && againstElectronTightMVA6_2 > 0.5 )
-        {
-            if( std::abs(eta_2) < 1.448 )       eleTauFakeRateWeight *= 1.78;
-            else if ( std::abs(eta_2) > 1.558 ) eleTauFakeRateWeight *= 1.55;
-        }
-        if((gen_match_2 == 2 || gen_match_2 == 4) && againstMuonLoose3_2> 0.5 )
-        {
-            if( std::abs(eta_2) < 0.4 )       muTauFakeRateWeight *= 1.06;
-            else if ( std::abs(eta_2) < 0.8 ) muTauFakeRateWeight *= 0.96;
-            else if ( std::abs(eta_2) < 1.2 ) muTauFakeRateWeight *= 1.05;
-            else if ( std::abs(eta_2) < 1.7 ) muTauFakeRateWeight *= 1.23;
-            else if ( std::abs(eta_2) < 2.3 ) muTauFakeRateWeight *= 1.19;
-        }        
-    }
-    if(channel == HTTAnalysis::TauTau)
-    {
-
-        if((gen_match_1 == 1 || gen_match_1 == 3) && againstElectronVLooseMVA6_1 > 0.5 )
-        {
-            if( std::abs(eta_1) < 1.448 )       eleTauFakeRateWeight *= 1.089;
-            else if ( std::abs(eta_1) > 1.558 ) eleTauFakeRateWeight *= 1.189;
-        }
-        if((gen_match_1 == 2 || gen_match_1 == 4) && againstMuonLoose3_1> 0.5 )
-        {
-            if( std::abs(eta_1) < 0.4 )       muTauFakeRateWeight *= 1.06;
-            else if ( std::abs(eta_1) < 0.8 ) muTauFakeRateWeight *= 0.96;
-            else if ( std::abs(eta_1) < 1.2 ) muTauFakeRateWeight *= 1.05;
-            else if ( std::abs(eta_1) < 1.7 ) muTauFakeRateWeight *= 1.23;
-            else if ( std::abs(eta_1) < 2.3 ) muTauFakeRateWeight *= 1.19;
-        } 
-
-        if((gen_match_2 == 1 || gen_match_2 == 3) && againstElectronVLooseMVA6_2 > 0.5 )
-        {
-            if( std::abs(eta_2) < 1.448 )       eleTauFakeRateWeight *= 1.089;
-            else if ( std::abs(eta_2) > 1.558 ) eleTauFakeRateWeight *= 1.189;
-        }
-        if((gen_match_2 == 2 || gen_match_2 == 4) && againstMuonLoose3_2> 0.5 )
-        {
-            if( std::abs(eta_2) < 0.4 )       muTauFakeRateWeight *= 1.06;
-            else if ( std::abs(eta_2) < 0.8 ) muTauFakeRateWeight *= 0.96;
-            else if ( std::abs(eta_2) < 1.2 ) muTauFakeRateWeight *= 1.05;
-            else if ( std::abs(eta_2) < 1.7 ) muTauFakeRateWeight *= 1.23;
-            else if ( std::abs(eta_2) < 2.3 ) muTauFakeRateWeight *= 1.19;
-        }        
-    }
-    antilep_tauscaling = eleTauFakeRateWeight * muTauFakeRateWeight;
-}
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-void EventWriter::fillScalefactors()
-{
-    // from https://github.com/CMS-HTT/CorrectionsWorkspace/tree/2017_17NovReRecoData_Fall17MC
-    singleTriggerSFLeg1 = DEFWEIGHT;
-    singleTriggerSFLeg2 = DEFWEIGHT;
-
-    double s1_data = DEFWEIGHT;
-    double s1_mc   = DEFWEIGHT;
-    double x1_data = DEFWEIGHT;
-    double x1_mc   = DEFWEIGHT;
-    double x2_data = DEFWEIGHT;
-    double x2_mc   = DEFWEIGHT;
-
-    isoWeight_1 = DEFWEIGHT;
-    isoWeight_2 = DEFWEIGHT;
-    idWeight_1 = DEFWEIGHT;
-    idWeight_2 = DEFWEIGHT;
-
-    idisoweight_1 = DEFWEIGHT;
-    idisoweight_2 = DEFWEIGHT;
-
-    // from https://github.com/truggles/TauTriggerSFs2017/tree/tauTriggers2017_MCv2_PreReMiniaod
-    xTriggerSFLeg1 = DEFWEIGHT;
-    xTriggerSFLeg2 = DEFWEIGHT;
-
-    effweight = DEFWEIGHT;
-
-    sf_trk =DEFWEIGHT;
-    sf_reco=DEFWEIGHT;
-    sf_SingleOrCrossTrigger = DEFWEIGHT;
-    sf_SingleXorCrossTrigger = DEFWEIGHT;
-    sf_SingleTrigger = DEFWEIGHT;
-    sf_DoubleTauTight = DEFWEIGHT;
-    sf_DoubleTauVTight = DEFWEIGHT;
-
-
-
-    if( channel == HTTAnalysis::MuTau )
-    {
-        w->var("m_pt")->setVal(  pt_1  );
-        // std::cout<<"0.1"<<std::endl;
-        w->var("m_eta")->setVal( eta_1 );
-        // std::cout<<w->var("m_eta")<<std::endl;
-        // std::cout<<"0.2"<<std::endl;
-        // std::cout<<w->var("m_iso")<<std::endl;
-        // seems that scale factors only depend on pt and eta, do not need iso
-        // w->var("m_iso")->setVal( iso_1 );
-
-        // std::cout<<"1"<<std::endl;
-        singleTriggerSFLeg1 = w->function("m_trgIsoMu24orIsoMu27_desy_ratio")->getVal();
-        // std::cout<<"1.1"<<std::endl;
-        s1_data = w->function("m_trgIsoMu24orIsoMu27_desy_data")->getVal();
-        // std::cout<<"1.2"<<std::endl;
-        s1_mc   = w->function("m_trgIsoMu24orIsoMu27_desy_mc")->getVal();
-        // std::cout<<"2"<<std::endl;
-        if( std::abs(eta_1) < 2.1 )
-        {
-            // std::cout<<"3"<<std::endl;
-            xTriggerSFLeg1 = w->function("m_trgIsoMu20_desy_ratio")->getVal(); 
-            x1_data = w->function("m_trgIsoMu20_desy_data")->getVal();
-            x1_mc   = w->function("m_trgIsoMu20_desy_mc")->getVal();
-        }
-        // if( std::abs(eta_2) < 2.1 )
-        // {
-        //     xTriggerSFLeg2 = tauTrigSFTight->getMuTauScaleFactor( pt_2 ,  eta_2 ,  phi_2 );
-        //     x2_data        = tauTrigSFTight->getMuTauEfficiencyData( pt_2 ,  eta_2 ,  phi_2 );
-        //     x2_mc          = tauTrigSFTight->getMuTauEfficiencyMC( pt_2 ,  eta_2 ,  phi_2 );
-        // }
-
-        // idWeight_1  = w->function("m_id_kit_ratio")->getVal();
-        // isoWeight_1 = w->function("m_iso_binned_kit_ratio")->getVal();
-        // above 2 lines not needed anymore
-        idisoweight_1 =  w->function("m_idiso_desy_ratio")->getVal();
-
-        // sf_trk = w->function("m_trk_ratio")->getVal(); // not needed anymore
-
-        // sf_SingleOrCrossTrigger = (s1_data*(1 - x2_data ) + x1_data*x2_data ) / (s1_mc*(1 - x2_mc ) + x1_mc*x2_mc );
-        // if(pt_1 > 25) sf_SingleXorCrossTrigger = singleTriggerSFLeg1;
-        // else          sf_SingleXorCrossTrigger = xTriggerSFLeg1*xTriggerSFLeg2;
-
-        sf_SingleTrigger = singleTriggerSFLeg1;
-    }
-
-    if( channel == HTTAnalysis::EleTau )
-    {
-        w->var("e_pt")->setVal(  pt_1  );
-        w->var("e_eta")->setVal( eta_1 );
-        // w->var("e_iso")->setVal( iso_1 ); 
-
-        singleTriggerSFLeg1 = w->function("e_trgEle32orEle35_desy_ratio")->getVal();
-        s1_data = w->function("e_trgEle32orEle35_desy_data")->getVal();
-        s1_mc   = w->function("e_trgEle32orEle35_desy_mc")->getVal();
-        if( std::abs(eta_1) < 2.1 )
-        {
-            xTriggerSFLeg1 = w->function("e_trgEle24leg_desy_ratio")->getVal();
-            x1_data = w->function("e_trgEle24leg_desy_data")->getVal();
-            x1_mc   = w->function("e_trgEle24leg_desy_mc")->getVal();
-        }       
-        // if( std::abs(eta_2) < 2.1 )
-        // {
-        //     xTriggerSFLeg2 = tauTrigSFTight->getETauScaleFactor( pt_2 ,  eta_2 ,  phi_2 );
-        //     x2_data        = tauTrigSFTight->getETauEfficiencyData( pt_2 ,  eta_2 ,  phi_2 );
-        //     x2_mc          = tauTrigSFTight->getETauEfficiencyMC( pt_2 ,  eta_2 ,  phi_2 );
-        // }    
-
-        // idWeight_1  = w->function("e_id90_kit_ratio")->getVal();
-        // isoWeight_1 = w->function("e_iso_binned_kit_ratio")->getVal();
-        idisoweight_1 = w->function("e_idiso_desy_ratio")->getVal();
-        
-        // sf_trk = w->function("e_trk_ratio")->getVal();
-        // sf_SingleOrCrossTrigger = (s1_data*(1 - x2_data ) + x1_data*x2_data ) / (s1_mc*(1 - x2_mc ) + x1_mc*x2_mc );
-
-        // if(pt_1 > 28) sf_SingleXorCrossTrigger = singleTriggerSFLeg1;
-        // else          sf_SingleXorCrossTrigger = xTriggerSFLeg1*xTriggerSFLeg2;
-
-        sf_SingleTrigger = singleTriggerSFLeg1;
-    }
-
-    if( channel == HTTAnalysis::TauTau )
-    {
-        // xTriggerSFLeg1 = tauTrigSFTight->getDiTauScaleFactor(  pt_1 ,  eta_1 ,  phi_1  );
-        // xTriggerSFLeg2 = tauTrigSFTight->getDiTauScaleFactor(  pt_2 ,  eta_2 ,  phi_2  );
-
-        // sf_DoubleTauTight = xTriggerSFLeg1*xTriggerSFLeg2;
-
-        // xTriggerSFLeg1 = tauTrigSFVTight->getDiTauScaleFactor(  pt_1 ,  eta_1 ,  phi_1  );
-        // xTriggerSFLeg2 = tauTrigSFVTight->getDiTauScaleFactor(  pt_2 ,  eta_2 ,  phi_2  );
-
-        // sf_DoubleTauVTight = xTriggerSFLeg1*xTriggerSFLeg2;
-    }
-
-}
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 double EventWriter::calcSphericity(std::vector<TLorentzVector> p){
 
   TMatrixD S(3,3);
@@ -1020,21 +934,18 @@ double EventWriter::calcDR(double eta1, double phi1, double eta2, double phi2){
 void EventWriter::setDefault(){
 
     lumiWeight=DEFWEIGHT;
-    run_syncro=DEF;
-    lumi_syncro=DEF;
-    evt_syncro=0; //unsigned
+    runID=DEF;
+    lumiBlock=DEF;
+    eventNr=0; //unsigned
     entry=DEF;
     fileEntry=DEF;
     htxs_stage1cat=DEF;
 
     npv=DEF;
-    npvGood=DEF;
     npu=DEF;
     rho=DEF;
     gen_match_1=DEF;
     gen_match_2=DEF;
-    genPt_1=DEF;
-    genPt_2=DEF;
     gen_match_jetId_1=DEF;
     gen_match_jetId_2=DEF;
     NUP=DEF;
@@ -1053,15 +964,10 @@ void EventWriter::setDefault(){
     weight=DEFWEIGHT;
     puWeight=DEFWEIGHT;
     genWeight=DEFWEIGHT;
-    trigweight_1=DEFWEIGHT;
-    anti_trigweight_1=DEFWEIGHT;
-    trigweight_2=DEFWEIGHT;
     idisoweight_1=DEFWEIGHT;
-    anti_idisoweight_1=DEFWEIGHT;
     idisoweight_2=DEFWEIGHT;
     sf_trk=DEFWEIGHT;
     sf_reco=DEFWEIGHT;
-    effweight=DEFWEIGHT;
     sf_SingleOrCrossTrigger = DEFWEIGHT;
     sf_SingleXorCrossTrigger = DEFWEIGHT;
     sf_SingleTrigger = DEFWEIGHT;
@@ -1072,17 +978,6 @@ void EventWriter::setDefault(){
     topPtReweightWeightRun1=DEFWEIGHT;
     zPtReweightWeight=DEFWEIGHT;
     zPtReweightWeight1D=DEFWEIGHT;
-    zpt_weight_nom=DEFWEIGHT;
-    zpt_weight_esup=DEFWEIGHT;
-    zpt_weight_esdown=DEFWEIGHT;
-    zpt_weight_ttup=DEFWEIGHT;
-    zpt_weight_ttdown=DEFWEIGHT;
-    zpt_weight_statpt0up=DEFWEIGHT;
-    zpt_weight_statpt0down=DEFWEIGHT;
-    zpt_weight_statpt40up=DEFWEIGHT;
-    zpt_weight_statpt40down=DEFWEIGHT;
-    zpt_weight_statpt80up=DEFWEIGHT;
-    zpt_weight_statpt80down=DEFWEIGHT;
 
     NNLO_ggH_weight=DEFWEIGHT;
     THU_ggH_Mu = DEFWEIGHT;
@@ -1107,35 +1002,33 @@ void EventWriter::setDefault(){
     gen_ll_vis_px=DEF;
     gen_ll_vis_py=DEF;
     gen_ll_vis_pz=DEF;
-    gen_top_pt_1=DEF;
-    gen_top_pt_2=DEF;
     genJets=DEF;
-    genJet_match_1=DEF;
-    genJet_match_2=DEF;
     //////////////////////////////////////////////////////////////////  
-    trg_singletau_leading=false;
-    trg_singletau_trailing=false;
-    trg_singlemuon_27=false;
-    trg_singlemuon_24=false;
-    trg_crossmuon_mu20tau27=false;
-    trg_singleelectron_35=false;
-    trg_singleelectron_32=false;
-    trg_singleelectron_27=false;
-    trg_crossele_ele24tau30=false;
-    trg_doubletau_40_tightiso=false;
-    trg_doubletau_40_mediso_tightid=false;
-    trg_doubletau_35_tightiso_tightid=false;
-    trg_doubletau_35_mediso_HPS=false;
-    trg_muonelectron=DEF; //fires HLT_Mu8_TrkIsoVVL_Ele23_CaloIdL_TrackIdL_IsoVL or HLT_Mu23_TrkIsoVVL_Ele12_CaloIdL_TrackIdL_IsoVL
-    Flag_HBHENoiseFilter=DEF;
-    Flag_HBHENoiseIsoFilter=DEF;
-    Flag_EcalDeadCellTriggerPrimitiveFilter=DEF;
-    Flag_goodVertices=DEF;
-    Flag_eeBadScFilter=DEF;
-    Flag_globalTightHalo2016Filter=DEF;
-    Flag_globalSuperTightHalo2016Filter=DEF;
-    failBadGlobalMuonTagger=DEF;
-    failCloneGlobalMuonTagger=DEF;
+    trg_singletau_leading=DEFFLAG;
+    trg_singletau_trailing=DEFFLAG;
+    trg_singlemuon_27=DEFFLAG;
+    trg_singlemuon_24=DEFFLAG;
+    trg_crossmuon_mu20tau27=DEFFLAG;
+    trg_singleelectron_35=DEFFLAG;
+    trg_singleelectron_32=DEFFLAG;
+    trg_singleelectron_27=DEFFLAG;
+    trg_crossele_ele24tau30=DEFFLAG;
+    trg_doubletau_40_tightiso=DEFFLAG;
+    trg_doubletau_40_mediso_tightid=DEFFLAG;
+    trg_doubletau_35_tightiso_tightid=DEFFLAG;
+    trg_doubletau_35_mediso_HPS=DEFFLAG;
+
+    Flag_goodVertices = DEFFLAG;
+    Flag_globalTightHalo2016Filter = DEFFLAG;
+    Flag_globalSuperTightHalo2016Filter = DEFFLAG;
+    Flag_HBHENoiseFilter = DEFFLAG;
+    Flag_HBHENoiseIsoFilter = DEFFLAG;
+    Flag_EcalDeadCellTriggerPrimitiveFilter = DEFFLAG;
+    Flag_BadPFMuonFilter = DEFFLAG;
+    Flag_BadChargedCandidateFilter = DEFFLAG;
+    Flag_eeBadScFilter = DEFFLAG;
+    Flag_ecalBadCalibFilter = DEFFLAG;
+    Flag_METFilters = DEFFLAG;
 
     //////////////////////////////////////////////////////////////////  
     pt_1=DEF;
@@ -1155,9 +1048,6 @@ void EventWriter::setDefault(){
     againstMuonLoose3_1=DEF;
     againstMuonTight3_1=DEF;
     byCombinedIsolationDeltaBetaCorrRaw3Hits_1=DEF;
-    byLooseCombinedIsolationDeltaBetaCorr3Hits_1=DEF;
-    byMediumCombinedIsolationDeltaBetaCorr3Hits_1=DEF;
-    byTightCombinedIsolationDeltaBetaCorr3Hits_1=DEF;
     byIsolationMVA3newDMwoLTraw_1=DEF;
     byIsolationMVA3oldDMwoLTraw_1=DEF;
     byIsolationMVA3newDMwLTraw_1=DEF;
@@ -1167,18 +1057,6 @@ void EventWriter::setDefault(){
     byMediumIsolationMVArun2017v2DBoldDMwLT2017_1=DEF;
     byTightIsolationMVArun2017v2DBoldDMwLT2017_1=DEF;
     byVTightIsolationMVArun2017v2DBoldDMwLT2017_1=DEF;
-    // byVLooseIsolationMVArun2v1DBnewDMwLT_1=DEF;
-    // byLooseIsolationMVArun2v1DBnewDMwLT_1=DEF;
-    // byMediumIsolationMVArun2v1DBnewDMwLT_1=DEF;
-    // byTightIsolationMVArun2v1DBnewDMwLT_1=DEF;
-    // byVTightIsolationMVArun2v1DBnewDMwLT_1=DEF;
-    // NewMVAIDVLoose_1=DEF;
-    // NewMVAIDLoose_1=DEF;
-    // NewMVAIDMedium_1=DEF;
-    // NewMVAIDTight_1=DEF;
-    // NewMVAIDVTight_1=DEF;
-    // NewMVAIDVVTight_1=DEF;
-    // idMVANewDM_1=DEF;
     chargedIsoPtSum_1=DEF;
     neutralIsoPtSum_1=DEF;
     puCorrPtSum_1=DEF;
@@ -1188,7 +1066,6 @@ void EventWriter::setDefault(){
     id_m_loose_1=DEF;
     id_m_medium_1=DEF;
     id_m_tight_1=DEF;
-    id_m_tightnovtx_1=DEF;
     id_m_highpt_1=DEF;
     id_e_cut_veto_1=DEF;
     id_e_cut_loose_1=DEF;
@@ -1212,9 +1089,6 @@ void EventWriter::setDefault(){
     againstMuonLoose3_2=DEF;
     againstMuonTight3_2=DEF;
     byCombinedIsolationDeltaBetaCorrRaw3Hits_2=DEF;
-    byLooseCombinedIsolationDeltaBetaCorr3Hits_2=DEF;
-    byMediumCombinedIsolationDeltaBetaCorr3Hits_2=DEF;
-    byTightCombinedIsolationDeltaBetaCorr3Hits_2=DEF;
     byIsolationMVA3newDMwoLTraw_2=DEF;
     byIsolationMVA3oldDMwoLTraw_2=DEF;
     byIsolationMVA3newDMwLTraw_2=DEF;
@@ -1224,18 +1098,6 @@ void EventWriter::setDefault(){
     byMediumIsolationMVArun2017v2DBoldDMwLT2017_2=DEF;
     byTightIsolationMVArun2017v2DBoldDMwLT2017_2=DEF;
     byVTightIsolationMVArun2017v2DBoldDMwLT2017_2=DEF;
-    // byVLooseIsolationMVArun2v1DBnewDMwLT_2=DEF;
-    // byLooseIsolationMVArun2v1DBnewDMwLT_2=DEF;
-    // byMediumIsolationMVArun2v1DBnewDMwLT_2=DEF;
-    // byTightIsolationMVArun2v1DBnewDMwLT_2=DEF;
-    // byVTightIsolationMVArun2v1DBnewDMwLT_2=DEF;
-    // NewMVAIDVLoose_2=DEF;
-    // NewMVAIDLoose_2=DEF;
-    // NewMVAIDMedium_2=DEF;
-    // NewMVAIDTight_2=DEF;
-    // NewMVAIDVTight_2=DEF;
-    // NewMVAIDVVTight_2=DEF;
-    // idMVANewDM_2=DEF;
     chargedIsoPtSum_2=DEF;
     neutralIsoPtSum_2=DEF;
     puCorrPtSum_2=DEF;
@@ -1302,34 +1164,15 @@ void EventWriter::setDefault(){
         bcsv_2[i]=DEF;
     }
     //////////////////////////////////////////////////////////////////
-    corrmet=DEF;
-    corrmet_ex=DEF;
-    corrmet_ey=DEF;
-    corrmetphi=DEF;
-    mvamet=DEF;
-    mvamet_ex=DEF;
-    mvamet_ey=DEF;
-    mvametphi=DEF;
-    corrmvamet_ex=DEF;
-    corrmvamet_ey=DEF;
-    corrmvamet=DEF;
-    corrmvametphi=DEF;
-    mvacov00=DEF;
-    mvacov01=DEF;
-    mvacov10=DEF;
-    mvacov11=DEF;
     metcov00=DEF;
     metcov01=DEF;
     metcov10=DEF;
     metcov11=DEF;
     //////////////////////////////////////////////////////////////////
-    passesIsoCuts=DEF;
-    passesLepIsoCuts=DEF;
     passesTauLepVetos=DEF;
     passesThirdLepVeto=DEF;
     diMuonVeto=DEF;
     diElectronVeto=DEF;
-    //////////////////////////////////////////////////////////////////
     dilepton_veto=DEF;
     extramuon_veto=DEF;
     extraelec_veto=DEF;
@@ -1343,13 +1186,9 @@ void EventWriter::setDefault(){
     m_coll=DEF;
     dphi=DEF;
     //////////////////////////////////////////////////////////////////
-    pfmt_1=DEF;
-    pfmt_2=DEF;
-    pfpt_sum=DEF;
     dr_leptau=DEF;
     jeta1eta2=DEF;
     met_centrality=DEF;
-    mvamet_centrality=DEF;
     lep_etacentrality=DEF;
     sphericity=DEF;
     //////////////////////////////////////////////////////////////////
@@ -1408,17 +1247,7 @@ void EventWriter::setDefault(){
     addtau_byMediumIsolationMVArun2v1DBoldDMwLT.clear();
     addtau_byTightIsolationMVArun2v1DBoldDMwLT.clear();
     addtau_byVTightIsolationMVArun2v1DBoldDMwLT.clear();
-    // addtau_byVLooseIsolationMVArun2v1DBnewDMwLT.clear();
-    // addtau_byLooseIsolationMVArun2v1DBnewDMwLT.clear();
-    // addtau_byMediumIsolationMVArun2v1DBnewDMwLT.clear();
-    // addtau_byTightIsolationMVArun2v1DBnewDMwLT.clear();
-    // addtau_byVTightIsolationMVArun2v1DBnewDMwLT.clear();
-    // addtau_NewMVAIDVLoose.clear();
-    // addtau_NewMVAIDLoose.clear();
-    // addtau_NewMVAIDMedium.clear();
-    // addtau_NewMVAIDTight.clear();
-    // addtau_NewMVAIDVTight.clear();
-    // addtau_NewMVAIDVVTight.clear();
+
     addtau_passesTauLepVetos.clear();
     addtau_decayMode.clear();
     addtau_d0.clear();
@@ -1458,7 +1287,6 @@ void EventWriter::initTree(TTree *t, vector< pair< string, pair<string,bool> > >
 
 
     if(!isSync){
-        t->Branch("pfpt_sum", &pfpt_sum);
         t->Branch("dr_leptau", &dr_leptau);
 
         t->Branch("jeta1eta2", &jeta1eta2);
@@ -1519,18 +1347,6 @@ void EventWriter::initTree(TTree *t, vector< pair< string, pair<string,bool> > >
         t->Branch("addtau_byMediumIsolationMVArun2v1DBoldDMwLT", &addtau_byMediumIsolationMVArun2v1DBoldDMwLT);
         t->Branch("addtau_byTightIsolationMVArun2v1DBoldDMwLT", &addtau_byTightIsolationMVArun2v1DBoldDMwLT);
         t->Branch("addtau_byVTightIsolationMVArun2v1DBoldDMwLT", &addtau_byVTightIsolationMVArun2v1DBoldDMwLT);
-        // t->Branch("addtau_byVLooseIsolationMVArun2v1DBnewDMwLT", &addtau_byVLooseIsolationMVArun2v1DBnewDMwLT);
-        // t->Branch("addtau_byLooseIsolationMVArun2v1DBnewDMwLT", &addtau_byLooseIsolationMVArun2v1DBnewDMwLT);
-        // t->Branch("addtau_byMediumIsolationMVArun2v1DBnewDMwLT", &addtau_byMediumIsolationMVArun2v1DBnewDMwLT);
-        // t->Branch("addtau_byTightIsolationMVArun2v1DBnewDMwLT", &addtau_byTightIsolationMVArun2v1DBnewDMwLT);
-        // t->Branch("addtau_byVTightIsolationMVArun2v1DBnewDMwLT", &addtau_byVTightIsolationMVArun2v1DBnewDMwLT);
-
-        // t->Branch("addtau_NewMVAIDVLoose", &addtau_NewMVAIDVLoose);
-        // t->Branch("addtau_NewMVAIDLoose", &addtau_NewMVAIDLoose);
-        // t->Branch("addtau_NewMVAIDMedium", &addtau_NewMVAIDMedium);
-        // t->Branch("addtau_NewMVAIDTight", &addtau_NewMVAIDTight);
-        // t->Branch("addtau_NewMVAIDVTight", &addtau_NewMVAIDVTight);
-        // t->Branch("addtau_NewMVAIDVVTight", &addtau_NewMVAIDVVTight);
       
         t->Branch("addtau_passesTauLepVetos", &addtau_passesTauLepVetos);
         t->Branch("addtau_decayMode", &addtau_decayMode);
@@ -1540,223 +1356,6 @@ void EventWriter::initTree(TTree *t, vector< pair< string, pair<string,bool> > >
         t->Branch("addtau_mt", &addtau_mt);
         t->Branch("addtau_mvis", &addtau_mvis);
     }
-
-    t->Branch("gen_Mll", &gen_Mll);
-    t->Branch("genpX", &gen_ll_px);
-    t->Branch("genpY", &gen_ll_py);
-    t->Branch("genpZ", &gen_ll_pz);
-    t->Branch("gen_top_pt_1", &gen_top_pt_1);
-    t->Branch("gen_top_pt_2", &gen_top_pt_2);
-    t->Branch("gen_vis_Mll", &gen_vis_Mll);
-    t->Branch("vispX", &gen_ll_vis_px);
-    t->Branch("vispY", &gen_ll_vis_py);
-    t->Branch("vispZ", &gen_ll_vis_pz);
-    t->Branch("npv", &npv);
-    t->Branch("npu", &npu);
-    t->Branch("rho", &rho);
-    t->Branch("NUP", &NUP);
-    
-    t->Branch("flagMETFilter", &flagMETFilter);
-    t->Branch("Flag_goodVertices", &Flag_goodVertices);
-    t->Branch("Flag_globalTightHalo2016Filter", &Flag_globalTightHalo2016Filter);
-    t->Branch("Flag_globalSuperTightHalo2016Filter", &Flag_globalSuperTightHalo2016Filter);
-    t->Branch("Flag_HBHENoiseFilter", &Flag_HBHENoiseFilter);
-    t->Branch("Flag_HBHENoiseIsoFilter", &Flag_HBHENoiseIsoFilter);
-    t->Branch("Flag_EcalDeadCellTriggerPrimitiveFilter", &Flag_EcalDeadCellTriggerPrimitiveFilter);
-    t->Branch("Flag_BadPFMuonFilter", &Flag_BadPFMuonFilter);
-    t->Branch("Flag_BadChargedCandidateFilter", &Flag_BadChargedCandidateFilter);
-    t->Branch("Flag_eeBadScFilter", &Flag_eeBadScFilter);
-    t->Branch("Flag_ecalBadCalibFilter", &Flag_ecalBadCalibFilter);
-    t->Branch("Flag_METFilters", &Flag_METFilters);
-
-    if(isMC){
-        t->Branch("Flag_badMuons", &failBadGlobalMuonTagger);
-        t->Branch("Flag_duplicateMuons", &failCloneGlobalMuonTagger);
-    }
-    else{
-        t->Branch("Flag_badMuons", &Flag_badMuons);
-        t->Branch("Flag_duplicateMuons", &Flag_duplicateMuons);
-    }
-
-    t->Branch("gen_match_1", &gen_match_1);
-    t->Branch("gen_match_2", &gen_match_2);
-    t->Branch("gen_match_jetId_1", &gen_match_jetId_1);
-    t->Branch("gen_match_jetId_2", &gen_match_jetId_2);
-    t->Branch("genJets", &genJets);
-    t->Branch("genPt_1", &genPt_1);
-    t->Branch("genPt_2", &genPt_2);
-    t->Branch("genJet_match_1", &genJet_match_1);
-    t->Branch("genJet_match_2", &genJet_match_2);
-    t->Branch("pdg_1", &pdg1);
-    t->Branch("pdg_2", &pdg2);
-
-    t->Branch("pt_1", &pt_1);
-    t->Branch("phi_1", &phi_1);
-    t->Branch("eta_1", &eta_1);
-    t->Branch("eta_SC_1", &eta_SC_1);
-    t->Branch("m_1", &m_1);
-    t->Branch("q_1", &q_1);
-    t->Branch("d0_1", &d0_1);
-    t->Branch("dZ_1", &dZ_1);
-    t->Branch("pfmt_1", &pfmt_1);
-    t->Branch("iso_1", &iso_1);
-    t->Branch("againstElectronMVA6_1", &againstElectronMVA6_1);
-    t->Branch("againstElectronLooseMVA6_1", &againstElectronLooseMVA6_1);
-    t->Branch("againstElectronMediumMVA6_1", &againstElectronMediumMVA6_1);
-    t->Branch("againstElectronTightMVA6_1", &againstElectronTightMVA6_1);
-    t->Branch("againstElectronVLooseMVA6_1", &againstElectronVLooseMVA6_1);
-    t->Branch("againstElectronVTightMVA6_1", &againstElectronVTightMVA6_1);
-    t->Branch("againstMuon3_1", &againstMuon3_1);    
-    t->Branch("againstMuonLoose3_1", &againstMuonLoose3_1);
-    t->Branch("againstMuonTight3_1", &againstMuonTight3_1);
-    t->Branch("byCombinedIsolationDeltaBetaCorrRaw3Hits_1", &byCombinedIsolationDeltaBetaCorrRaw3Hits_1);
-    t->Branch("byLooseCombinedIsolationDeltaBetaCorr3Hits_1", &byLooseCombinedIsolationDeltaBetaCorr3Hits_1);
-    t->Branch("byMediumCombinedIsolationDeltaBetaCorr3Hits_1", &byMediumCombinedIsolationDeltaBetaCorr3Hits_1);
-    t->Branch("byTightCombinedIsolationDeltaBetaCorr3Hits_1", &byTightCombinedIsolationDeltaBetaCorr3Hits_1);
-    t->Branch("byIsolationMVA3newDMwoLTraw_1", &byIsolationMVA3newDMwoLTraw_1);
-    t->Branch("byIsolationMVA3oldDMwoLTraw_1", &byIsolationMVA3oldDMwoLTraw_1);
-    t->Branch("byIsolationMVA3newDMwLTraw_1", &byIsolationMVA3newDMwLTraw_1);
-    t->Branch("byIsolationMVA3oldDMwLTraw_1", &byIsolationMVA3oldDMwLTraw_1);
-    t->Branch("byIsolationMVArun2017v2DBoldDMwLTraw2017_1", &byIsolationMVArun2017v2DBoldDMwLTraw2017_1);
-    t->Branch("byIsolationMVArun2017v2DBoldDMwLT2017_1", &byIsolationMVArun2017v2DBoldDMwLT2017_1);   
-    t->Branch("byVVLooseIsolationMVArun2017v2DBoldDMwLT2017_1", &byVVLooseIsolationMVArun2017v2DBoldDMwLT2017_1);
-    t->Branch("byVLooseIsolationMVArun2017v2DBoldDMwLT2017_1", &byVLooseIsolationMVArun2017v2DBoldDMwLT2017_1);
-    t->Branch("byLooseIsolationMVArun2017v2DBoldDMwLT2017_1", &byLooseIsolationMVArun2017v2DBoldDMwLT2017_1);
-    t->Branch("byMediumIsolationMVArun2017v2DBoldDMwLT2017_1", &byMediumIsolationMVArun2017v2DBoldDMwLT2017_1);
-    t->Branch("byTightIsolationMVArun2017v2DBoldDMwLT2017_1", &byTightIsolationMVArun2017v2DBoldDMwLT2017_1);
-    t->Branch("byVTightIsolationMVArun2017v2DBoldDMwLT2017_1", &byVTightIsolationMVArun2017v2DBoldDMwLT2017_1);
-    t->Branch("byVVTightIsolationMVArun2017v2DBoldDMwLT2017_1", &byVVTightIsolationMVArun2017v2DBoldDMwLT2017_1);
-    // t->Branch("byVLooseIsolationMVArun2v1DBnewDMwLT_1", &byVLooseIsolationMVArun2v1DBnewDMwLT_1);
-    // t->Branch("byLooseIsolationMVArun2v1DBnewDMwLT_1", &byLooseIsolationMVArun2v1DBnewDMwLT_1);
-    // t->Branch("byMediumIsolationMVArun2v1DBnewDMwLT_1", &byMediumIsolationMVArun2v1DBnewDMwLT_1);
-    // t->Branch("byTightIsolationMVArun2v1DBnewDMwLT_1", &byTightIsolationMVArun2v1DBnewDMwLT_1);
-    // t->Branch("byVTightIsolationMVArun2v1DBnewDMwLT_1", &byVTightIsolationMVArun2v1DBnewDMwLT_1);
-
-    // t->Branch("byRerunMVAIdVLoose_1", &NewMVAIDVLoose_1);
-    // t->Branch("byRerunMVAIdLoose_1", &NewMVAIDLoose_1);
-    // t->Branch("byRerunMVAIdMedium_1", &NewMVAIDMedium_1);
-    // t->Branch("byRerunMVAIdTight_1", &NewMVAIDTight_1);
-    // t->Branch("byRerunMVAIdVTight_1", &NewMVAIDVTight_1);
-    // t->Branch("byRerunMVAIdVVTight_1", &NewMVAIDVVTight_1);
-    // t->Branch("idMVANewDM_1", &idMVANewDM_1);
-
-    t->Branch("chargedIsoPtSum_1", &chargedIsoPtSum_1);
-    t->Branch("neutralIsoPtSum_1", &neutralIsoPtSum_1);
-    t->Branch("puCorrPtSum_1", &puCorrPtSum_1);
-    t->Branch("decayModeFindingOldDMs_1", &decayModeFindingOldDMs_1);
-    t->Branch("decayMode_1", &decayMode_1);
-    t->Branch("id_e_mva_nt_loose_1", &id_e_mva_nt_loose_1);
-
-    t->Branch("id_m_loose_1", &id_m_loose_1);
-    t->Branch("id_m_medium_1", &id_m_medium_1);
-    t->Branch("id_m_tight_1", &id_m_tight_1);
-    t->Branch("id_m_tightnovtx_1", &id_m_tightnovtx_1);
-    t->Branch("id_m_highpt_1", &id_m_highpt_1);
-    t->Branch("id_e_cut_veto_1", &id_e_cut_veto_1);
-    t->Branch("id_e_cut_loose_1", &id_e_cut_loose_1);
-    t->Branch("id_e_cut_medium_1", &id_e_cut_medium_1);
-    t->Branch("id_e_cut_tight_1", &id_e_cut_tight_1);
-
-    
-    t->Branch("pt_2", &pt_2);
-    t->Branch("phi_2", &phi_2);
-    t->Branch("eta_2", &eta_2); 
-    t->Branch("m_2", &m_2);
-    t->Branch("q_2", &q_2);
-    t->Branch("d0_2", &d0_2);
-    t->Branch("dZ_2", &dZ_2);
-
-    t->Branch("pfmt_2", &pfmt_2);
-    t->Branch("iso_2", &iso_2);
-    t->Branch("againstElectronMVA6_2", &againstElectronMVA6_2);
-    t->Branch("againstElectronLooseMVA6_2", &againstElectronLooseMVA6_2);
-    t->Branch("againstElectronMediumMVA6_2", &againstElectronMediumMVA6_2);
-    t->Branch("againstElectronTightMVA6_2", &againstElectronTightMVA6_2);
-    t->Branch("againstElectronVLooseMVA6_2", &againstElectronVLooseMVA6_2);
-    t->Branch("againstElectronVTightMVA6_2", &againstElectronVTightMVA6_2);
-    t->Branch("againstMuon3_2", &againstMuon3_2);    
-    t->Branch("againstMuonLoose3_2", &againstMuonLoose3_2);
-    t->Branch("againstMuonTight3_2", &againstMuonTight3_2);
-    t->Branch("byCombinedIsolationDeltaBetaCorrRaw3Hits_2", &byCombinedIsolationDeltaBetaCorrRaw3Hits_2);
-    t->Branch("byLooseCombinedIsolationDeltaBetaCorr3Hits_2", &byLooseCombinedIsolationDeltaBetaCorr3Hits_2);
-    t->Branch("byMediumCombinedIsolationDeltaBetaCorr3Hits_2", &byMediumCombinedIsolationDeltaBetaCorr3Hits_2);
-    t->Branch("byTightCombinedIsolationDeltaBetaCorr3Hits_2", &byTightCombinedIsolationDeltaBetaCorr3Hits_2);
-    t->Branch("byIsolationMVA3newDMwoLTraw_2", &byIsolationMVA3newDMwoLTraw_2);
-    t->Branch("byIsolationMVA3oldDMwoLTraw_2", &byIsolationMVA3oldDMwoLTraw_2);
-    t->Branch("byIsolationMVA3newDMwLTraw_2", &byIsolationMVA3newDMwLTraw_2);
-    t->Branch("byIsolationMVA3oldDMwLTraw_2", &byIsolationMVA3oldDMwLTraw_2);
-    t->Branch("byIsolationMVArun2017v2DBoldDMwLTraw2017_2", &byIsolationMVArun2017v2DBoldDMwLTraw2017_2);
-    t->Branch("byIsolationMVArun2017v2DBoldDMwLT2017_2", &byIsolationMVArun2017v2DBoldDMwLT2017_2);
-    t->Branch("byVVLooseIsolationMVArun2017v2DBoldDMwLT2017_2", &byVVLooseIsolationMVArun2017v2DBoldDMwLT2017_2);
-    t->Branch("byVLooseIsolationMVArun2017v2DBoldDMwLT2017_2", &byVLooseIsolationMVArun2017v2DBoldDMwLT2017_2);
-    t->Branch("byLooseIsolationMVArun2017v2DBoldDMwLT2017_2", &byLooseIsolationMVArun2017v2DBoldDMwLT2017_2);
-    t->Branch("byMediumIsolationMVArun2017v2DBoldDMwLT2017_2", &byMediumIsolationMVArun2017v2DBoldDMwLT2017_2);
-    t->Branch("byTightIsolationMVArun2017v2DBoldDMwLT2017_2", &byTightIsolationMVArun2017v2DBoldDMwLT2017_2);
-    t->Branch("byVTightIsolationMVArun2017v2DBoldDMwLT2017_2", &byVTightIsolationMVArun2017v2DBoldDMwLT2017_2);
-    t->Branch("byVVTightIsolationMVArun2017v2DBoldDMwLT2017_2", &byVVTightIsolationMVArun2017v2DBoldDMwLT2017_2);
-    // t->Branch("byVLooseIsolationMVArun2v1DBnewDMwLT_2", &byVLooseIsolationMVArun2v1DBnewDMwLT_2);
-    // t->Branch("byLooseIsolationMVArun2v1DBnewDMwLT_2", &byLooseIsolationMVArun2v1DBnewDMwLT_2);
-    // t->Branch("byMediumIsolationMVArun2v1DBnewDMwLT_2", &byMediumIsolationMVArun2v1DBnewDMwLT_2);
-    // t->Branch("byTightIsolationMVArun2v1DBnewDMwLT_2", &byTightIsolationMVArun2v1DBnewDMwLT_2);
-    // t->Branch("byVTightIsolationMVArun2v1DBnewDMwLT_2", &byVTightIsolationMVArun2v1DBnewDMwLT_2);
-
-    // t->Branch("byRerunMVAIdVLoose_2", &NewMVAIDVLoose_2);
-    // t->Branch("byRerunMVAIdLoose_2", &NewMVAIDLoose_2);
-    // t->Branch("byRerunMVAIdMedium_2", &NewMVAIDMedium_2);
-    // t->Branch("byRerunMVAIdTight_2", &NewMVAIDTight_2);
-    // t->Branch("byRerunMVAIdVTight_2", &NewMVAIDVTight_2);
-    // t->Branch("byRerunMVAIdVVTight_2", &NewMVAIDVVTight_2);
-    // t->Branch("idMVANewDM_2", &idMVANewDM_2);
-
-    t->Branch("chargedIsoPtSum_2", &chargedIsoPtSum_2);
-    t->Branch("neutralIsoPtSum_2", &neutralIsoPtSum_2);
-    t->Branch("puCorrPtSum_2", &puCorrPtSum_2);
-    t->Branch("decayModeFindingOldDMs_2", &decayModeFindingOldDMs_2);
-    t->Branch("decayMode_2", &decayMode_2);
-
-    t->Branch("pzetavis", &pzetavis);
-    t->Branch("pzetamiss", &pzetamiss);
-    t->Branch("dzeta", &dzeta);
-    t->Branch("m_vis", &m_vis);
-    t->Branch("m_coll", &m_coll);
-    t->Branch("pt_vis", &pt_vis);
-    t->Branch("dphi", &dphi);
-
-    t->Branch("passesIsoCuts", &passesIsoCuts);
-    t->Branch("passesLepIsoCuts", &passesLepIsoCuts);
-    t->Branch("passesTauLepVetos", &passesTauLepVetos);
-    t->Branch("passesThirdLepVeto", &passesThirdLepVeto);
-    t->Branch("passesDiMuonVeto", &passesDiMuonVeto);
-    t->Branch("passesDiElectronVeto", &passesDiElectronVeto);
-    t->Branch("diMuonVeto", &diMuonVeto);
-    t->Branch("diElectronVeto", &diElectronVeto);    
-    t->Branch("dilepton_veto", &dilepton_veto);
-    t->Branch("extraelec_veto", &extraelec_veto);
-    t->Branch("extramuon_veto", &extramuon_veto);
-
-    t->Branch("corrmet", &corrmet);
-    t->Branch("corrmetphi", &corrmetphi);
-    t->Branch("corrmet_ex", &corrmet_ex);
-    t->Branch("corrmet_ey", &corrmet_ey);
-    t->Branch("mvamet", &mvamet);
-    t->Branch("mvametphi", &mvametphi);
-    t->Branch("mvamet_ex", &mvamet_ex);
-    t->Branch("mvamet_ey", &mvamet_ey);
-    t->Branch("corrmvamet", &corrmvamet);
-    t->Branch("corrmvametphi", &corrmvametphi);
-    t->Branch("corrmvamet_ex", &corrmvamet_ex);
-    t->Branch("corrmvamet_ey", &corrmvamet_ey);
-    t->Branch("mvacov00", &mvacov00);
-    t->Branch("mvacov01", &mvacov01);
-    t->Branch("mvacov10", &mvacov10);
-    t->Branch("mvacov11", &mvacov11);
-    t->Branch("metcov00", &metcov00);
-    t->Branch("metcov01", &metcov01);
-    t->Branch("metcov10", &metcov10);
-    t->Branch("metcov11", &metcov11);
-    t->Branch("htxs_stage1cat", &htxs_stage1cat);
-
-
 
     for(unsigned int shift = 0; shift<metShifts.size(); ++shift )
     {
@@ -1797,15 +1396,6 @@ void EventWriter::initTree(TTree *t, vector< pair< string, pair<string,bool> > >
         t->Branch( ("htxs_reco_ggf"+jecShifts[shift].first).c_str(), &htxs_reco_ggf[shift]);
         t->Branch( ("htxs_reco_vbf"+jecShifts[shift].first).c_str(), &htxs_reco_vbf[shift]);
     }
-    
-    t->Branch("jm_1", &jm_1);
-    t->Branch("jm_2", &jm_2);
-    t->Branch("jrawf_1", &jrawf_1);
-    t->Branch("jrawf_2", &jrawf_2);    
-    t->Branch("jmva_1", &jmva_1);
-    t->Branch("jmva_2",&jmva_2);    
-    t->Branch("jcsv_1", &jcsv_1);
-    t->Branch("jcsv_2",&jcsv_2);    
 
     for(unsigned int shift=0; shift < btagShifts.size(); ++shift )
     {
@@ -1823,6 +1413,162 @@ void EventWriter::initTree(TTree *t, vector< pair< string, pair<string,bool> > >
         t->Branch( ("bcsv_1"+btagShifts[shift].first).c_str(),  &bcsv_1[shift]);
         t->Branch( ("bcsv_2"+btagShifts[shift].first).c_str(),  &bcsv_2[shift]);
     }
+
+    t->Branch("gen_Mll", &gen_Mll);
+    t->Branch("genpX", &gen_ll_px);
+    t->Branch("genpY", &gen_ll_py);
+    t->Branch("genpZ", &gen_ll_pz);
+    t->Branch("gen_vis_Mll", &gen_vis_Mll);
+    t->Branch("vispX", &gen_ll_vis_px);
+    t->Branch("vispY", &gen_ll_vis_py);
+    t->Branch("vispZ", &gen_ll_vis_pz);
+    t->Branch("npv", &npv);
+    t->Branch("npu", &npu);
+    t->Branch("rho", &rho);
+    t->Branch("NUP", &NUP);
+
+    t->Branch("flagMETFilter", &flagMETFilter);
+    t->Branch("Flag_goodVertices", &Flag_goodVertices);
+    t->Branch("Flag_globalTightHalo2016Filter", &Flag_globalTightHalo2016Filter);
+    t->Branch("Flag_globalSuperTightHalo2016Filter", &Flag_globalSuperTightHalo2016Filter);
+    t->Branch("Flag_HBHENoiseFilter", &Flag_HBHENoiseFilter);
+    t->Branch("Flag_HBHENoiseIsoFilter", &Flag_HBHENoiseIsoFilter);
+    t->Branch("Flag_EcalDeadCellTriggerPrimitiveFilter", &Flag_EcalDeadCellTriggerPrimitiveFilter);
+    t->Branch("Flag_BadPFMuonFilter", &Flag_BadPFMuonFilter);
+    t->Branch("Flag_BadChargedCandidateFilter", &Flag_BadChargedCandidateFilter);
+    t->Branch("Flag_eeBadScFilter", &Flag_eeBadScFilter);
+    t->Branch("Flag_ecalBadCalibFilter", &Flag_ecalBadCalibFilter);
+    t->Branch("Flag_METFilters", &Flag_METFilters);
+
+    t->Branch("gen_match_1", &gen_match_1);
+    t->Branch("gen_match_2", &gen_match_2);
+    t->Branch("gen_match_jetId_1", &gen_match_jetId_1);
+    t->Branch("gen_match_jetId_2", &gen_match_jetId_2);
+    t->Branch("genJets", &genJets);
+    t->Branch("pdg_1", &pdg1);
+    t->Branch("pdg_2", &pdg2);
+
+    t->Branch("pt_1", &pt_1);
+    t->Branch("phi_1", &phi_1);
+    t->Branch("eta_1", &eta_1);
+    t->Branch("eta_SC_1", &eta_SC_1);
+    t->Branch("m_1", &m_1);
+    t->Branch("q_1", &q_1);
+    t->Branch("d0_1", &d0_1);
+    t->Branch("dZ_1", &dZ_1);
+    t->Branch("iso_1", &iso_1);
+    t->Branch("againstElectronMVA6_1", &againstElectronMVA6_1);
+    t->Branch("againstElectronLooseMVA6_1", &againstElectronLooseMVA6_1);
+    t->Branch("againstElectronMediumMVA6_1", &againstElectronMediumMVA6_1);
+    t->Branch("againstElectronTightMVA6_1", &againstElectronTightMVA6_1);
+    t->Branch("againstElectronVLooseMVA6_1", &againstElectronVLooseMVA6_1);
+    t->Branch("againstElectronVTightMVA6_1", &againstElectronVTightMVA6_1);
+    t->Branch("againstMuon3_1", &againstMuon3_1);    
+    t->Branch("againstMuonLoose3_1", &againstMuonLoose3_1);
+    t->Branch("againstMuonTight3_1", &againstMuonTight3_1);
+    t->Branch("byCombinedIsolationDeltaBetaCorrRaw3Hits_1", &byCombinedIsolationDeltaBetaCorrRaw3Hits_1);
+    t->Branch("byIsolationMVA3newDMwoLTraw_1", &byIsolationMVA3newDMwoLTraw_1);
+    t->Branch("byIsolationMVA3oldDMwoLTraw_1", &byIsolationMVA3oldDMwoLTraw_1);
+    t->Branch("byIsolationMVA3newDMwLTraw_1", &byIsolationMVA3newDMwLTraw_1);
+    t->Branch("byIsolationMVA3oldDMwLTraw_1", &byIsolationMVA3oldDMwLTraw_1);
+    t->Branch("byIsolationMVArun2017v2DBoldDMwLTraw2017_1", &byIsolationMVArun2017v2DBoldDMwLTraw2017_1);
+    t->Branch("byIsolationMVArun2017v2DBoldDMwLT2017_1", &byIsolationMVArun2017v2DBoldDMwLT2017_1);   
+    t->Branch("byVVLooseIsolationMVArun2017v2DBoldDMwLT2017_1", &byVVLooseIsolationMVArun2017v2DBoldDMwLT2017_1);
+    t->Branch("byVLooseIsolationMVArun2017v2DBoldDMwLT2017_1", &byVLooseIsolationMVArun2017v2DBoldDMwLT2017_1);
+    t->Branch("byLooseIsolationMVArun2017v2DBoldDMwLT2017_1", &byLooseIsolationMVArun2017v2DBoldDMwLT2017_1);
+    t->Branch("byMediumIsolationMVArun2017v2DBoldDMwLT2017_1", &byMediumIsolationMVArun2017v2DBoldDMwLT2017_1);
+    t->Branch("byTightIsolationMVArun2017v2DBoldDMwLT2017_1", &byTightIsolationMVArun2017v2DBoldDMwLT2017_1);
+    t->Branch("byVTightIsolationMVArun2017v2DBoldDMwLT2017_1", &byVTightIsolationMVArun2017v2DBoldDMwLT2017_1);
+    t->Branch("byVVTightIsolationMVArun2017v2DBoldDMwLT2017_1", &byVVTightIsolationMVArun2017v2DBoldDMwLT2017_1);
+
+    t->Branch("chargedIsoPtSum_1", &chargedIsoPtSum_1);
+    t->Branch("neutralIsoPtSum_1", &neutralIsoPtSum_1);
+    t->Branch("puCorrPtSum_1", &puCorrPtSum_1);
+    t->Branch("decayModeFindingOldDMs_1", &decayModeFindingOldDMs_1);
+    t->Branch("decayMode_1", &decayMode_1);
+    t->Branch("id_e_mva_nt_loose_1", &id_e_mva_nt_loose_1);
+
+    t->Branch("id_m_loose_1", &id_m_loose_1);
+    t->Branch("id_m_medium_1", &id_m_medium_1);
+    t->Branch("id_m_tight_1", &id_m_tight_1);
+    t->Branch("id_m_highpt_1", &id_m_highpt_1);
+    t->Branch("id_e_cut_veto_1", &id_e_cut_veto_1);
+    t->Branch("id_e_cut_loose_1", &id_e_cut_loose_1);
+    t->Branch("id_e_cut_medium_1", &id_e_cut_medium_1);
+    t->Branch("id_e_cut_tight_1", &id_e_cut_tight_1);
+
+    
+    t->Branch("pt_2", &pt_2);
+    t->Branch("phi_2", &phi_2);
+    t->Branch("eta_2", &eta_2); 
+    t->Branch("m_2", &m_2);
+    t->Branch("q_2", &q_2);
+    t->Branch("d0_2", &d0_2);
+    t->Branch("dZ_2", &dZ_2);
+
+    t->Branch("iso_2", &iso_2);
+    t->Branch("againstElectronMVA6_2", &againstElectronMVA6_2);
+    t->Branch("againstElectronLooseMVA6_2", &againstElectronLooseMVA6_2);
+    t->Branch("againstElectronMediumMVA6_2", &againstElectronMediumMVA6_2);
+    t->Branch("againstElectronTightMVA6_2", &againstElectronTightMVA6_2);
+    t->Branch("againstElectronVLooseMVA6_2", &againstElectronVLooseMVA6_2);
+    t->Branch("againstElectronVTightMVA6_2", &againstElectronVTightMVA6_2);
+    t->Branch("againstMuon3_2", &againstMuon3_2);    
+    t->Branch("againstMuonLoose3_2", &againstMuonLoose3_2);
+    t->Branch("againstMuonTight3_2", &againstMuonTight3_2);
+    t->Branch("byCombinedIsolationDeltaBetaCorrRaw3Hits_2", &byCombinedIsolationDeltaBetaCorrRaw3Hits_2);
+    t->Branch("byIsolationMVA3newDMwoLTraw_2", &byIsolationMVA3newDMwoLTraw_2);
+    t->Branch("byIsolationMVA3oldDMwoLTraw_2", &byIsolationMVA3oldDMwoLTraw_2);
+    t->Branch("byIsolationMVA3newDMwLTraw_2", &byIsolationMVA3newDMwLTraw_2);
+    t->Branch("byIsolationMVA3oldDMwLTraw_2", &byIsolationMVA3oldDMwLTraw_2);
+    t->Branch("byIsolationMVArun2017v2DBoldDMwLTraw2017_2", &byIsolationMVArun2017v2DBoldDMwLTraw2017_2);
+    t->Branch("byIsolationMVArun2017v2DBoldDMwLT2017_2", &byIsolationMVArun2017v2DBoldDMwLT2017_2);
+    t->Branch("byVVLooseIsolationMVArun2017v2DBoldDMwLT2017_2", &byVVLooseIsolationMVArun2017v2DBoldDMwLT2017_2);
+    t->Branch("byVLooseIsolationMVArun2017v2DBoldDMwLT2017_2", &byVLooseIsolationMVArun2017v2DBoldDMwLT2017_2);
+    t->Branch("byLooseIsolationMVArun2017v2DBoldDMwLT2017_2", &byLooseIsolationMVArun2017v2DBoldDMwLT2017_2);
+    t->Branch("byMediumIsolationMVArun2017v2DBoldDMwLT2017_2", &byMediumIsolationMVArun2017v2DBoldDMwLT2017_2);
+    t->Branch("byTightIsolationMVArun2017v2DBoldDMwLT2017_2", &byTightIsolationMVArun2017v2DBoldDMwLT2017_2);
+    t->Branch("byVTightIsolationMVArun2017v2DBoldDMwLT2017_2", &byVTightIsolationMVArun2017v2DBoldDMwLT2017_2);
+    t->Branch("byVVTightIsolationMVArun2017v2DBoldDMwLT2017_2", &byVVTightIsolationMVArun2017v2DBoldDMwLT2017_2);
+
+    t->Branch("chargedIsoPtSum_2", &chargedIsoPtSum_2);
+    t->Branch("neutralIsoPtSum_2", &neutralIsoPtSum_2);
+    t->Branch("puCorrPtSum_2", &puCorrPtSum_2);
+    t->Branch("decayModeFindingOldDMs_2", &decayModeFindingOldDMs_2);
+    t->Branch("decayMode_2", &decayMode_2);
+
+    t->Branch("pzetavis", &pzetavis);
+    t->Branch("pzetamiss", &pzetamiss);
+    t->Branch("dzeta", &dzeta);
+    t->Branch("m_vis", &m_vis);
+    t->Branch("m_coll", &m_coll);
+    t->Branch("pt_vis", &pt_vis);
+    t->Branch("dphi", &dphi);
+
+    t->Branch("passesTauLepVetos", &passesTauLepVetos);
+    t->Branch("passesThirdLepVeto", &passesThirdLepVeto);
+    t->Branch("passesDiMuonVeto", &passesDiMuonVeto);
+    t->Branch("passesDiElectronVeto", &passesDiElectronVeto);
+    t->Branch("diMuonVeto", &diMuonVeto);
+    t->Branch("diElectronVeto", &diElectronVeto);    
+    t->Branch("dilepton_veto", &dilepton_veto);
+    t->Branch("extraelec_veto", &extraelec_veto);
+    t->Branch("extramuon_veto", &extramuon_veto);
+
+    t->Branch("metcov00", &metcov00);
+    t->Branch("metcov01", &metcov01);
+    t->Branch("metcov10", &metcov10);
+    t->Branch("metcov11", &metcov11);
+    t->Branch("htxs_stage1cat", &htxs_stage1cat);
+
+    t->Branch("jm_1", &jm_1);
+    t->Branch("jm_2", &jm_2);
+    t->Branch("jrawf_1", &jrawf_1);
+    t->Branch("jrawf_2", &jrawf_2);    
+    t->Branch("jmva_1", &jmva_1);
+    t->Branch("jmva_2",&jmva_2);    
+    t->Branch("jcsv_1", &jcsv_1);
+    t->Branch("jcsv_2",&jcsv_2);    
 
     t->Branch("weight", &weight);
     t->Branch("eventWeight", &weight);
@@ -1842,16 +1588,10 @@ void EventWriter::initTree(TTree *t, vector< pair< string, pair<string,bool> > >
     t->Branch("idWeight_1",&idWeight_1);
     t->Branch("idWeight_2",&idWeight_2);
 
-    t->Branch("trigweight_1", &trigweight_1 );
-    t->Branch("trigweight_2", &trigweight_2 );
-    t->Branch("anti_trigweight_1", &anti_trigweight_1);
     t->Branch("idisoweight_1", &idisoweight_1);
-    t->Branch("anti_idisoweight_1", &anti_idisoweight_1);
     t->Branch("idisoweight_2", &idisoweight_2);
     t->Branch("sf_trk", &sf_trk);
     t->Branch("sf_reco", &sf_reco);
-    t->Branch("effweight", &effweight);
-
     t->Branch("sf_SingleOrCrossTrigger", &sf_SingleOrCrossTrigger);
     t->Branch("sf_SingleXorCrossTrigger", &sf_SingleXorCrossTrigger);
     t->Branch("sf_SingleTrigger", &sf_SingleTrigger);
@@ -1879,18 +1619,6 @@ void EventWriter::initTree(TTree *t, vector< pair< string, pair<string,bool> > >
     t->Branch("THU_ggH_PT120", &THU_ggH_PT120);
     t->Branch("THU_ggH_qmtop", &THU_ggH_qmtop);
 
-    t->Branch("zpt_weight_nom",&zpt_weight_nom);
-    // t->Branch("zpt_weight_esup",&zpt_weight_esup);
-    // t->Branch("zpt_weight_esdown",&zpt_weight_esdown);
-    // t->Branch("zpt_weight_ttup",&zpt_weight_ttup);
-    // t->Branch("zpt_weight_ttdown",&zpt_weight_ttdown);
-    // t->Branch("zpt_weight_statpt0up",&zpt_weight_statpt0up);
-    // t->Branch("zpt_weight_statpt0down",&zpt_weight_statpt0down);
-    // t->Branch("zpt_weight_statpt40up",&zpt_weight_statpt40up);
-    // t->Branch("zpt_weight_statpt40down",&zpt_weight_statpt40down);
-    // t->Branch("zpt_weight_statpt80up",&zpt_weight_statpt80up);
-    // t->Branch("zpt_weight_statpt80down",&zpt_weight_statpt80down);
-
     t->Branch("trg_singletau_leading", &trg_singletau_leading);
     t->Branch("trg_singletau_trailing", &trg_singletau_trailing);
     t->Branch("trg_singlemuon_27", &trg_singlemuon_27);
@@ -1907,9 +1635,9 @@ void EventWriter::initTree(TTree *t, vector< pair< string, pair<string,bool> > >
 
     t->Branch("fileEntry", &fileEntry);
     t->Branch("entry", &entry);
-    t->Branch("run", &run_syncro);
-    t->Branch("lumi", &lumi_syncro);
-    t->Branch("evt", &evt_syncro);
+    t->Branch("run", &runID);
+    t->Branch("lumi", &lumiBlock);
+    t->Branch("evt", &eventNr);
 
 
 }
