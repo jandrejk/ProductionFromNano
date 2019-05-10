@@ -41,7 +41,6 @@ void HTTEvent::clear(){
 
   mcWeight = 1.0;
 
-  isSetTopP4 = false;
   topPtReWeight =1.0;
   topPtReWeightR1 =1.0;
 
@@ -53,19 +52,9 @@ void HTTEvent::clear(){
   lheNOutPartons = 0;
   aMCatNLOweight = 1.0;
 
-  genPV*=0;
-  AODPV*=0;
-  refittedPV*=0;
-
-  met*=0;
   bosP4*=0;
   bosVisP4*=0;
 
-  isRefit = false;
-
-  nTracksInRefit = 0;
-
-  metFilterDecision = 0;
   selectionWord.ResetAllBits();
 
   THU_uncertainties = {1.0,1.0,1.0,
@@ -99,12 +88,6 @@ void HTTEvent::setTHU_uncertainties(int njets, double ptH, int stxs1)
 void HTTParticle::clear(){
 
   p4*=0;
-  chargedP4*=0;
-  neutralP4*=0;
-
-  pca*=0;
-  pcaRefitPV*=0;
-  pcaGenPV*=0;
 
   properties.clear();
   deltaVector.SetMagPhi(0.,0.);

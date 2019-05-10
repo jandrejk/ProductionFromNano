@@ -73,13 +73,13 @@ class HTTEvent{
 
   void setGenNEventsWeight(float x){genNEvents = x;}
 
-  void setTopP4(const TLorentzVector &p4, const TLorentzVector &antiP4) {topP4 = p4; antiTopP4 = antiP4; isSetTopP4 = true; }
+  void setTopP4(const TLorentzVector &p4, const TLorentzVector &antiP4) {topP4 = p4; antiTopP4 = antiP4; }
 
   void setTopPtReWeight(float x){topPtReWeight = x;}
 
   void setTopPtReWeightR1(float x){topPtReWeightR1 = x;}
 
-  void setGenBosonP4(const TLorentzVector &p4, const TLorentzVector &visP4) {bosP4 = p4; bosVisP4 = visP4; isSetGenBosonP4 = true; }
+  void setGenBosonP4(const TLorentzVector &p4, const TLorentzVector &visP4) {bosP4 = p4; bosVisP4 = visP4; }
 
   void setZPtReWeight(float x){zPtReWeight = x;}
 
@@ -95,29 +95,7 @@ class HTTEvent{
 
   void setSampleType(string sampletype);
 
-  void setDecayModeMinus(int x){decayModeMinus = x;}
-
-  void setDecayModePlus(int x){decayModePlus = x;}
-
-  void setDecayModeBoson(int x){decayModeBoson = x;}
-
-  void setGenPV(const TVector3 & aPV) {genPV = aPV;}
-
-  void setAODPV(const TVector3 & aPV) {AODPV = aPV;}
-
-  void setRefittedPV(const TVector3 & aPV) {refittedPV = aPV;}
-
-  void setIsRefit(bool aBit){isRefit = aBit;};
-
-  void setNTracksInRefit(const int & nTracks) {nTracksInRefit = nTracks;};
-
   void setSelectionBit(SelectionBitsEnum iBit, bool value = true) {selectionWord.SetBitNumber((int)iBit, value);}
-
-  void setMET(const TVector2 &aVector) {met = aVector;}
-
-  void setMET_uncorr(const TVector2 &aVector) {met_uncorr = aVector;}
-
-  void setMETFilterDecision(unsigned int aMETFilterDecision) {metFilterDecision = aMETFilterDecision;}
 
   void setFilters(const std::vector<Int_t> & aFilters) { filters = aFilters;}
 
@@ -167,33 +145,11 @@ class HTTEvent{
 
   sampleTypeEnum getSampleType() const {return sampleType;}
 
-  int getDecayModeMinus() const {return decayModeMinus;}
-
-  int getDecayModePlus() const {return decayModePlus;}
-
-  int getDecayModeBoson() const {return decayModeBoson;}
-
   TLorentzVector getGenBosonP4(bool visP4=false) const { return visP4 ? bosVisP4 : bosP4 ; }
 
   TLorentzVector getTopP4(bool anti=false) const { return anti ? antiTopP4 : topP4 ; }
 
-  TVector2 getMET() const {return met;}
-
-  TVector2 getMET_uncorr() const {return met_uncorr;}
-
-  const TVector3 & getGenPV() const {return genPV;}
-
-  const TVector3 & getAODPV() const {return AODPV;}
-
-  const TVector3 & getRefittedPV() const {return refittedPV;}
-
-  bool getIsRefit() const {return isRefit;};
-
-  int getNTracksInRefit() const {return nTracksInRefit;}
-
   bool checkSelectionBit(SelectionBitsEnum iBit) const {return selectionWord.TestBitNumber((unsigned int)iBit);}
-
-  unsigned int getMETFilterDecision() const { return metFilterDecision;}
 
   int getFilter(FilterEnum index) const {return (unsigned int)index<filters.size()?  filters[(unsigned int)index]: -999;}
 
@@ -244,47 +200,15 @@ class HTTEvent{
   ///Type of the physics process or DATA
   sampleTypeEnum sampleType;
 
-  ///Boson (H, Z, W) decay mode
-  int decayModeBoson;
-
   ///Boson (H, Z, W) p4 and visible p4
   bool isSetGenBosonP4;
   TLorentzVector bosP4, bosVisP4;
 
   ///top and antitop p4
-  bool isSetTopP4;
   TLorentzVector topP4, antiTopP4;
-
-  ///Tau decay modes
-  int decayModeMinus, decayModePlus;
-
-  ///Primary Vertices recontructed with different methods
-  //Generated PV position
-  TVector3 genPV;
-
-  //PV stored in miniAOD
-  TVector3 AODPV;
-
-  ///PV recontructed from PF candidates, refitted
-  TVector3 refittedPV;
-
-  ///Flag marking if refit was successfull
-  bool isRefit;
-
-  ///Number of tracks used in the refit
-  int nTracksInRefit;
 
   ///Bit word coding event selection result
   TBits selectionWord;
-
-  //MET vector, uncorrected
-  TVector2 met_uncorr;
-
-  //MET vector, recoil corr
-  TVector2 met;
-
-  //MET filter decision
-  unsigned int metFilterDecision;
 
   std::vector<Int_t> filters;
 
@@ -307,12 +231,6 @@ class HTTParticle
 
     ///Data member setters.
     void setP4(const TLorentzVector &aP4);
-    void setChargedP4(const TLorentzVector &aP4) { chargedP4 = aP4;}
-    void setNeutralP4(const TLorentzVector &aP4) { neutralP4 = aP4;}
-
-    void setPCA(const TVector3 &aV3) {pca = aV3;}
-    void setPCARefitPV(const TVector3 &aV3) {pcaRefitPV = aV3;}
-    void setPCAGenPV(const TVector3 &aV3) {pcaGenPV = aV3;}
 
     void setCutBitmask(int bitmask) {cutBitmask = bitmask; }
     void setProperties(const std::vector<Double_t> & aProperties) { properties = aProperties;}
@@ -320,12 +238,6 @@ class HTTParticle
     ///Data member getters.
     const TLorentzVector & getP4(HTTAnalysis::sysEffects defaultType=HTTAnalysis::NOMINAL) const;
     const TVector2 & getDeltaVector() const { return deltaVector; }
-    const TLorentzVector & getChargedP4() const {return chargedP4;}
-    const TLorentzVector getNeutralP4() const {return neutralP4;}
-
-    const TVector3 & getPCA() const {return pca;}
-    const TVector3 & getPCARefitPV() const {return pcaRefitPV;}
-    const TVector3 & getPCAGenPV() const {return pcaGenPV;}
 
     int getPDGid() const {return getProperty(PropertyEnum::pdgId);}
     int getCharge() const {return getProperty(PropertyEnum::charge);}
@@ -361,10 +273,6 @@ class HTTParticle
 
     ///Charged and neutral components four-momentum
     TLorentzVector chargedP4, neutralP4;
-
-    ///Vectors from primary vertex to point of closest approach (PCA)
-    ///calculated with respect to AOD vertex, refitted and generated vertex.
-    TVector3 pca, pcaRefitPV, pcaGenPV;
 
     ///Vector of various particle properties.
     ///Index generated automatically during conversion from
