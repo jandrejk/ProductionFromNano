@@ -412,7 +412,7 @@ void HTauTauTreeFromNanoBase::fillEvent(unsigned int bestPairIndex)
     if( isMC )//Assume that all those are filled for MC
     {
 
-        httEvent->setStage1Cat( HTXS_stage_1_pTjet30 );
+        
 
         httEvent->setMCWeight( sgn(genWeight) );
         httEvent->setXsec( Settings["xsec"].get<float>() );
@@ -469,8 +469,9 @@ void HTauTauTreeFromNanoBase::fillEvent(unsigned int bestPairIndex)
         httEvent->setTopPtReWeight(topPtReWeight);
         httEvent->setTopPtReWeightR1(topPtReWeight_r1);
         /////////////////////////////////////////////////////////////////////////////////////////////////////
-        if(nnlo_ggh_graphs)
+        if(nnlo_ggh_graphs && HTXS_njets30)
         {
+            httEvent->setStage1Cat( HTXS_stage_1_pTjet30 );
             if      (HTXS_njets30==0)      httEvent->setNNLO_ggH_weight( NNLOPSratio_pt_powheg_0jet->Eval( HTXS_Higgs_pt > 125.0 ? 125.0 : HTXS_Higgs_pt ) );
             else if (HTXS_njets30==1)      httEvent->setNNLO_ggH_weight( NNLOPSratio_pt_powheg_1jet->Eval( HTXS_Higgs_pt > 625.0 ? 625.0 : HTXS_Higgs_pt ) );
             else if (HTXS_njets30==2)      httEvent->setNNLO_ggH_weight( NNLOPSratio_pt_powheg_2jet->Eval( HTXS_Higgs_pt > 800.0 ? 800.0 : HTXS_Higgs_pt ) );
