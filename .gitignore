@@ -29,3 +29,10 @@ rundir/*
 slurm-1565161.out
 submit.sh
 utils/puweight/old/*
+utils/puweight/rundir/*
+utils/puweight/MCpuHistograms/*
+*.root
+*.txt
+*.png
+test/*
+.wscode.14d10e16-5982-31e6-9717-f3edb5cb0f6e.w/*
