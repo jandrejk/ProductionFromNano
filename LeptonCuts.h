@@ -1,6 +1,7 @@
 namespace LeptonCuts
 {
 
+	// taken from https://twiki.cern.ch/twiki/bin/view/CMS/HiggsToTauTauWorking2016#Baseline_mu_tau_h
 	/////////////////////////////////////////////////////////////////////////////////
 	/////////////////////////////////////////////////////////////////////////////////
 	const struct Baseline
@@ -13,7 +14,7 @@ namespace LeptonCuts
 
 		struct Muon
 		{
-			float pt  = 21.0;
+			float pt  = 20.0;
 			float eta = 2.1;
 		}Muon;
 
@@ -22,7 +23,7 @@ namespace LeptonCuts
 			int Additional = 8;
 			struct SemiLep
 			{
-				float pt  = 23.0;
+				float pt  = 20.0;
 				float eta = 2.3;
 				int bitmask = 16;
 			}SemiLep;
@@ -48,7 +49,7 @@ namespace LeptonCuts
 		struct Electron
 		{
 			float pt  = 15.0;
-			float eta = 2.5;
+			float eta = 2.4;
 		}Electron;
 
 		struct Muon
@@ -62,7 +63,7 @@ namespace LeptonCuts
 	}Di;
 	/////////////////////////////////////////////////////////////////////////////////
 	/////////////////////////////////////////////////////////////////////////////////
-	const struct Extra
+	const struct Extra //Third lepton vetoes
 	{
 		struct Electron
 		{
