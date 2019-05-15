@@ -1,3 +1,6 @@
+#ifndef __EventWriter__
+#define __EventWriter__
+
 #include "HTTEvent.h"
 #include "HTXSClassification.h"
 #include "TTree.h"
@@ -10,10 +13,8 @@
 #include "TFile.h"
 
 #include "utils/TauTriggerSFs2017/interface/TauTriggerSFs2017.h"
-
-
-#ifndef __EventWriter__
-#define __EventWriter__
+#include "ZZMatrixElement/MELA/interface/Mela.h"
+#include "ZZMatrixElement/MELA/interface/TUtil.hh"
 
 class EventWriter
 {
@@ -309,6 +310,19 @@ class EventWriter
   int htxs_reco_ggf[56];
   int htxs_reco_vbf[56];
   int htxs_stage1cat;
+
+  //////////////////////////////////////////////////////////////////
+  float ME_vbf;
+  float ME_q2v1;
+  float ME_q2v2;
+  float ME_costheta1;
+  float ME_costheta2;
+  float ME_phi;
+  float ME_costhetastar;
+  float ME_phi1;
+  float ME_z2j_1;
+  float ME_z2j_2;
+  float ME_D;
   //////////////////////////////////////////////////////////////////
   float eleTauFakeRateWeight;
   float muTauFakeRateWeight;
@@ -366,9 +380,11 @@ class EventWriter
   void fillLeg2Branches();
   void fillJetBranches(HTTJetCollection *jets);
   void fillPairBranches(HTTPair *pair, HTTJetCollection *jets);
+  void fillMELA(HTTJetCollection *jets);
   void fillAdditionalLeptons( std::vector<HTTParticle> leptons, HTTPair *pair);
 
   RooWorkspace *w;
+  Mela *mela;
   TauTriggerSFs2017 *tauTrigSFTight;
   TauTriggerSFs2017 *tauTrigSFVTight;
   vector< pair< string, pair<string,bool> > > jecShifts;
