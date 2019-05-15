@@ -42,6 +42,7 @@ void EventWriter::fill(HTTEvent *ev, HTTJetCollection *jets, std::vector<HTTPart
     fillPairBranches(pair, jets);
     
     fillAdditionalLeptons( leptons, pair );
+    fillMELA(jets);
   
     //////////////////////////////////////////////////////////////////  
  
@@ -845,6 +846,65 @@ void EventWriter::fillAdditionalLeptons( std::vector<HTTParticle> leptons, HTTPa
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void EventWriter::fillMELA(HTTJetCollection *jets)
+{
+  if(jets->getNJets(30) < 2) return;
+
+  TLorentzVector tau1, tau2;
+  tau1 = leg1P4;
+  tau2 = leg2P4;
+
+  float ch_1,ch_2;
+  ch_1 = leg1.getCharge();
+  ch_2 = leg2.getCharge();
+
+  // Sanitize charge for application on same-sign events
+  if (ch_1 * ch_2 > 0) {
+    ch_2 = -ch_1;
+  }
+
+  TLorentzVector jet1, jet2;
+  jet1 = jets->getJet(0).P4();
+  jet2 = jets->getJet(1).P4();
+
+
+  // Run MELA
+  SimpleParticleCollection_t daughters;
+  daughters.push_back(SimpleParticle_t(15 * ch_1, tau1));
+  daughters.push_back(SimpleParticle_t(15 * ch_2, tau2));
+
+  SimpleParticleCollection_t associated;
+  associated.push_back(SimpleParticle_t(0, jet1));
+  associated.push_back(SimpleParticle_t(0, jet2));
+
+  SimpleParticleCollection_t associated2;
+  associated2.push_back(SimpleParticle_t(0, jet2));
+  associated2.push_back(SimpleParticle_t(0, jet1));
+
+  mela->resetInputEvent();
+  mela->setCandidateDecayMode(TVar::CandidateDecay_ff);
+  mela->setInputEvent(&daughters, &associated, (SimpleParticleCollection_t *)0, false);
+
+  // Hypothesis: SM Higgs
+  mela->setProcess(TVar::HSMHiggs, TVar::JHUGen, TVar::JJVBF);
+  mela->computeProdP(ME_vbf, false);
+  mela->computeVBFAngles(ME_q2v1, ME_q2v2, ME_costheta1, ME_costheta2, ME_phi, ME_costhetastar, ME_phi1);
+
+  // Hypothesis: Z + 2 jets
+  // Compute the Hypothesis with flipped jets and sum them up for the discriminator.
+  mela->setProcess(TVar::bkgZJets, TVar::MCFM, TVar::JJQCD);
+  mela->computeProdP(ME_z2j_1, false);
+
+  mela->resetInputEvent();
+  mela->setInputEvent(&daughters, &associated2, (SimpleParticleCollection_t *)0, false);
+  mela->computeProdP(ME_z2j_2, false);
+
+  // Compute discriminator
+  ME_D = ME_vbf / (ME_vbf + ME_z2j_1 + ME_z2j_2);
+
+}
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 double EventWriter::calcSphericity(std::vector<TLorentzVector> p){
 
   TMatrixD S(3,3);
@@ -1168,6 +1228,18 @@ void EventWriter::setDefault(){
         bcsv_2[i]=DEF;
     }
     //////////////////////////////////////////////////////////////////
+    ME_vbf = DEF;
+    ME_q2v1 = DEF;
+    ME_q2v2 = DEF;
+    ME_costheta1 = DEF;
+    ME_costheta2 = DEF;
+    ME_phi = DEF;
+    ME_costhetastar = DEF;
+    ME_phi1 = DEF;
+    ME_z2j_1 = DEF;
+    ME_z2j_2 = DEF;
+    ME_D = DEF;
+    //////////////////////////////////////////////////////////////////  
     metcov00=DEF;
     metcov01=DEF;
     metcov10=DEF;
@@ -1281,6 +1353,10 @@ void EventWriter::initTree(TTree *t, vector< pair< string, pair<string,bool> > >
         btagShifts.push_back( make_pair( "BtagDown",   make_pair("central","down") ) );
     }
 
+    const int erg_tev = 13;
+    const float mPOLE = 125.6;
+    TVar::VerbosityLevel verbosity = TVar::SILENT;
+    mela = new Mela(erg_tev, mPOLE, verbosity);
 
     tauTrigSFTight = new TauTriggerSFs2017("utils/TauTriggerSFs2017/data/tauTriggerEfficiencies2017_New.root", "utils/TauTriggerSFs2017/data/tauTriggerEfficiencies2017.root","tight","MVA");
     tauTrigSFVTight = new TauTriggerSFs2017("utils/TauTriggerSFs2017/data/tauTriggerEfficiencies2017_New.root", "utils/TauTriggerSFs2017/data/tauTriggerEfficiencies2017.root","vtight","MVA");
@@ -1417,6 +1493,19 @@ void EventWriter::initTree(TTree *t, vector< pair< string, pair<string,bool> > >
         t->Branch( ("bcsv_1"+btagShifts[shift].first).c_str(),  &bcsv_1[shift]);
         t->Branch( ("bcsv_2"+btagShifts[shift].first).c_str(),  &bcsv_2[shift]);
     }
+
+
+    t->Branch("ME_vbf", &ME_vbf);
+    t->Branch("ME_q2v1", &ME_q2v1);
+    t->Branch("ME_q2v2", &ME_q2v2);
+    t->Branch("ME_costheta1", &ME_costheta1);
+    t->Branch("ME_costheta2", &ME_costheta2);
+    t->Branch("ME_phi", &ME_phi);
+    t->Branch("ME_costhetastar", &ME_costhetastar);
+    t->Branch("ME_phi1", &ME_phi1);
+    t->Branch("ME_z2j_1", &ME_z2j_1);
+    t->Branch("ME_z2j_2", &ME_z2j_2);
+    t->Branch("ME_D", &ME_D);
 
     t->Branch("gen_Mll", &gen_Mll);
     t->Branch("genpX", &gen_ll_px);
