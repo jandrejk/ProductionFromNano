@@ -37,6 +37,11 @@ git clone https://github.com/svfit/SVfitTF.git TauAnalysis/SVfitTF
 git clone https://github.com/CMS-HTT/RecoilCorrections.git  HTT-utilities/RecoilCorrections
 # production tools based on WawTools from NanoAOD
 git clone https://github.com/mflechl/ProductionFromNano.git WawTools/NanoAODTools -b SM2017ML
+# Setup MELA
+git clone https://github.com/cms-analysis/HiggsAnalysis-ZZMatrixElement ZZMatrixElement -b v2.2.0
+cd ZZMatrixElement/
+bash setup.sh -j 4
+cd ..
 # This is just needed to get rid of warnings
 cat FWCore/MessageLogger/interface/MessageDrop.h | sed s#CMS_THREAD_SAFE##g > FWCore/MessageLogger/interface/MessageDrop.h2
 mv FWCore/MessageLogger/interface/MessageDrop.h2 FWCore/MessageLogger/interface/MessageDrop.h 
