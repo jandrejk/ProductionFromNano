@@ -90,17 +90,18 @@ print "Compiling...."
 #First we try to compile, and only then we start time consuming cmssw
 
 gSystem.Load("$CMSSW_BASE/lib/$SCRAM_ARCH/libZZMatrixElementMELA.so");
+gSystem.Load('$CMSSW_BASE/lib/$SCRAM_ARCH/libTauAnalysisSVfitTF.so')
+gSystem.Load('$CMSSW_BASE/lib/$SCRAM_ARCH/libTauAnalysisClassicSVfit.so')
+gSystem.Load('$CMSSW_BASE/lib/$SCRAM_ARCH/libTauAnalysisToolsTauTriggerSFs.so')
+gSystem.Load('$CMSSW_BASE/lib/$SCRAM_ARCH/libHTT-utilitiesRecoilCorrections.so')
 
 assert gSystem.CompileMacro('HTTEvent.cxx','k')
-assert gSystem.CompileMacro('utils/TauTriggerSFs2017/src/TauTriggerSFs2017.cc','k')
 assert gSystem.CompileMacro('HTXSClassification.cc','k')
 assert gSystem.CompileMacro('EventWriter.C','k')
 #status *= gSystem.CompileMacro('NanoEventsSkeleton.C') #RECOMPILE IF IT CHANGES!
 assert gSystem.CompileMacro('NanoEventsSkeleton.C','k')
 
-gSystem.Load('$CMSSW_BASE/lib/$SCRAM_ARCH/libTauAnalysisClassicSVfit.so')
-gSystem.Load('$CMSSW_BASE/lib/$SCRAM_ARCH/libTauAnalysisSVfitTF.so')
-gSystem.Load('$CMSSW_BASE/lib/$SCRAM_ARCH/libHTT-utilitiesRecoilCorrections.so')
+
 
 assert gSystem.CompileMacro('HTauTauTreeFromNanoBase.C','k')
 from ROOT import HTTParticle, HTTAnalysis

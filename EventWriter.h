@@ -12,9 +12,10 @@
 #include "RooFunctor.h"
 #include "TFile.h"
 
-#include "utils/TauTriggerSFs2017/interface/TauTriggerSFs2017.h"
 #include "ZZMatrixElement/MELA/interface/Mela.h"
 #include "ZZMatrixElement/MELA/interface/TUtil.hh"
+#include "TauAnalysisTools/TauTriggerSFs/interface/TauTriggerSFs2017.h"
+
 
 class EventWriter
 {
@@ -107,10 +108,12 @@ class EventWriter
   int trg_singlemuon_27;
   int trg_singlemuon_24;
   int trg_crossmuon_mu20tau27;
+  int trg_crossmuon_mu20tau27_HPS;
   int trg_singleelectron_35;
   int trg_singleelectron_32;
   int trg_singleelectron_27;
   int trg_crossele_ele24tau30;
+  int trg_crossele_ele24tau30_HPS;
   int trg_doubletau_40_tightiso;
   int trg_doubletau_40_mediso_tightid;
   int trg_doubletau_35_tightiso_tightid;
@@ -363,8 +366,7 @@ class EventWriter
 
   RooWorkspace *w;
   Mela *mela;
-  TauTriggerSFs2017 *tauTrigSFTight;
-  TauTriggerSFs2017 *tauTrigSFVTight;
+  TauTriggerSFs2017 *tauTrigSFTightTT, *tauTrigSFTightMT, *tauTrigSFTightET;
   vector< pair< string, pair<string,bool> > > jecShifts;
   vector< string > metShifts;
   vector< pair< string, pair<string, string> > >  btagShifts;

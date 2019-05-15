@@ -33,6 +33,8 @@ git clone https://github.com/cms-nanoAOD/nanoAOD-tools.git PhysicsTools/NanoAODT
 # SVFit
 git clone https://github.com/svfit/ClassicSVfit.git TauAnalysis/ClassicSVfit -b fastMTT_21_06_2018
 git clone https://github.com/svfit/SVfitTF.git TauAnalysis/SVfitTF
+# TauTrigger SF
+git clone https://github.com/cms-tau-pog/TauTriggerSFs $CMSSW_BASE/src/TauAnalysisTools/TauTriggerSFs -b run2_SFs 
 # MET recoil corrections
 git clone https://github.com/CMS-HTT/RecoilCorrections.git  HTT-utilities/RecoilCorrections
 # production tools based on WawTools from NanoAOD

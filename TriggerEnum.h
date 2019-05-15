@@ -12,10 +12,12 @@ enum class TriggerEnum {
 HLT_IsoMu24 = 0,
 HLT_IsoMu27,
 HLT_IsoMu20_eta2p1_LooseChargedIsoPFTau27_eta2p1_CrossL1,
+HLT_IsoMu20_eta2p1_LooseChargedIsoPFTauHPS27_eta2p1_CrossL1,
 HLT_Ele27_WPTight_Gsf,
 HLT_Ele32_WPTight_Gsf,
 HLT_Ele35_WPTight_Gsf,
 HLT_Ele24_eta2p1_WPTight_Gsf_LooseChargedIsoPFTau30_eta2p1_CrossL1,
+HLT_Ele24_eta2p1_WPTight_Gsf_LooseChargedIsoPFTauHPS30_eta2p1_CrossL1,
 HLT_MediumChargedIsoPFTau180HighPtRelaxedIso_Trk50_eta2p1,
 HLT_DoubleTightChargedIsoPFTau35_Trk1_TightID_eta2p1_Reg,
 HLT_DoubleMediumChargedIsoPFTau40_Trk1_TightID_eta2p1_Reg,
@@ -89,16 +91,19 @@ vector<TriggerData>  getTriggerSettings(){
     triggerBits_.back().path_name="HLT_IsoMu20_eta2p1_LooseChargedIsoPFTau27_eta2p1_CrossL1";
     triggerBits_.back().leg1Id=13;
     triggerBits_.back().leg1BitMask=(1<<1) + (1<<2); //iso+OL
-    // triggerBits_.back().leg1Pt=20;
-    // triggerBits_.back().leg1Eta=2.1;
     triggerBits_.back().leg1L1Pt=-1;
-    //  triggerBits_.back().leg1L1Pt=18;
-    // triggerBits_.back().leg1OfflinePt=20;
     triggerBits_.back().leg2Id=15;
-    triggerBits_.back().leg2BitMask=(1<<0) + (1<<8); //looseChargedIso+OL
-    // triggerBits_.back().leg2Pt=27;
-    // triggerBits_.back().leg2Eta=2.1;
-    //  triggerBits_.back().leg2L1Pt=20;
+    triggerBits_.back().leg2BitMask=(1<<0); // Need to remove OL filter since it seems it is not stored
+    triggerBits_.back().leg2L1Pt=-1;
+
+    // Mu tauh triggers
+    triggerBits_.push_back(aTrgData);
+    triggerBits_.back().path_name="HLT_IsoMu20_eta2p1_LooseChargedIsoPFTauHPS27_eta2p1_CrossL1";
+    triggerBits_.back().leg1Id=13;
+    triggerBits_.back().leg1BitMask=(1<<1) + (1<<2); //iso+OL
+    triggerBits_.back().leg1L1Pt=-1;
+    triggerBits_.back().leg2Id=15;
+    triggerBits_.back().leg2BitMask=(1<<0); // Need to remove OL filter since it seems it is not stored
     triggerBits_.back().leg2L1Pt=-1;
 
     //Single e triggers
@@ -128,13 +133,15 @@ vector<TriggerData>  getTriggerSettings(){
     triggerBits_.back().path_name="HLT_Ele24_eta2p1_WPTight_Gsf_LooseChargedIsoPFTau30_eta2p1_CrossL1";
     triggerBits_.back().leg1Id=11;
     triggerBits_.back().leg1BitMask=(1<<1)+(1<<3);
-    // triggerBits_.back().leg1Pt=24;
-    // triggerBits_.back().leg1Eta=2.1;
     triggerBits_.back().leg2Id=15;
-    triggerBits_.back().leg2BitMask=(1<<0) + (1<<7); 
-    // triggerBits_.back().leg2Pt=30;
-    // triggerBits_.back().leg2Eta=2.1;
+    triggerBits_.back().leg2BitMask=(1<<0); // Need to remove OL filter since it seems it is not stored
 
+    triggerBits_.push_back(aTrgData);
+    triggerBits_.back().path_name="HLT_Ele24_eta2p1_WPTight_Gsf_LooseChargedIsoPFTauHPS30_eta2p1_CrossL1";
+    triggerBits_.back().leg1Id=11;
+    triggerBits_.back().leg1BitMask=(1<<1)+(1<<3);
+    triggerBits_.back().leg2Id=15;
+    triggerBits_.back().leg2BitMask=(1<<0); // Need to remove OL filter since it seems it is not stored 
 
     // Single tauh triggers
     triggerBits_.push_back(aTrgData);
