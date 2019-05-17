@@ -28,6 +28,9 @@ git clone https://github.com/svfit/ClassicSVfit.git TauAnalysis/ClassicSVfit -b 
 git clone https://github.com/svfit/SVfitTF.git TauAnalysis/SVfitTF
 git clone https://github.com/CMS-HTT/RecoilCorrections.git  HTT-utilities/RecoilCorrections
 git clone https://github.com/MarkusSpanring/ProductionFromNano.git WawTools/NanoAODTools -b SM2017ML
+git clone https://github.com/cms-analysis/HiggsAnalysis-ZZMatrixElement ZZMatrixElement -b v2.2.0
+cd ZZMatrixElement/
+bash setup.sh -j 1
 cat FWCore/MessageLogger/interface/MessageDrop.h | sed s#CMS_THREAD_SAFE##g > FWCore/MessageLogger/interface/MessageDrop.h2
 mv FWCore/MessageLogger/interface/MessageDrop.h2 FWCore/MessageLogger/interface/MessageDrop.h 
 # compile

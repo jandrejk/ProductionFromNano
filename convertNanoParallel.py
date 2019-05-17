@@ -89,6 +89,7 @@ print "Compiling...."
 #Some system have problem runnig compilation (missing glibc-static library?).
 #First we try to compile, and only then we start time consuming cmssw
 
+gSystem.Load("$CMSSW_BASE/lib/$SCRAM_ARCH/libZZMatrixElementMELA.so");
 
 assert gSystem.CompileMacro('HTTEvent.cxx','k')
 assert gSystem.CompileMacro('utils/TauTriggerSFs2017/src/TauTriggerSFs2017.cc','k')
