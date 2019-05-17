@@ -26,7 +26,7 @@ git cms-addpkg FWCore/MessageLogger
 git clone https://github.com/cms-nanoAOD/nanoAOD-tools.git PhysicsTools/NanoAODTools
 git clone https://github.com/svfit/ClassicSVfit.git TauAnalysis/ClassicSVfit -b fastMTT_21_06_2018
 git clone https://github.com/svfit/SVfitTF.git TauAnalysis/SVfitTF
-git clone https://github.com/cms-tau-pog/TauTriggerSFs $CMSSW_BASE/src/TauAnalysisTools/TauTriggerSFs -b run2_SFs
+git clone https://github.com/cms-tau-pog/TauTriggerSFs TauAnalysisTools/TauTriggerSFs -b run2_SFs
 git clone https://github.com/CMS-HTT/RecoilCorrections.git  HTT-utilities/RecoilCorrections
 git clone https://github.com/jandrejk/ProductionFromNano.git WawTools/NanoAODTools -b SM2018
 git clone https://github.com/cms-analysis/HiggsAnalysis-ZZMatrixElement ZZMatrixElement -b v2.2.0

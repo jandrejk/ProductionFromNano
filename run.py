@@ -292,6 +292,8 @@ class SteerNanoProduction():
 
         self.throwConfigBall(configBall, rundir)
         shutil.copytree("proxy", "/".join([rundir,"proxy"]))
+        if not os.path.exists("kerberos"):
+            os.mkdir("kerberos")
         shutil.copytree("kerberos", "/".join([rundir,"kerberos"]))
                 
         if not self.submit == "lxplus" and not self.submit == "condor":
