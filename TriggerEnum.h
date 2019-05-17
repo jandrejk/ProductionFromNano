@@ -9,181 +9,131 @@ struct TriggerData {
 };
 
 enum class TriggerEnum {
-HLT_IsoMu24 = 0,
-HLT_IsoMu27,
-HLT_IsoMu20_eta2p1_LooseChargedIsoPFTau27_eta2p1_CrossL1,
-HLT_Ele27_WPTight_Gsf,
-HLT_Ele32_WPTight_Gsf,
-HLT_Ele35_WPTight_Gsf,
-HLT_Ele24_eta2p1_WPTight_Gsf_LooseChargedIsoPFTau30_eta2p1_CrossL1,
-HLT_MediumChargedIsoPFTau180HighPtRelaxedIso_Trk50_eta2p1,
-HLT_DoubleTightChargedIsoPFTau35_Trk1_TightID_eta2p1_Reg,
-HLT_DoubleMediumChargedIsoPFTau40_Trk1_TightID_eta2p1_Reg,
-HLT_DoubleTightChargedIsoPFTau40_Trk1_eta2p1_Reg,
-HLT_DoubleMediumChargedIsoPFTauHPS35_Trk1_eta2p1_Reg,
+HLT_IsoMu22 = 0,
+HLT_IsoMu22_eta2p1,
+HLT_IsoTkMu22,
+HLT_IsoTkMu22_eta2p1,
+HLT_IsoMu19_eta2p1_LooseIsoPFTau20,
+HLT_IsoMu19_eta2p1_LooseIsoPFTau20_SingleL1,
+HLT_Ele25_eta2p1_WPTight_Gsf,
+HLT_DoubleMediumIsoPFTau35_Trk1_eta2p1_Reg,
+HLT_DoubleMediumCombinedIsoPFTau35_Trk1_eta2p1_Reg,
 NONE
 };
 
 vector<TriggerData>  getTriggerSettings(){
-	vector<TriggerData> triggerBits_;
+    vector<TriggerData> triggerBits_;
     TriggerData aTrgData;
 
-    // 2017 94X  Filter
+    // These Filter bits are taken from cmssw/PhysicsTools/NanoAOD/python/triggerObjects_cff.py
+    // See line 138-160 for era-dependent modification used for the 2016 data set
 
     // Electron
     // 0 = *CaloIdLTrackIdLIsoVL*TrackIso*Filter
     // 1 = hltEle*WPTight*TrackIsoFilter*
     // 2 = hltEle*WPLoose*TrackIsoFilter
-    // 3 = *OverlapFilterIsoEle*PFTau*
-    // 4 = hltEle*Ele*CaloIdLTrackIdLIsoVL*Filter
-    // 5 = hltMu*TrkIsoVVL*Ele*CaloIdLTrackIdLIsoVL*Filter*
-    // 6 = *OverlapFilterIsoEle*PFTau*
-    // 7 = hltEle*Ele*Ele*CaloIdLTrackIdLDphiLeg*Filter
-    // 8 = max(filter('hltL3fL1Mu*DoubleEG*Filtered*'),filter('hltMu*DiEle*CaloIdLTrackIdLElectronleg*Filter'))
-    // 9 = max(filter('hltL3fL1DoubleMu*EG*Filter*'),filter('hltDiMu*Ele*CaloIdLTrackIdLElectronleg*Filter'))
-            
+    // 3 = *OverlapFilter*IsoEle*PFTau*
 
     // Muon
-    // 0 = *RelTrkIsoVVLFiltered0p4
-    // 1 = hltL3crIso*Filtered0p07
-    // 2 = *OverlapFilterIsoMu*PFTau*
-    // 3 = max(filter('hltL3crIsoL1*SingleMu*Filtered0p07'),filter('hltL3crIsoL1sMu*Filtered0p07'))
-    // 4 = hltDiMuon*Filtered*
-    // 5 = hltMu*TrkIsoVVL*Ele*CaloIdLTrackIdLIsoVL*Filter*
-    // 6 = hltOverlapFilterIsoMu*PFTau*
-    // 7 = hltL3fL1TripleMu*
-    // 8 = max(filter('hltL3fL1DoubleMu*EG*Filtered*'),filter('hltDiMu*Ele*CaloIdLTrackIdLElectronleg*Filter'))
-    // 9 = max(filter('hltL3fL1Mu*DoubleEG*Filtered*'),filter('hltMu*DiEle*CaloIdLTrackIdLElectronleg*Filter'))
-
-    // Tau
-    // 0 = *LooseChargedIso*
-    // 1 = *MediumChargedIso*
-    // 2 = *TightChargedIso*
-    // 3 = *TightOOSCPhotons*
-    // 4 = *Hps*
-    // 5 = hltSelectedPFTau*MediumChargedIsolationL1HLTMatched*
-    // 6 = hltDoublePFTau*TrackPt1*ChargedIsolation*Dz02Reg
-    // 7 = hltOverlapFilterIsoEle*PFTau*
-    // 8 = hltOverlapFilterIsoMu*PFTau*
-    // 9 = hltDoublePFTau*TrackPt1*ChargedIsolation*
-           
-
-    triggerBits_.push_back(aTrgData);
-    triggerBits_.back().path_name="HLT_IsoMu24";
-    triggerBits_.back().leg1Id=13;
-    triggerBits_.back().leg1BitMask=(1<<3);
-    // triggerBits_.back().leg1Pt=24;
-    // triggerBits_.back().leg1L1Pt=22;
-    // triggerBits_.back().leg1OfflinePt=25;
-
-    triggerBits_.push_back(aTrgData);
-    triggerBits_.back().path_name="HLT_IsoMu27";
-    triggerBits_.back().leg1Id=13;
-    triggerBits_.back().leg1BitMask=(1<<3);
-    // triggerBits_.back().leg1Pt=27;
-    // triggerBits_.back().leg1L1Pt=22; //22 or 25...
-    // triggerBits_.back().leg1OfflinePt=28;
-
-    // Mu tauh triggers
-    triggerBits_.push_back(aTrgData);
-    triggerBits_.back().path_name="HLT_IsoMu20_eta2p1_LooseChargedIsoPFTau27_eta2p1_CrossL1";
-    triggerBits_.back().leg1Id=13;
-    triggerBits_.back().leg1BitMask=(1<<1) + (1<<2); //iso+OL
-    // triggerBits_.back().leg1Pt=20;
-    // triggerBits_.back().leg1Eta=2.1;
-    triggerBits_.back().leg1L1Pt=-1;
-    //  triggerBits_.back().leg1L1Pt=18;
-    // triggerBits_.back().leg1OfflinePt=20;
-    triggerBits_.back().leg2Id=15;
-    triggerBits_.back().leg2BitMask=(1<<0) + (1<<8); //looseChargedIso+OL
-    // triggerBits_.back().leg2Pt=27;
-    // triggerBits_.back().leg2Eta=2.1;
-    //  triggerBits_.back().leg2L1Pt=20;
-    triggerBits_.back().leg2L1Pt=-1;
-
-    //Single e triggers
-    triggerBits_.push_back(aTrgData);
-    triggerBits_.back().path_name="HLT_Ele27_WPTight_Gsf";
-    triggerBits_.back().leg1Id=11;
-    triggerBits_.back().leg1BitMask=(1<<1);
-    // triggerBits_.back().leg1Pt=27;
-    triggerBits_.back().leg1L1Pt=-1;
-
-    triggerBits_.push_back(aTrgData);
-    triggerBits_.back().path_name="HLT_Ele32_WPTight_Gsf";
-    triggerBits_.back().leg1Id=11;
-    triggerBits_.back().leg1BitMask=(1<<1);
-    // triggerBits_.back().leg1Pt=32;
-    triggerBits_.back().leg1L1Pt=-1;
-
-    triggerBits_.push_back(aTrgData);
-    triggerBits_.back().path_name="HLT_Ele35_WPTight_Gsf";
-    triggerBits_.back().leg1Id=11;
-    triggerBits_.back().leg1BitMask=(1<<1);
-    // triggerBits_.back().leg1Pt=35;
-    triggerBits_.back().leg1L1Pt=-1;
-
-
-    triggerBits_.push_back(aTrgData);
-    triggerBits_.back().path_name="HLT_Ele24_eta2p1_WPTight_Gsf_LooseChargedIsoPFTau30_eta2p1_CrossL1";
-    triggerBits_.back().leg1Id=11;
-    triggerBits_.back().leg1BitMask=(1<<1)+(1<<3);
-    // triggerBits_.back().leg1Pt=24;
-    // triggerBits_.back().leg1Eta=2.1;
-    triggerBits_.back().leg2Id=15;
-    triggerBits_.back().leg2BitMask=(1<<0) + (1<<7); 
-    // triggerBits_.back().leg2Pt=30;
-    // triggerBits_.back().leg2Eta=2.1;
-
-
-    // Single tauh triggers
-    triggerBits_.push_back(aTrgData);
-    triggerBits_.back().path_name="HLT_MediumChargedIsoPFTau180HighPtRelaxedIso_Trk50_eta2p1";
-    triggerBits_.back().leg1Id=15;
-    triggerBits_.back().leg1BitMask=2;
-
-    // tauh tauh triggers
-    ///9th tau bit(1<<8) for di-tau dz filter  (should be OK 80X triggers)
-    triggerBits_.push_back(aTrgData);
-    triggerBits_.back().path_name="HLT_DoubleTightChargedIsoPFTau35_Trk1_TightID_eta2p1_Reg";
-    triggerBits_.back().leg1Id=15;
-    triggerBits_.back().leg1BitMask= (1<<2) + (1<<3) + (1<<6); //TightChargedIso+photons+dz
-    // triggerBits_.back().leg1Pt=35;
-    // triggerBits_.back().leg1Eta=2.1;
-    triggerBits_.back().leg2Id=15;
-    triggerBits_.back().leg2BitMask= (1<<2) + (1<<3) + (1<<6);
-    // triggerBits_.back().leg2Pt=35;
-    // triggerBits_.back().leg2Eta=2.1;
-
-    triggerBits_.push_back(aTrgData);
-    triggerBits_.back().path_name="HLT_DoubleMediumChargedIsoPFTau40_Trk1_TightID_eta2p1_Reg";
-    triggerBits_.back().leg1Id=15;
-    triggerBits_.back().leg1BitMask=(1<<1) + (1<<3) + (1<<6); //MediumChargedIso+photons+dz
-    // triggerBits_.back().leg1Pt=40;
-    // triggerBits_.back().leg1Eta=2.1;
-    triggerBits_.back().leg2Id=15;
-    triggerBits_.back().leg2BitMask=(1<<1) + (1<<3) + (1<<6);
-    // triggerBits_.back().leg2Pt=40;
-    // triggerBits_.back().leg2Eta=2.1;
-
-    triggerBits_.push_back(aTrgData);
-    triggerBits_.back().path_name="HLT_DoubleTightChargedIsoPFTau40_Trk1_eta2p1_Reg";
-    triggerBits_.back().leg1Id=15;
-    triggerBits_.back().leg1BitMask=(1<<2) + (1<<6);; //TightChargedIso+dz
-    // triggerBits_.back().leg1Pt=40;
-    // triggerBits_.back().leg1Eta=2.1;
-    triggerBits_.back().leg2Id=15;
-    triggerBits_.back().leg2BitMask=(1<<2) + (1<<6);;
-    // triggerBits_.back().leg2Pt=40;
-    // triggerBits_.back().leg2Eta=2.1;
-
-    triggerBits_.push_back(aTrgData);
-    triggerBits_.back().path_name="HLT_DoubleMediumChargedIsoPFTauHPS35_Trk1_eta2p1_Reg";
-    triggerBits_.back().leg1Id=15;
-    triggerBits_.back().leg1BitMask=(1<<1) + (1<<4);
+    // 0 = *RelTrkIso*Filtered0p4
+    // 1 = hltL3cr*IsoFiltered0p09
+    // 2 = *OverlapFilter*IsoMu*PFTau*
+    // 3 = hltL3f*IsoFiltered0p09
+    // sel.qualityBitsDoc = cms.string("1 = TrkIsoVVL, 2 = Iso, 4 = OverlapFilter PFTau, 8 = IsoTkMu")
     
+    // Tau
+    // 0 = *LooseIso*-*VLooseIso*
+    // 1 = *Medium*Iso*
+    // 2 = *VLooseIso*
+    // 3 = 0
+    // 4 = hltL2TauIsoFilter
+    // 5 = *OverlapFilter*IsoMu*
+    // 6 = *OverlapFilter*IsoEle*
+    // 7 = *L1HLTMatched*
+    // 8 = *Dz02*
+    // sel.qualityBitsDoc = cms.string("1 = LooseIso, 2 = Medium(Comb)Iso, 4 = VLooseIso, 8 = None, 16 = L2p5 pixel iso, 32 = OverlapFilter IsoMu, 64 = OverlapFilter IsoEle, 128 = L1-HLT matched, 256 = Dz")
+   
+    // single-mu trigger with mu-filter to match: hltL3cr IsoL1sMu20L1f0L2f10QL3f22QL3trk IsoFiltered0p09 ->2
+    // hltL3crIsoL1sMu20L1f0L2f10QL3f22QL3trkIsoFiltered0p09
+    triggerBits_.push_back(aTrgData);
+    triggerBits_.back().path_name="HLT_IsoMu22";
+    triggerBits_.back().leg1Id=13;
+    // triggerBits_.back().leg1BitMask=(1<<1);    
+    triggerBits_.back().leg1BitMask=0;    
+    // single-mu trigger  with mu-filter to match: hltL3cr IsoL1sSingleMu20erL1f0L2f10QL3f22QL3trkIso Filtered0p09
+    triggerBits_.push_back(aTrgData);
+    triggerBits_.back().path_name="HLT_IsoMu22_eta2p1";
+    triggerBits_.back().leg1Id=13;
+    // triggerBits_.back().leg1BitMask=(1<<1);
+    triggerBits_.back().leg1BitMask=0;
+    // single-mu trigger  with mu-filter to match: hltL3f L1sMu20L1f0Tkf22QL3trk IsoFiltered0p09
+    triggerBits_.push_back(aTrgData);
+    triggerBits_.back().path_name="HLT_IsoTkMu22";
+    triggerBits_.back().leg1Id=13;
+    // triggerBits_.back().leg1BitMask=(1<<3);
+    triggerBits_.back().leg1BitMask=0;
+    // single-mu trigger  with mu-filter to match: hltL3 fL1sMu20erL1f0Tkf22QL3trkIso Filtered0p09
+    triggerBits_.push_back(aTrgData);
+    triggerBits_.back().path_name="HLT_IsoTkMu22_eta2p1";
+    triggerBits_.back().leg1Id=13;
+    // triggerBits_.back().leg1BitMask=(1<<3);
+    triggerBits_.back().leg1BitMask=0;
+
+
+    // mu-tauh triggers with 
+    // mu-filter   : hltL3cr IsoL1sMu18erTauJet20erL1f0L2f10QL3f19QL3trk IsoFiltered0p09 and hlt OverlapFilter IsoMu 19LooseIso PFTau 20
+    // tauh-filter : hltPFTau20Track LooseIso AgainstMuon and hlt OverlapFilter IsoMu 19LooseIsoPFTau20
+    triggerBits_.push_back(aTrgData);
+    triggerBits_.back().path_name="HLT_IsoMu19_eta2p1_LooseIsoPFTau20";
+    triggerBits_.back().leg1Id=13;
+    // triggerBits_.back().leg1BitMask=(1<<1) + (1<<2); //iso+OL (overlap)
+    triggerBits_.back().leg1BitMask=0:
     triggerBits_.back().leg2Id=15;
-    triggerBits_.back().leg2BitMask=(1<<1) + (1<<4);
+    // triggerBits_.back().leg2BitMask=(1<<0) + (1<<5); //looseIso+OL
+    triggerBits_.back().leg2BitMask=0;
+    // mu-tauh triggers with 
+    // mu-filter   : hltL3cr IsoL1sSingleMu18erIorSingleMu20erL1f0L2f10QL3f19QL3trk IsoFiltered0p09 and hlt OverlapFilter Single IsoMu 19LooseIso PFTau 20
+    // tauh-filter : hltPFTau20Track LooseIso AgainstMuon and hlt OverlapFilter Single IsoMu 19LooseIsoPFTau20
+    triggerBits_.push_back(aTrgData); 
+    triggerBits_.back().path_name="HLT_IsoMu19_eta2p1_LooseIsoPFTau20_SingleL1";
+    triggerBits_.back().leg1Id=13;
+    // triggerBits_.back().leg1BitMask=(1<<1) + (1<<2); //iso+OL (overlap)
+    triggerBits_.back().leg1BitMask=0;
+    triggerBits_.back().leg2Id=15;
+    // triggerBits_.back().leg2BitMask=(1<<0) + (1<<5); //looseIso+OL
+    triggerBits_.back().leg2BitMask=0;
+    
+    
+    // single-ele trigger with ele filter to match : hltEle 25er WPTight Gsf TrackIsoFilter
+    triggerBits_.push_back(aTrgData);
+    triggerBits_.back().path_name="HLT_Ele25_eta2p1_WPTight_Gsf";
+    triggerBits_.back().leg1Id=11;
+    // triggerBits_.back().leg1BitMask=(1<<1);
+    triggerBits_.back().leg1BitMask=0;
+  
+
+    // double-tauh trigger with tau filter to match: 
+    // hltDoublePFTau35TrackPt1 Medium Isolation Dz02Reg
+    triggerBits_.push_back(aTrgData);
+    triggerBits_.back().path_name="HLT_DoubleMediumIsoPFTau35_Trk1_eta2p1_Reg";
+    triggerBits_.back().leg1Id=15;
+    // triggerBits_.back().leg1BitMask=(1<<1) + (1<<8) //MediumIso+dz
+    triggerBits_.back().leg1BitMask=0;
+    triggerBits_.back().leg2Id=15;
+    // triggerBits_.back().leg2BitMask=(1<<1) + (1<<8)
+    triggerBits_.back().leg2BitMask=0;
+    // double-tauh trigger with tau filter to match: 
+    // hltDoublePFTau35TrackPt1 Medium CombinedIsolation Dz02 Reg
+    triggerBits_.push_back(aTrgData);
+    triggerBits_.back().path_name="HLT_DoubleMediumCombinedIsoPFTau35_Trk1_eta2p1_Reg";
+    triggerBits_.back().leg1Id=15;
+    // triggerBits_.back().leg1BitMask=(1<<1) + (1<<8) //MediumIso+dz
+    triggerBits_.back().leg1BitMask=0;
+    triggerBits_.back().leg2Id=15;
+    // triggerBits_.back().leg2BitMask=(1<<1) + (1<<8)
+    triggerBits_.back().leg2BitMask=0;
+    
+
 
     return triggerBits_;
 }
