@@ -42,6 +42,7 @@ void EventWriter::fill(HTTEvent *ev, HTTJetCollection *jets, std::vector<HTTPart
     fillPairBranches(pair, jets);
     
     fillAdditionalLeptons( leptons, pair );
+    fillMELA(jets);
   
     //////////////////////////////////////////////////////////////////  
  
@@ -117,6 +118,18 @@ void EventWriter::fill(HTTEvent *ev, HTTJetCollection *jets, std::vector<HTTPart
                                   && pt_1 > 21 && pt_2 > 32
                                   && abs(eta_1) < 2.1 && abs(eta_2) < 2.1;
 
+        trg_crossmuon_mu20tau27_HPS=  leg1.hasTriggerMatch(TriggerEnum::HLT_IsoMu20_eta2p1_LooseChargedIsoPFTauHPS27_eta2p1_CrossL1) 
+                                       && leg2.hasTriggerMatch(TriggerEnum::HLT_IsoMu20_eta2p1_LooseChargedIsoPFTauHPS27_eta2p1_CrossL1)
+                                       && pt_1 > 21 && pt_2 > 32
+                                       && abs(eta_1) < 2.1 && abs(eta_2) < 2.1;
+        // HPS only available in data in the middle of 2018
+        if(isMC){
+            trg_crossmuon_mu20tau27 = trg_crossmuon_mu20tau27_HPS;
+        } else
+        {
+            trg_crossmuon_mu20tau27 = (trg_crossmuon_mu20tau27 && runID < 317509) || (trg_crossmuon_mu20tau27_HPS && runID >= 317509);
+        }
+
     }else if ( channel == HTTAnalysis::EleTau )
     {
         trg_singletau_leading= false;
@@ -130,6 +143,19 @@ void EventWriter::fill(HTTEvent *ev, HTTJetCollection *jets, std::vector<HTTPart
                                   && leg2.hasTriggerMatch(TriggerEnum::HLT_Ele24_eta2p1_WPTight_Gsf_LooseChargedIsoPFTau30_eta2p1_CrossL1)
                                   && pt_1 > 25 && pt_2 > 35 
                                   && abs(eta_1) < 2.1 && abs(eta_2) < 2.1;
+
+        trg_crossele_ele24tau30_HPS = leg1.hasTriggerMatch(TriggerEnum::HLT_Ele24_eta2p1_WPTight_Gsf_LooseChargedIsoPFTauHPS30_eta2p1_CrossL1) 
+                                  && leg2.hasTriggerMatch(TriggerEnum::HLT_Ele24_eta2p1_WPTight_Gsf_LooseChargedIsoPFTauHPS30_eta2p1_CrossL1)
+                                  && pt_1 > 25 && pt_2 > 35 
+                                  && abs(eta_1) < 2.1 && abs(eta_2) < 2.1;
+
+        // HPS only available in data in the middle of 2018
+        if(isMC){
+            trg_crossele_ele24tau30 = trg_crossele_ele24tau30_HPS;
+        } else
+        {
+            trg_crossele_ele24tau30 = (trg_crossele_ele24tau30 && runID < 317509) || (trg_crossele_ele24tau30_HPS && runID >= 317509);
+        } 
 
     } else if ( channel == HTTAnalysis::TauTau )
     {
@@ -362,12 +388,12 @@ void EventWriter::fillScalefactors()
             x1_data = w->function("m_trgIsoMu20_desy_data")->getVal();
             x1_mc   = w->function("m_trgIsoMu20_desy_mc")->getVal();
         }
-        // if( std::abs(eta_2) < 2.1 )
-        // {
-        //     xTriggerSFLeg2 = tauTrigSFTight->getMuTauScaleFactor( pt_2 ,  eta_2 ,  phi_2 );
-        //     x2_data        = tauTrigSFTight->getMuTauEfficiencyData( pt_2 ,  eta_2 ,  phi_2 );
-        //     x2_mc          = tauTrigSFTight->getMuTauEfficiencyMC( pt_2 ,  eta_2 ,  phi_2 );
-        // }
+        if( std::abs(eta_2) < 2.1 )
+        {
+            xTriggerSFLeg2 = tauTrigSFTightMT->getTriggerScaleFactor( pt_2 ,  eta_2 ,  phi_2, decayMode_2 );
+            x2_mc          = tauTrigSFTightMT->getTriggerEfficiencyMC( pt_2 ,  eta_2 ,  phi_2, decayMode_2 );            
+            x2_data        = tauTrigSFTightMT->getTriggerEfficiencyData( pt_2 ,  eta_2 ,  phi_2, decayMode_2 );
+        }
 
         // idWeight_1  = w->function("m_id_kit_ratio")->getVal();
         // isoWeight_1 = w->function("m_iso_binned_kit_ratio")->getVal();
@@ -377,8 +403,8 @@ void EventWriter::fillScalefactors()
         // sf_trk = w->function("m_trk_ratio")->getVal(); // not needed anymore
 
         // sf_SingleOrCrossTrigger = (s1_data*(1 - x2_data ) + x1_data*x2_data ) / (s1_mc*(1 - x2_mc ) + x1_mc*x2_mc );
-        // if(pt_1 > 25) sf_SingleXorCrossTrigger = singleTriggerSFLeg1;
-        // else          sf_SingleXorCrossTrigger = xTriggerSFLeg1*xTriggerSFLeg2;
+        if(pt_1 > 25) sf_SingleXorCrossTrigger = singleTriggerSFLeg1;
+        else          sf_SingleXorCrossTrigger = xTriggerSFLeg1*xTriggerSFLeg2;
 
         sf_SingleTrigger = singleTriggerSFLeg1;
     }
@@ -398,12 +424,12 @@ void EventWriter::fillScalefactors()
             x1_data = w->function("e_trgEle24leg_desy_data")->getVal();
             x1_mc   = w->function("e_trgEle24leg_desy_mc")->getVal();
         }       
-        // if( std::abs(eta_2) < 2.1 )
-        // {
-        //     xTriggerSFLeg2 = tauTrigSFTight->getETauScaleFactor( pt_2 ,  eta_2 ,  phi_2 );
-        //     x2_data        = tauTrigSFTight->getETauEfficiencyData( pt_2 ,  eta_2 ,  phi_2 );
-        //     x2_mc          = tauTrigSFTight->getETauEfficiencyMC( pt_2 ,  eta_2 ,  phi_2 );
-        // }    
+        if( std::abs(eta_2) < 2.1 )
+        {
+            xTriggerSFLeg2 = tauTrigSFTightET->getTriggerScaleFactor( pt_2 ,  eta_2 ,  phi_2, decayMode_2 );
+            x2_mc          = tauTrigSFTightET->getTriggerEfficiencyMC( pt_2 ,  eta_2 ,  phi_2, decayMode_2 );            
+            x2_data        = tauTrigSFTightET->getTriggerEfficiencyData( pt_2 ,  eta_2 ,  phi_2, decayMode_2 );
+        }    
 
         // idWeight_1  = w->function("e_id90_kit_ratio")->getVal();
         // isoWeight_1 = w->function("e_iso_binned_kit_ratio")->getVal();
@@ -412,23 +438,17 @@ void EventWriter::fillScalefactors()
         // sf_trk = w->function("e_trk_ratio")->getVal();
         // sf_SingleOrCrossTrigger = (s1_data*(1 - x2_data ) + x1_data*x2_data ) / (s1_mc*(1 - x2_mc ) + x1_mc*x2_mc );
 
-        // if(pt_1 > 28) sf_SingleXorCrossTrigger = singleTriggerSFLeg1;
-        // else          sf_SingleXorCrossTrigger = xTriggerSFLeg1*xTriggerSFLeg2;
+        if(pt_1 > 33) sf_SingleXorCrossTrigger = singleTriggerSFLeg1;
+        else          sf_SingleXorCrossTrigger = xTriggerSFLeg1*xTriggerSFLeg2;
 
         sf_SingleTrigger = singleTriggerSFLeg1;
     }
 
     if( channel == HTTAnalysis::TauTau )
     {
-        // xTriggerSFLeg1 = tauTrigSFTight->getDiTauScaleFactor(  pt_1 ,  eta_1 ,  phi_1  );
-        // xTriggerSFLeg2 = tauTrigSFTight->getDiTauScaleFactor(  pt_2 ,  eta_2 ,  phi_2  );
-
-        // sf_DoubleTauTight = xTriggerSFLeg1*xTriggerSFLeg2;
-
-        // xTriggerSFLeg1 = tauTrigSFVTight->getDiTauScaleFactor(  pt_1 ,  eta_1 ,  phi_1  );
-        // xTriggerSFLeg2 = tauTrigSFVTight->getDiTauScaleFactor(  pt_2 ,  eta_2 ,  phi_2  );
-
-        // sf_DoubleTauVTight = xTriggerSFLeg1*xTriggerSFLeg2;
+        xTriggerSFLeg1 = tauTrigSFTightTT->getTriggerScaleFactor( pt_1 ,  eta_1 ,  phi_1, decayMode_1 );
+        xTriggerSFLeg2 = tauTrigSFTightTT->getTriggerScaleFactor( pt_2 ,  eta_2 ,  phi_2, decayMode_2 );
+        sf_DoubleTauTight = xTriggerSFLeg1 * xTriggerSFLeg2;
     }
 
 }
@@ -845,6 +865,65 @@ void EventWriter::fillAdditionalLeptons( std::vector<HTTParticle> leptons, HTTPa
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void EventWriter::fillMELA(HTTJetCollection *jets)
+{
+  if(jets->getNJets(30) < 2) return;
+
+  TLorentzVector tau1, tau2;
+  tau1 = leg1P4;
+  tau2 = leg2P4;
+
+  float ch_1,ch_2;
+  ch_1 = leg1.getCharge();
+  ch_2 = leg2.getCharge();
+
+  // Sanitize charge for application on same-sign events
+  if (ch_1 * ch_2 > 0) {
+    ch_2 = -ch_1;
+  }
+
+  TLorentzVector jet1, jet2;
+  jet1 = jets->getJet(0).P4();
+  jet2 = jets->getJet(1).P4();
+
+
+  // Run MELA
+  SimpleParticleCollection_t daughters;
+  daughters.push_back(SimpleParticle_t(15 * ch_1, tau1));
+  daughters.push_back(SimpleParticle_t(15 * ch_2, tau2));
+
+  SimpleParticleCollection_t associated;
+  associated.push_back(SimpleParticle_t(0, jet1));
+  associated.push_back(SimpleParticle_t(0, jet2));
+
+  SimpleParticleCollection_t associated2;
+  associated2.push_back(SimpleParticle_t(0, jet2));
+  associated2.push_back(SimpleParticle_t(0, jet1));
+
+  mela->resetInputEvent();
+  mela->setCandidateDecayMode(TVar::CandidateDecay_ff);
+  mela->setInputEvent(&daughters, &associated, (SimpleParticleCollection_t *)0, false);
+
+  // Hypothesis: SM Higgs
+  mela->setProcess(TVar::HSMHiggs, TVar::JHUGen, TVar::JJVBF);
+  mela->computeProdP(ME_vbf, false);
+  mela->computeVBFAngles(ME_q2v1, ME_q2v2, ME_costheta1, ME_costheta2, ME_phi, ME_costhetastar, ME_phi1);
+
+  // Hypothesis: Z + 2 jets
+  // Compute the Hypothesis with flipped jets and sum them up for the discriminator.
+  mela->setProcess(TVar::bkgZJets, TVar::MCFM, TVar::JJQCD);
+  mela->computeProdP(ME_z2j_1, false);
+
+  mela->resetInputEvent();
+  mela->setInputEvent(&daughters, &associated2, (SimpleParticleCollection_t *)0, false);
+  mela->computeProdP(ME_z2j_2, false);
+
+  // Compute discriminator
+  ME_D = ME_vbf / (ME_vbf + ME_z2j_1 + ME_z2j_2);
+
+}
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 double EventWriter::calcSphericity(std::vector<TLorentzVector> p){
 
   TMatrixD S(3,3);
@@ -1012,10 +1091,12 @@ void EventWriter::setDefault(){
     trg_singlemuon_27=DEFFLAG;
     trg_singlemuon_24=DEFFLAG;
     trg_crossmuon_mu20tau27=DEFFLAG;
+    trg_crossmuon_mu20tau27_HPS=DEFFLAG;
     trg_singleelectron_35=DEFFLAG;
     trg_singleelectron_32=DEFFLAG;
     trg_singleelectron_27=DEFFLAG;
     trg_crossele_ele24tau30=DEFFLAG;
+    trg_crossele_ele24tau30_HPS=DEFFLAG;
     trg_doubletau_40_tightiso=DEFFLAG;
     trg_doubletau_40_mediso_tightid=DEFFLAG;
     trg_doubletau_35_tightiso_tightid=DEFFLAG;
@@ -1168,6 +1249,18 @@ void EventWriter::setDefault(){
         bcsv_2[i]=DEF;
     }
     //////////////////////////////////////////////////////////////////
+    ME_vbf = DEF;
+    ME_q2v1 = DEF;
+    ME_q2v2 = DEF;
+    ME_costheta1 = DEF;
+    ME_costheta2 = DEF;
+    ME_phi = DEF;
+    ME_costhetastar = DEF;
+    ME_phi1 = DEF;
+    ME_z2j_1 = DEF;
+    ME_z2j_2 = DEF;
+    ME_D = DEF;
+    //////////////////////////////////////////////////////////////////  
     metcov00=DEF;
     metcov01=DEF;
     metcov10=DEF;
@@ -1281,9 +1374,14 @@ void EventWriter::initTree(TTree *t, vector< pair< string, pair<string,bool> > >
         btagShifts.push_back( make_pair( "BtagDown",   make_pair("central","down") ) );
     }
 
+    const int erg_tev = 13;
+    const float mPOLE = 125.6;
+    TVar::VerbosityLevel verbosity = TVar::SILENT;
+    mela = new Mela(erg_tev, mPOLE, verbosity);
 
-    tauTrigSFTight = new TauTriggerSFs2017("utils/TauTriggerSFs2017/data/tauTriggerEfficiencies2017_New.root", "utils/TauTriggerSFs2017/data/tauTriggerEfficiencies2017.root","tight","MVA");
-    tauTrigSFVTight = new TauTriggerSFs2017("utils/TauTriggerSFs2017/data/tauTriggerEfficiencies2017_New.root", "utils/TauTriggerSFs2017/data/tauTriggerEfficiencies2017.root","vtight","MVA");
+    tauTrigSFTightTT = new TauTriggerSFs2017("$CMSSW_BASE/src/TauAnalysisTools/TauTriggerSFs/data/tauTriggerEfficiencies2018.root", "ditau","2018","tight","MVAv2");
+    tauTrigSFTightMT = new TauTriggerSFs2017("$CMSSW_BASE/src/TauAnalysisTools/TauTriggerSFs/data/tauTriggerEfficiencies2018.root", "mutau","2018","tight","MVAv2");
+    tauTrigSFTightET = new TauTriggerSFs2017("$CMSSW_BASE/src/TauAnalysisTools/TauTriggerSFs/data/tauTriggerEfficiencies2018.root", "etau","2018","tight","MVAv2");
 
     TFile wsp("utils/CorrectionWorkspaces/htt_scalefactors_2018_v1.root");
     w = (RooWorkspace*)wsp.Get("w");
@@ -1417,6 +1515,19 @@ void EventWriter::initTree(TTree *t, vector< pair< string, pair<string,bool> > >
         t->Branch( ("bcsv_1"+btagShifts[shift].first).c_str(),  &bcsv_1[shift]);
         t->Branch( ("bcsv_2"+btagShifts[shift].first).c_str(),  &bcsv_2[shift]);
     }
+
+
+    t->Branch("ME_vbf", &ME_vbf);
+    t->Branch("ME_q2v1", &ME_q2v1);
+    t->Branch("ME_q2v2", &ME_q2v2);
+    t->Branch("ME_costheta1", &ME_costheta1);
+    t->Branch("ME_costheta2", &ME_costheta2);
+    t->Branch("ME_phi", &ME_phi);
+    t->Branch("ME_costhetastar", &ME_costhetastar);
+    t->Branch("ME_phi1", &ME_phi1);
+    t->Branch("ME_z2j_1", &ME_z2j_1);
+    t->Branch("ME_z2j_2", &ME_z2j_2);
+    t->Branch("ME_D", &ME_D);
 
     t->Branch("gen_Mll", &gen_Mll);
     t->Branch("genpX", &gen_ll_px);

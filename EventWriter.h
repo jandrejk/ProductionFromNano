@@ -1,3 +1,6 @@
+#ifndef __EventWriter__
+#define __EventWriter__
+
 #include "HTTEvent.h"
 #include "HTXSClassification.h"
 #include "TTree.h"
@@ -9,11 +12,10 @@
 #include "RooFunctor.h"
 #include "TFile.h"
 
-#include "utils/TauTriggerSFs2017/interface/TauTriggerSFs2017.h"
+#include "ZZMatrixElement/MELA/interface/Mela.h"
+#include "ZZMatrixElement/MELA/interface/TUtil.hh"
+#include "TauAnalysisTools/TauTriggerSFs/interface/TauTriggerSFs2017.h"
 
-
-#ifndef __EventWriter__
-#define __EventWriter__
 
 class EventWriter
 {
@@ -106,10 +108,12 @@ class EventWriter
   int trg_singlemuon_27;
   int trg_singlemuon_24;
   int trg_crossmuon_mu20tau27;
+  int trg_crossmuon_mu20tau27_HPS;
   int trg_singleelectron_35;
   int trg_singleelectron_32;
   int trg_singleelectron_27;
   int trg_crossele_ele24tau30;
+  int trg_crossele_ele24tau30_HPS;
   int trg_doubletau_40_tightiso;
   int trg_doubletau_40_mediso_tightid;
   int trg_doubletau_35_tightiso_tightid;
@@ -287,6 +291,19 @@ class EventWriter
   int htxs_reco_ggf[56];
   int htxs_reco_vbf[56];
   int htxs_stage1cat;
+
+  //////////////////////////////////////////////////////////////////
+  float ME_vbf;
+  float ME_q2v1;
+  float ME_q2v2;
+  float ME_costheta1;
+  float ME_costheta2;
+  float ME_phi;
+  float ME_costhetastar;
+  float ME_phi1;
+  float ME_z2j_1;
+  float ME_z2j_2;
+  float ME_D;
   //////////////////////////////////////////////////////////////////
   float eleTauFakeRateWeight;
   float muTauFakeRateWeight;
@@ -344,11 +361,12 @@ class EventWriter
   void fillLeg2Branches();
   void fillJetBranches(HTTJetCollection *jets);
   void fillPairBranches(HTTPair *pair, HTTJetCollection *jets);
+  void fillMELA(HTTJetCollection *jets);
   void fillAdditionalLeptons( std::vector<HTTParticle> leptons, HTTPair *pair);
 
   RooWorkspace *w;
-  TauTriggerSFs2017 *tauTrigSFTight;
-  TauTriggerSFs2017 *tauTrigSFVTight;
+  Mela *mela;
+  TauTriggerSFs2017 *tauTrigSFTightTT, *tauTrigSFTightMT, *tauTrigSFTightET;
   vector< pair< string, pair<string,bool> > > jecShifts;
   vector< string > metShifts;
   vector< pair< string, pair<string, string> > >  btagShifts;

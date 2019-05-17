@@ -208,7 +208,7 @@ void HTauTauTreeFromNanoBase::Loop(Long64_t nentries_max, unsigned int sync_even
     if (nentries_max>0 && nentries_max < nentries)
     {
         nentries_use=nentries_max;
-        check_event_number = 2038471; // Usefull event in mutau for debug in 2017
+        check_event_number = 1022143; // Usefull event in mutau for debug in 2018
     }
 
     Long64_t nbytes = 0, nb = 0;
@@ -240,9 +240,6 @@ void HTauTauTreeFromNanoBase::Loop(Long64_t nentries_max, unsigned int sync_even
         debugWayPoint("[Loop] best pair index", {}, {(int)bestPairIndex});
 
         hStats->Fill(0);//Number of events analyzed
-        // hStats->Fill(1,httEvent->getMCWeight());//Sum of weights
-
-        debugWayPoint("[Loop] passes global selection");
 
         bestPairIndex_ = bestPairIndex;
 
@@ -1272,7 +1269,7 @@ int HTauTauTreeFromNanoBase::getTriggerMatching(unsigned int index, TLorentzVect
     for(unsigned int iTrg=0; iTrg<triggerBits_.size(); ++iTrg)
     {
         bool decision = false;
-        if(checkBit) debugWayPoint("[getTriggerMatching] " + triggerBits_[iTrg].path_name);
+        if(checkBit) debugWayPoint("[getTriggerMatching] Try " + triggerBits_[iTrg].path_name);
         if (p4_1.Pt()<triggerBits_[iTrg].leg1OfflinePt) continue;
 
         //check if trigger is fired
@@ -1290,10 +1287,11 @@ int HTauTauTreeFromNanoBase::getTriggerMatching(unsigned int index, TLorentzVect
         decision = false;
         if(particleId==triggerBits_[iTrg].leg1Id)
         {
+            TLorentzVector p4_trg;
             for(unsigned int iObj=0; iObj<nTrigObj; ++iObj)
             {
                 if(TrigObj_id[iObj]!=(int)particleId) continue;
-                TLorentzVector p4_trg;
+
                 p4_trg.SetPtEtaPhiM(TrigObj_pt[iObj],
                                     TrigObj_eta[iObj],
                                     TrigObj_phi[iObj],
@@ -1308,10 +1306,9 @@ int HTauTauTreeFromNanoBase::getTriggerMatching(unsigned int index, TLorentzVect
                 if( triggerBits_[iTrg].leg1Pt>0   && !( TrigObj_pt[iObj]            > triggerBits_[iTrg].leg1Pt) ) continue;
                 if( triggerBits_[iTrg].leg1Eta>0  && !( std::abs(TrigObj_eta[iObj]) < triggerBits_[iTrg].leg1Eta) ) continue;
                 if( triggerBits_[iTrg].leg1L1Pt>0 && !( TrigObj_l1pt[iObj]          > triggerBits_[iTrg].leg1L1Pt) ) continue;
-                if(checkBit) debugWayPoint("[getTriggerMatching] object passes l1pt cut",{(double)triggerBits_[iTrg].leg1L1Pt, (double)TrigObj_l1pt[iObj] },{},{"cut","l1pt"});
 
                 if( checkBit && !( ((int)TrigObj_filterBits[iObj] & triggerBits_[iTrg].leg1BitMask)==triggerBits_[iTrg].leg1BitMask) ) continue;
-                if(checkBit) debugWayPoint("[getTriggerMatching] passes filter");
+                if(checkBit) debugWayPoint("[getTriggerMatching] passes filter - accept lepton");
                 decision = true;
                 // break;
             }
@@ -1325,10 +1322,10 @@ int HTauTauTreeFromNanoBase::getTriggerMatching(unsigned int index, TLorentzVect
         decision = false;
         if(particleId==triggerBits_[iTrg].leg2Id)
         {
+            TLorentzVector p4_trg;
             for(unsigned int iObj=0; iObj<nTrigObj; ++iObj)
             {
                 if(TrigObj_id[iObj]!=(int)particleId) continue;
-                TLorentzVector p4_trg;
                 p4_trg.SetPtEtaPhiM(TrigObj_pt[iObj],
                                     TrigObj_eta[iObj],
                                     TrigObj_phi[iObj],
@@ -1340,6 +1337,7 @@ int HTauTauTreeFromNanoBase::getTriggerMatching(unsigned int index, TLorentzVect
                 if( triggerBits_[iTrg].leg2L1Pt>0 && !( TrigObj_l1pt[iObj]          > triggerBits_[iTrg].leg2L1Pt) ) continue;
 
                 if( checkBit && !( ((int)TrigObj_filterBits[iObj] & triggerBits_[iTrg].leg2BitMask)==triggerBits_[iTrg].leg2BitMask) ) continue;
+                if(checkBit) debugWayPoint("[getTriggerMatching] passes filter - accept lepton");
                 decision = true;
                 break;
             }
