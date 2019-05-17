@@ -32,6 +32,7 @@ git clone https://github.com/jandrejk/ProductionFromNano.git WawTools/NanoAODToo
 git clone https://github.com/cms-analysis/HiggsAnalysis-ZZMatrixElement ZZMatrixElement -b v2.2.0
 cd ZZMatrixElement/
 bash setup.sh -j 1
+cd ..
 cat FWCore/MessageLogger/interface/MessageDrop.h | sed s#CMS_THREAD_SAFE##g > FWCore/MessageLogger/interface/MessageDrop.h2
 mv FWCore/MessageLogger/interface/MessageDrop.h2 FWCore/MessageLogger/interface/MessageDrop.h 
 # compile
