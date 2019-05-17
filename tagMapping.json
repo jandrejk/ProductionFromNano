@@ -181,6 +181,13 @@
         "putag": "DYJetsToLL_M-50_TuneCP5_13TeV-madgraphMLM-pythia8", 
         "xsec": 365.35
     }, 
+    "VBFHToTauTau_M125_13TeV_powheg_pythia8_102X_upgrade2018_realistic_v15_ext1_v1": {
+        "fromDAS": "False", 
+        "nevents": 3000000, 
+        "nevents_from_DAS": 3000000, 
+        "putag": "DYJetsToLL_M-50_TuneCP5_13TeV-madgraphMLM-pythia8", 
+        "xsec": 0.23720704
+    }, 
     "W1JetsToLNu_TuneCP5_13TeV_madgraphMLM_pythia8_102X_upgrade2018_realistic_v15_v2": {
         "fromDAS": "False", 
         "nevents": 51082776, 
