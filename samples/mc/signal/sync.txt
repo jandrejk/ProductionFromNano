@@ -1,1 +1,0 @@
-/afs/hephy.at/work/j/jandrejkovic/ProductionfromNano/CMSSW_10_2_10/src/WawTools/NanoAODTools/F9_2016_VBF.root
