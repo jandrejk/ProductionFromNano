@@ -292,13 +292,13 @@ void HTTJetCollection::initForPromoteDemote()
 {
   usePromoteDemote = true;
   //FIXME new csv file needs to be added here
-  calib = BTagCalibration("deepCSV", "utils/BTagCalibration/data/DeepCSV_94XSF_V3_B_F.csv");
+  calib = BTagCalibration("deepCSV", "utils/BTagCalibration/data/CSVv2_Moriond17_B_H.csv");
   reader = BTagCalibrationReader(BTagEntry::OP_MEDIUM, "central",{"up","down"});
   reader.load(calib,  BTagEntry::FLAV_B, "comb");
   reader.load(calib,  BTagEntry::FLAV_C, "comb");
   reader.load(calib,  BTagEntry::FLAV_UDSG, "incl");
 
-  eff_file = new TFile("utils/BTagCalibration/data/tagging_efficiencies_march2018_btageff-all_samp-inc-DeepCSV_medium.root");
+  eff_file = new TFile("utils/BTagCalibration/data/tagging_efficiencies_ichep2016.root");
   hb_eff = dynamic_cast<TH2D*>(eff_file->Get("btag_eff_b") );
   hc_eff = dynamic_cast<TH2D*>(eff_file->Get("btag_eff_c") );
   hoth_eff = dynamic_cast<TH2D*>(eff_file->Get("btag_eff_oth") );
