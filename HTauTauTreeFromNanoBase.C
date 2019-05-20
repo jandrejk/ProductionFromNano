@@ -53,7 +53,7 @@ HTauTauTreeFromNanoBase::HTauTauTreeFromNanoBase(TTree *tree, std::vector<edm::L
     {
         std::cout<<"[HTauTauTreeFromNanoBase]: Apply MET recoil corrections"<<std::endl;
         // Janik: here the path to the root file used for recoil corrections
-        std::string correctionFile = "HTT-utilities/RecoilCorrections/data/TypeI-PFMet_Run2018.root"; // Type I PF MET 2018
+        std::string correctionFile = "HTT-utilities/RecoilCorrections/data/TypeI-PFMet_Run2016BtoH.root"; // Type I PF MET 2018
         recoilCorrector_= std::unique_ptr<RecoilCorrector>( new RecoilCorrector(correctionFile) );
         metSys_         = std::unique_ptr<MEtSys>( new MEtSys("HTT-utilities/RecoilCorrections/data/MEtSys.root") );
 
@@ -64,7 +64,7 @@ HTauTauTreeFromNanoBase::HTauTauTreeFromNanoBase(TTree *tree, std::vector<edm::L
     }
 
     ///Get files with weights
-    zPtReweightFile = std::unique_ptr<TFile>( new TFile("utils/zptweight/zpt_weights_2017.root") );  
+    zPtReweightFile = std::unique_ptr<TFile>( new TFile("utils/zptweight/zpt_weights_2016_BtoH.root") );  
     if(!zPtReweightFile) std::cout<<"Z pt reweight file zpt_weights.root is missing."<<std::endl;
     zptmass_histo = (TH2D*)zPtReweightFile->Get("zptmass_histo");
 
@@ -78,7 +78,7 @@ HTauTauTreeFromNanoBase::HTauTauTreeFromNanoBase(TTree *tree, std::vector<edm::L
     {
         ///https://twiki.cern.ch/twiki/bin/viewauth/CMS/JECDataMC
         std::cout<<"[HTauTauTreeFromNanoBase]: Instantiate JEC uncertainty sources"<<std::endl;
-        initJecUnc("utils/jec_uncert/Autumn18_V3_MC_UncertaintySources_AK4PFchs.txt");
+        initJecUnc("utils/jec_uncert/Summer16_23Sep2016V4_MC_UncertaintySources_AK4PFchs.txt");
         
         std::cout<<"[HTauTauTreeFromNanoBase]: Load files and init for promote-demote"<<std::endl;
         httJetCollection.initForPromoteDemote();
