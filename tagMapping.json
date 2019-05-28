@@ -297,5 +297,11 @@
         "nevents_from_DAS": 1342976, 
         "putag": "pileup", 
         "xsec": 0.23720704
+    },
+    "VBFHToTauTau_M125_13TeV_powheg_pythia8_RunIIAutumn18NanoAOD_14Dec2018": {
+        "nevents": 1342976, 
+        "nevents_from_DAS": 1342976, 
+        "putag": "pileup", 
+        "xsec": 0.23720704
     }
 }
