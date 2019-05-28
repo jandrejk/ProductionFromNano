@@ -291,5 +291,11 @@
         "nevents_from_DAS": 3000000, 
         "putag": "pileup", 
         "xsec": 0.23720704
+    },
+    "sync_2016": {
+        "nevents": 1342976, 
+        "nevents_from_DAS": 1342976, 
+        "putag": "pileup", 
+        "xsec": 0.23720704
     }
 }

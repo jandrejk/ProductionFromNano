@@ -83,6 +83,14 @@ class EventWriter
   float sf_DoubleTauTight;
   float sf_DoubleTauVTight;
 
+  float trk_sf;
+  float trigweight_1;
+  float trigweight_2;
+  float trigweightVTight_1;
+  float trigweightVTight_2;      
+
+
+
   float stitchedWeight;
   float topPtReweightWeightRun1;
   float topPtReweightWeightRun2;
@@ -101,20 +109,31 @@ class EventWriter
   float gen_top_pt_2;
   int genJets;
   //////////////////////////////////////////////////////////////////  
-  int trg_singletau_leading;
-  int trg_singletau_trailing;
-  int trg_singlemuon_27;
-  int trg_singlemuon_24;
-  int trg_crossmuon_mu20tau27;
-  int trg_singleelectron_35;
-  int trg_singleelectron_32;
-  int trg_singleelectron_27;
-  int trg_crossele_ele24tau30;
-  int trg_doubletau_40_tightiso;
-  int trg_doubletau_40_mediso_tightid;
-  int trg_doubletau_35_tightiso_tightid;
-  int trg_doubletau_35_mediso_HPS;
-  int trg_doubletau;
+  int trg_singlemuon_22;
+  int trg_singlemuon_22_eta2p1;
+  int trg_singlemuonTk_22;
+  int trg_singlemuonTk_22_eta2p1;
+  int trg_crossmuon_mu19tau20;
+  int trg_crossmuon_mu19tau20_singleL1;
+  int trg_singleelectron_25_eta2p1;
+  int trg_doubletau_35_mediso_eta2p1;
+  int trg_doubletau_35_medCombiso_eta2p1;
+
+  // int trg_singletau_leading;
+  // int trg_singletau_trailing;
+  // int trg_singlemuon_27;
+  // int trg_singlemuon_24;
+  // int trg_crossmuon_mu20tau27;
+  // int trg_singleelectron_35;
+  // int trg_singleelectron_32;
+  // int trg_singleelectron_27;
+  // int trg_crossele_ele24tau30;
+  // int trg_doubletau_40_tightiso;
+  // int trg_doubletau_40_mediso_tightid;
+  // int trg_doubletau_35_tightiso_tightid;
+  // int trg_doubletau_35_mediso_HPS;
+  // int trg_doubletau;
+
 
   int flagMETFilter;
   int Flag_METFilters;

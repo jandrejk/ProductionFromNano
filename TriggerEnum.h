@@ -87,7 +87,7 @@ vector<TriggerData>  getTriggerSettings(){
     triggerBits_.back().path_name="HLT_IsoMu19_eta2p1_LooseIsoPFTau20";
     triggerBits_.back().leg1Id=13;
     // triggerBits_.back().leg1BitMask=(1<<1) + (1<<2); //iso+OL (overlap)
-    triggerBits_.back().leg1BitMask=0:
+    triggerBits_.back().leg1BitMask=0;
     triggerBits_.back().leg2Id=15;
     // triggerBits_.back().leg2BitMask=(1<<0) + (1<<5); //looseIso+OL
     triggerBits_.back().leg2BitMask=0;

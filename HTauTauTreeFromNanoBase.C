@@ -81,7 +81,7 @@ HTauTauTreeFromNanoBase::HTauTauTreeFromNanoBase(TTree *tree, std::vector<edm::L
         initJecUnc("utils/jec_uncert/Summer16_23Sep2016V4_MC_UncertaintySources_AK4PFchs.txt");
         
         std::cout<<"[HTauTauTreeFromNanoBase]: Load files and init for promote-demote"<<std::endl;
-        httJetCollection.initForPromoteDemote();
+        // httJetCollection.initForPromoteDemote();
     }
 
     if(httEvent->getSampleType() == HTTEvent::h)
@@ -233,14 +233,17 @@ void HTauTauTreeFromNanoBase::Loop(Long64_t nentries_max, unsigned int sync_even
             perc = jentry > 0 ? (float)jentry/(float)nentries : 0.0;
             std::cout<<"Processing "<<jentry<<"th event  "<< perc << "%" <<std::endl;
         }
-
+        // std::cout<<"!eventInJson"<<!eventInJson()<<std::endl;
         if( !eventInJson() ) continue;
+        // std::cout<<"bla"<<std::endl;
         debugWayPoint("[Loop] passes json");
         unsigned int bestPairIndex = Cut(ientry);
+        // std::cout<<"bla1"<<std::endl;
         debugWayPoint("[Loop] best pair index", {}, {(int)bestPairIndex});
 
         hStats->Fill(0);//Number of events analyzed
-        // hStats->Fill(1,httEvent->getMCWeight());//Sum of weights
+        // std::cout<<"bla2"<<std::endl;
+                // hStats->Fill(1,httEvent->getMCWeight());//Sum of weights
 
         debugWayPoint("[Loop] passes global selection");
 
@@ -249,25 +252,27 @@ void HTauTauTreeFromNanoBase::Loop(Long64_t nentries_max, unsigned int sync_even
         if(bestPairIndex<9999)
         {
             //std::cout<<"jentry "<<jentry<<std::endl;
+            // std::cout<<"bla3"<<std::endl;
         
             debugWayPoint("[Loop] good pair index found");
 
             ///Call pairSelection again to set selection bits for the selected pair.
             pairSelection(bestPairIndex);
-
+            // std::cout<<"bla4"<<!httEvent->checkSelectionBit(SelectionBitsEnum::antiLeptonId)<<std::endl;
+        
             // Throw away a lot of events if not producing sync ntuples.
             if(!isSync && !httEvent->checkSelectionBit(SelectionBitsEnum::antiLeptonId) ) continue;
 
             fillJets(bestPairIndex);
-            //std::cout<<"1"<<std::endl;
+            // std::cout<<"1"<<std::endl;
             fillGenLeptons();
-            //std::cout<<"1"<<std::endl;
+            // std::cout<<"2"<<std::endl;
             fillPairs(bestPairIndex);
-            //std::cout<<"1"<<std::endl;
+            // std::cout<<"3"<<std::endl;
             fillEvent(bestPairIndex);
             HTTPair & bestPair = httPairCollection[0];
             applyMetRecoilCorrections(bestPair); // Adds met to pair 
-            //std::cout<<"1"<<std::endl;
+            // std::cout<<"4"<<std::endl;
             
             if( !httEvent->checkSelectionBit(SelectionBitsEnum::thirdLeptonVeto)
                 && !httEvent->checkSelectionBit(SelectionBitsEnum::diLeptonVeto)
@@ -469,17 +474,18 @@ void HTauTauTreeFromNanoBase::fillEvent(unsigned int bestPairIndex)
         httEvent->setTopPtReWeight(topPtReWeight);
         httEvent->setTopPtReWeightR1(topPtReWeight_r1);
         /////////////////////////////////////////////////////////////////////////////////////////////////////
-        if(nnlo_ggh_graphs && HTXS_njets30)
-        {
-            httEvent->setStage1Cat( HTXS_stage_1_pTjet30 );
-            if      (HTXS_njets30==0)      httEvent->setNNLO_ggH_weight( NNLOPSratio_pt_powheg_0jet->Eval( HTXS_Higgs_pt > 125.0 ? 125.0 : HTXS_Higgs_pt ) );
-            else if (HTXS_njets30==1)      httEvent->setNNLO_ggH_weight( NNLOPSratio_pt_powheg_1jet->Eval( HTXS_Higgs_pt > 625.0 ? 625.0 : HTXS_Higgs_pt ) );
-            else if (HTXS_njets30==2)      httEvent->setNNLO_ggH_weight( NNLOPSratio_pt_powheg_2jet->Eval( HTXS_Higgs_pt > 800.0 ? 800.0 : HTXS_Higgs_pt ) );
-            else if (HTXS_njets30>=3)      httEvent->setNNLO_ggH_weight( NNLOPSratio_pt_powheg_3jet->Eval( HTXS_Higgs_pt > 925.0 ? 925.0 : HTXS_Higgs_pt ) );
-            else                               httEvent->setNNLO_ggH_weight( 1.0 );
+        // FIXME: commented out since there are no STXS inside 102X central nanoAOD
+        // if(nnlo_ggh_graphs && HTXS_njets30)
+        // {
+        //     httEvent->setStage1Cat( HTXS_stage_1_pTjet30 );
+        //     if      (HTXS_njets30==0)      httEvent->setNNLO_ggH_weight( NNLOPSratio_pt_powheg_0jet->Eval( HTXS_Higgs_pt > 125.0 ? 125.0 : HTXS_Higgs_pt ) );
+        //     else if (HTXS_njets30==1)      httEvent->setNNLO_ggH_weight( NNLOPSratio_pt_powheg_1jet->Eval( HTXS_Higgs_pt > 625.0 ? 625.0 : HTXS_Higgs_pt ) );
+        //     else if (HTXS_njets30==2)      httEvent->setNNLO_ggH_weight( NNLOPSratio_pt_powheg_2jet->Eval( HTXS_Higgs_pt > 800.0 ? 800.0 : HTXS_Higgs_pt ) );
+        //     else if (HTXS_njets30>=3)      httEvent->setNNLO_ggH_weight( NNLOPSratio_pt_powheg_3jet->Eval( HTXS_Higgs_pt > 925.0 ? 925.0 : HTXS_Higgs_pt ) );
+        //     else                               httEvent->setNNLO_ggH_weight( 1.0 );
 
-            httEvent->setTHU_uncertainties(HTXS_njets30, HTXS_Higgs_pt, HTXS_stage_1_pTjet30);
-        }
+        //     httEvent->setTHU_uncertainties(HTXS_njets30, HTXS_Higgs_pt, HTXS_stage_1_pTjet30);
+        // }
     }
 
 }
@@ -530,6 +536,7 @@ map<string,double> HTauTauTreeFromNanoBase::getValuesAfterJecSplitting(unsigned 
 bool HTauTauTreeFromNanoBase::jetSelection(unsigned int index, unsigned int bestPairIndex)
 {
 
+    // std::cout<<"jetSelection"<<std::endl;
     TLorentzVector aP4;
     aP4.SetPtEtaPhiM(Jet_pt[index],
                      Jet_eta[index],
@@ -538,14 +545,17 @@ bool HTauTauTreeFromNanoBase::jetSelection(unsigned int index, unsigned int best
 
     bool passSelection = std::abs(aP4.Eta())<4.7
                          && Jet_jetId[index]>=1;//it means at least loose
+    // std::cout<<"passSelection"<<std::endl;
    
     if(bestPairIndex<9999)
     {
+        // std::cout<<"bestPairIndex"<<std::endl;
         TLorentzVector leg1P4 = httPairs_[bestPairIndex].getLeg1().getP4();
         TLorentzVector leg2P4 = httPairs_[bestPairIndex].getLeg2().getP4();
 
         passSelection &= aP4.DeltaR(leg1P4) > 0.5
                          && aP4.DeltaR(leg2P4) > 0.5;
+        // std::cout<<"passSelection   "<<passSelection<<std::endl;                 
     }
 
     //if( 2.65 < std::abs( aP4.Eta() ) && std::abs( aP4.Eta() ) <  3.139 && aP4.Pt() < 50) return false; // removal of jets from EE noise
@@ -558,11 +568,12 @@ void HTauTauTreeFromNanoBase::fillJets(unsigned int bestPairIndex)
 
     debugWayPoint("[fillJets] ------ Begin -------");
     httJetCollection.clear();
-
+    // std::cout<<"filljets"<<std::endl;
     for(unsigned int iJet=0;iJet<nJet;++iJet)
     {
-
+        // std::cout<<"filljets1"<<std::endl;
         if(!jetSelection(iJet, bestPairIndex)) continue;
+        // std::cout<<"filljet2"<<std::endl;
         debugWayPoint("[fillJets] passing jet selection",{(double)Jet_pt[iJet], (double)Jet_eta[iJet]},{},{"pt","eta"});
 
 
@@ -575,17 +586,24 @@ void HTauTauTreeFromNanoBase::fillJets(unsigned int bestPairIndex)
 
         ///JEC uncertaintes
         aJet.setJecUncertValues( getValuesAfterJecSplitting(iJet) );
+        // std::cout<<"aJet.setJecUncertValues( getValuesAfterJecSplitting(iJet) );"<<std::endl;
 
         std::vector<Double_t> aProperties = getProperties(leptonPropertiesList, iJet, aJet.P4(), "Jet");
+        // std::cout<<"std::vector<Double_t> aProperties = getProperties(leptonPropertiesList, iJet, aJet.P4(), Jet);"<<std::endl;
         ///Set jet PDG id by hand
         aProperties[(unsigned int)PropertyEnum::pdgId] = 98.0;
+        // std::cout<<"aProperties[(unsigned int)PropertyEnum::pdgId] = 98.0;"<<std::endl;
 
         aJet.setProperties(aProperties);
+        // std::cout<<"aJet.setProperties(aProperties);"<<std::endl;
         httJetCollection.addJet(aJet);
+        // std::cout<<"httJetCollection.addJet(aJet);"<<std::endl;
         
     }
+    // std::cout<<"end for loop"<<std::endl;
     //Set Jet collection to unshifted jets
     httJetCollection.fillCurrentCollections();
+    // std::cout<<"httJetCollection.fillCurrentCollections();"<<std::endl;
 
 }
 int HTauTauTreeFromNanoBase::muonSelection(HTTParticle aLepton)
