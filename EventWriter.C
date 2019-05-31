@@ -333,70 +333,78 @@ void EventWriter::fillScalefactors()
         w->var("m_pt")->setVal(  pt_1  );
         w->var("m_eta")->setVal( eta_1 );
         
-        w->var("t_pt")->setVal(  pt_2  );
-        w->var("t_eta")->setVal( eta_2 );
-        w->var("t_dm")->setVal( decayMode_2 );
+        // w->var("t_pt")->setVal(  pt_2  );
+        // w->var("t_eta")->setVal( eta_2 );
+        // w->var("t_dm")->setVal( decayMode_2 );
         
-        idisoweight_1 = w->function("m_idiso0p15_desy_ratio")->getVal();
+        idisoweight_1 = w->function("m_idiso_desy_ratio")->getVal();
 
         if(pt_1 > 23){
-            trigweight_1 = w->function("m_trgMu22OR_eta2p1_desy_ratio")->getVal();
+            trigweight_1 = w->function("m_trgIsoMu22_desy_ratio")->getVal();
         }
-        else if(pt_1 < 23){
-            trigweight_1 = w->function("m_trgMu19leg_eta2p1_desy_ratio")->getVal();
-            trigweight_2 = w->function("t_genuine_TightIso_mt_ratio")->getVal();
-        }
+        // else if(pt_1 < 23){
+        //     trigweight_1 = w->function("m_trgMu19leg_eta2p1_desy_ratio")->getVal();
+        //     trigweight_2 = w->function("t_genuine_TightIso_mt_ratio")->getVal();
+        // }
         
         trk_sf =  w->function("m_trk_ratio")->getVal();
-        
+        sf_SingleTrigger = trigweight_1
     }
 
     if( channel == HTTAnalysis::EleTau )
     {
-        // w->var("e_pt")->setVal(  pt_1  );
-        // w->var("e_eta")->setVal( eta_1 );
-        // // w->var("e_iso")->setVal( iso_1 ); 
 
-        // singleTriggerSFLeg1 = w->function("e_trgEle32orEle35_desy_ratio")->getVal();
-        // s1_data = w->function("e_trgEle32orEle35_desy_data")->getVal();
-        // s1_mc   = w->function("e_trgEle32orEle35_desy_mc")->getVal();
-        // if( std::abs(eta_1) < 2.1 )
-        // {
-        //     xTriggerSFLeg1 = w->function("e_trgEle24leg_desy_ratio")->getVal();
-        //     x1_data = w->function("e_trgEle24leg_desy_data")->getVal();
-        //     x1_mc   = w->function("e_trgEle24leg_desy_mc")->getVal();
-        // }       
-        // // if( std::abs(eta_2) < 2.1 )
-        // // {
-        // //     xTriggerSFLeg2 = tauTrigSFTight->getETauScaleFactor( pt_2 ,  eta_2 ,  phi_2 );
-        // //     x2_data        = tauTrigSFTight->getETauEfficiencyData( pt_2 ,  eta_2 ,  phi_2 );
-        // //     x2_mc          = tauTrigSFTight->getETauEfficiencyMC( pt_2 ,  eta_2 ,  phi_2 );
-        // // }    
+        w->var("e_pt")->setVal(  pt_1  );
+        w->var("e_eta")->setVal( eta_1 );
 
-        // // idWeight_1  = w->function("e_id90_kit_ratio")->getVal();
-        // // isoWeight_1 = w->function("e_iso_binned_kit_ratio")->getVal();
-        // idisoweight_1 = w->function("e_idiso_desy_ratio")->getVal();
+
+        idisoweight_1 = w->function("e_idiso_desy_ratio")->getVal();
+
+        if( std::abs(eta_2) < 2.1 ){
+            trigweight_1 = w->function("e_trgEle25leg_desy_ratio")->getVal();
+        }
+       
+
+        trk_sf = w->function("e_trk_ratio")->getVal();
         
-        // // sf_trk = w->function("e_trk_ratio")->getVal();
-        // // sf_SingleOrCrossTrigger = (s1_data*(1 - x2_data ) + x1_data*x2_data ) / (s1_mc*(1 - x2_mc ) + x1_mc*x2_mc );
 
-        // // if(pt_1 > 28) sf_SingleXorCrossTrigger = singleTriggerSFLeg1;
-        // // else          sf_SingleXorCrossTrigger = xTriggerSFLeg1*xTriggerSFLeg2;
-
-        // sf_SingleTrigger = singleTriggerSFLeg1;
+        sf_SingleTrigger = trigweight_1;
     }
 
     if( channel == HTTAnalysis::TauTau )
     {
-        // xTriggerSFLeg1 = tauTrigSFTight->getDiTauScaleFactor(  pt_1 ,  eta_1 ,  phi_1  );
-        // xTriggerSFLeg2 = tauTrigSFTight->getDiTauScaleFactor(  pt_2 ,  eta_2 ,  phi_2  );
 
-        // sf_DoubleTauTight = xTriggerSFLeg1*xTriggerSFLeg2;
 
-        // xTriggerSFLeg1 = tauTrigSFVTight->getDiTauScaleFactor(  pt_1 ,  eta_1 ,  phi_1  );
-        // xTriggerSFLeg2 = tauTrigSFVTight->getDiTauScaleFactor(  pt_2 ,  eta_2 ,  phi_2  );
 
-        // sf_DoubleTauVTight = xTriggerSFLeg1*xTriggerSFLeg2;
+        w->var("t_pt")->setVal( pt_1 );
+        w->var("t_eta")->setVal( eta_1 );
+        w->var("t_dm")->setVal( decayMode_1 );
+
+        if( gen_match_1 == 5){
+            trigweight_1 = w->function("t_genuine_TightIso_tt_ratio")->getVal();
+            trigweightVTight_1 = w->function("t_genuine_VTightIso_tt_ratio")->getVal();
+        }
+        else{
+          trigweight_1 = w->function("t_fake_TightIso_tt_ratio")->getVal();
+          trigweightVTight_1 = w->function("t_fake_VTightIso_tt_ratio")->getVal();
+        }
+
+         w->var("t_pt")->setVal( pt_2 );
+        w->var("t_eta")->setVal( eta_2 );
+        w->var("t_dm")->setVal( decayMode_2 );
+        
+        if(gen_match_2 == 5){
+            trigweight_2 = w->function("t_genuine_TightIso_tt_ratio")->getVal();
+            trigweightVTight_2 = w->function("t_genuine_VTightIso_tt_ratio")->getVal();
+        }
+        else{
+            trigweight_2 = w->function("t_fake_TightIso_tt_ratio")->getVal();
+            trigweightVTight_2 = w->function("t_fake_VTightIso_tt_ratio")->getVal();
+        }
+
+      
+        sf_DoubleTauVTight = trigweight_1 * trigweight_2
+
     }
 
 }
@@ -1256,7 +1264,7 @@ void EventWriter::initTree(TTree *t, vector< pair< string, pair<string,bool> > >
     // tauTrigSFTight = new TauTriggerSFs2017("utils/TauTriggerSFs2017/data/tauTriggerEfficiencies2017_New.root", "utils/TauTriggerSFs2017/data/tauTriggerEfficiencies2017.root","tight","MVA");
     // tauTrigSFVTight = new TauTriggerSFs2017("utils/TauTriggerSFs2017/data/tauTriggerEfficiencies2017_New.root", "utils/TauTriggerSFs2017/data/tauTriggerEfficiencies2017.root","vtight","MVA");
 
-    TFile wsp("utils/CorrectionWorkspaces/htt_scalefactors_sm_moriond_v2.root");
+    TFile wsp("utils/CorrectionWorkspaces/htt_scalefactors_2016_v2.root");
     w = (RooWorkspace*)wsp.Get("w");
 
 
