@@ -53,7 +53,7 @@ HTauTauTreeFromNanoBase::HTauTauTreeFromNanoBase(TTree *tree, std::vector<edm::L
     {
         std::cout<<"[HTauTauTreeFromNanoBase]: Apply MET recoil corrections"<<std::endl;
         // Janik: here the path to the root file used for recoil corrections
-        std::string correctionFile = "HTT-utilities/RecoilCorrections/data/TypeI-PFMet_Run2016BtoH.root"; // Type I PF MET 2018
+        std::string correctionFile = "HTT-utilities/RecoilCorrections/data/TypeI-PFMet_Run2016_legacy.root"; // Type I PF MET 2016 from Alexei (anounced: 28 May 2019 16:03)
         recoilCorrector_= std::unique_ptr<RecoilCorrector>( new RecoilCorrector(correctionFile) );
         metSys_         = std::unique_ptr<MEtSys>( new MEtSys("HTT-utilities/RecoilCorrections/data/MEtSys.root") );
 
