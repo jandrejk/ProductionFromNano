@@ -109,6 +109,9 @@ class EventWriter
   float gen_top_pt_2;
   int genJets;
   //////////////////////////////////////////////////////////////////  
+  int trg_singlemu_22;
+  int trg_crossmu_mu19tau20;
+  int trg_doubletau_35;
   int trg_singlemuon_22;
   int trg_singlemuon_22_eta2p1;
   int trg_singlemuonTk_22;

@@ -111,6 +111,7 @@ void EventWriter::fill(HTTEvent *ev, HTTJetCollection *jets, std::vector<HTTPart
         trg_singlemuonTk_22        = leg1.hasTriggerMatch(TriggerEnum::HLT_IsoTkMu22) && pt_1 > 23;
         trg_singlemuonTk_22_eta2p1 = leg1.hasTriggerMatch(TriggerEnum::HLT_IsoTkMu22_eta2p1) && pt_1 > 23;
 
+        trg_singlemu_22 = trg_singlemuon_22 || trg_singlemuon_22_eta2p1 || trg_singlemuonTk_22 || trg_singlemuonTk_22_eta2p1;
         
         trg_crossmuon_mu19tau20 =  leg1.hasTriggerMatch(TriggerEnum::HLT_IsoMu19_eta2p1_LooseIsoPFTau20) 
                                   && leg2.hasTriggerMatch(TriggerEnum::HLT_IsoMu19_eta2p1_LooseIsoPFTau20)
@@ -122,6 +123,7 @@ void EventWriter::fill(HTTEvent *ev, HTTJetCollection *jets, std::vector<HTTPart
                                             && pt_1 > 20 && pt_2 > 32
                                             && abs(eta_1) < 2.1 && abs(eta_2) < 2.1;
 
+        trg_crossmu_mu19tau20 = trg_crossmuon_mu19tau20 || trg_crossmuon_mu19tau20_singleL1;
 
     }else if ( channel == HTTAnalysis::EleTau )
     {
@@ -132,6 +134,7 @@ void EventWriter::fill(HTTEvent *ev, HTTJetCollection *jets, std::vector<HTTPart
         trg_doubletau_35_mediso_eta2p1 = ( leg1.hasTriggerMatch(TriggerEnum::HLT_DoubleMediumIsoPFTau35_Trk1_eta2p1_Reg) && leg2.hasTriggerMatch(TriggerEnum::HLT_DoubleMediumIsoPFTau35_Trk1_eta2p1_Reg) ) && pt_1 > 40 && pt_2 > 40;
         
         trg_doubletau_35_medCombiso_eta2p1 = ( leg1.hasTriggerMatch(TriggerEnum::HLT_DoubleMediumCombinedIsoPFTau35_Trk1_eta2p1_Reg) && leg2.hasTriggerMatch(TriggerEnum::HLT_DoubleMediumCombinedIsoPFTau35_Trk1_eta2p1_Reg) ) && pt_1 > 40 && pt_2 > 40;
+        trg_doubletau_35 = trg_doubletau_35_mediso_eta2p1 || trg_doubletau_35_medCombiso_eta2p1;
     }
     
     TLorentzVector ll=ev->getGenBosonP4(false);
@@ -348,7 +351,7 @@ void EventWriter::fillScalefactors()
         // }
         
         trk_sf =  w->function("m_trk_ratio")->getVal();
-        sf_SingleTrigger = trigweight_1
+        sf_SingleTrigger = trigweight_1;
     }
 
     if( channel == HTTAnalysis::EleTau )
@@ -403,7 +406,7 @@ void EventWriter::fillScalefactors()
         }
 
       
-        sf_DoubleTauVTight = trigweight_1 * trigweight_2
+        sf_DoubleTauVTight = trigweight_1 * trigweight_2;
 
     }
 
@@ -991,6 +994,9 @@ void EventWriter::setDefault(){
     gen_ll_vis_pz=DEF;
     genJets=DEF;
     //////////////////////////////////////////////////////////////////  
+    trg_singlemu_22=DEFFLAG;
+    trg_crossmu_mu19tau20=DEFFLAG;
+    trg_doubletau_35=DEFFLAG;
     trg_singlemuon_22=DEFFLAG;
     trg_singlemuon_22_eta2p1=DEFFLAG;
     trg_singlemuonTk_22=DEFFLAG;
@@ -1611,7 +1617,10 @@ void EventWriter::initTree(TTree *t, vector< pair< string, pair<string,bool> > >
     t->Branch("THU_ggH_PT60", &THU_ggH_PT60);
     t->Branch("THU_ggH_PT120", &THU_ggH_PT120);
     t->Branch("THU_ggH_qmtop", &THU_ggH_qmtop);
-
+    
+    t->Branch("trg_singlemu_22", &trg_singlemu_22);
+    t->Branch("trg_crossmu_mu19tau20", &trg_crossmu_mu19tau20);
+    t->Branch("trg_doubletau_35", &trg_doubletau_35);
     t->Branch("trg_singlemuon_22", &trg_singlemuon_22);
     t->Branch("trg_singlemuon_22_eta2p1", &trg_singlemuon_22_eta2p1);
     t->Branch("trg_singlemuonTk_22", &trg_singlemuonTk_22);
