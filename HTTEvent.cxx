@@ -361,8 +361,8 @@ void HTTJetCollection::btagPromoteDemote(string mistagsys, string btagsys){
     jetPhi= jet.Phi();
     jetEta= jet.Eta();
 
-    rand.SetSeed((int)((jetEta+5)*100000));
-    // rand.SetSeed( static_cast<int>(( jetEta +5 )*1000)*1000 + static_cast<int>(( jetPhi + 4 )*1000) );
+    // rand.SetSeed((int)((jetEta+5)*100000));
+    rand.SetSeed( static_cast<int>(( jetEta +5 )*1000)*1000 + static_cast<int>(( jetPhi + 4 )*1000) );
     rn = rand.Uniform();
     // std::cout<<"3"<<std::endl;
     if( jet.getProperty(PropertyEnum::hadronFlavour)==5 ){
