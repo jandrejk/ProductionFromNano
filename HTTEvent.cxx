@@ -298,29 +298,16 @@ void HTTJetCollection::initForPromoteDemote()
   reader.load(calib,  BTagEntry::FLAV_C, "comb");
   reader.load(calib,  BTagEntry::FLAV_UDSG, "incl");
 
-  // eff_file = new TFile("utils/BTagCalibration/data/tagging_efficiencies_ichep2016.root");
   eff_file = new TFile("utils/BTagCalibration/data/tagging_efficiencies_march2018_btageff-all_samp-inc-DeepCSV_medium.root");
-  // eff_file = new TFile("utils/BTagCalibration/data/tagging_efficiencies_Moriond2017.root");
-  // hb_eff = dynamic_cast<TH2F*>(eff_file->Get("btag_eff_b") );
-  // hc_eff = dynamic_cast<TH2F*>(eff_file->Get("btag_eff_c") );
-  // hoth_eff = dynamic_cast<TH2F*>(eff_file->Get("btag_eff_oth") );
-
+  
   hb_eff = dynamic_cast<TH2D*>(eff_file->Get("btag_eff_b") );
   hc_eff = dynamic_cast<TH2D*>(eff_file->Get("btag_eff_c") );
   hoth_eff = dynamic_cast<TH2D*>(eff_file->Get("btag_eff_oth") );
-
-  // std::cout<<"print stuff"<<std::endl;
-  // std::cout<<hoth_eff<<std::endl;
-  // std::cout<<hb_eff<<std::endl;
-  // std::cout<<hc_eff<<std::endl;
-  // std::cout<<"no of bins x"<<hb_eff->GetNbinsX()<<endl;
-  // std::cout<<"no of bins x"<<hoth_eff->GetNbinsX()<<endl;
 
 }
 ////////////////////////////////////////////////
 ////////////////////////////////////////////////
 void HTTJetCollection::btagPromoteDemote(string mistagsys, string btagsys){
-  // std::cout<<"1"<<std::endl;
   btagCurrentCollection = btagCollection;
   if(!usePromoteDemote) return;
 
@@ -347,7 +334,6 @@ void HTTJetCollection::btagPromoteDemote(string mistagsys, string btagsys){
     if( jet.getProperty(PropertyEnum::hadronFlavour) ==5 )       scaleFactor = reader.eval_auto_bounds(mistagsys ,BTagEntry::FLAV_B, jetEta, jetPt);
     else if( jet.getProperty(PropertyEnum::hadronFlavour) ==4 )  scaleFactor = reader.eval_auto_bounds(mistagsys ,BTagEntry::FLAV_C, jetEta, jetPt);
     else                                                         scaleFactor = reader.eval_auto_bounds(mistagsys ,BTagEntry::FLAV_UDSG, jetEta, jetPt);
-    // std::cout<<"2"<<std::endl;
     if(scaleFactor < 1){
       scaleRatio = fabs( 1-scaleFactor );
       //cout << (int)(( jetEta +5 )*1000)*1000 + (int)(( jetPhi + 4 )*1000)<< " " << jet.getProperty(PropertyEnum::hadronFlavour) << " " << jetPt << " " << jetEta << " "<< jetPhi<< " " << scaleFactor<< " " << rn <<endl;
@@ -364,48 +350,32 @@ void HTTJetCollection::btagPromoteDemote(string mistagsys, string btagsys){
     // rand.SetSeed((int)((jetEta+5)*100000));
     rand.SetSeed( static_cast<int>(( jetEta +5 )*1000)*1000 + static_cast<int>(( jetPhi + 4 )*1000) );
     rn = rand.Uniform();
-    // std::cout<<"3"<<std::endl;
     if( jet.getProperty(PropertyEnum::hadronFlavour)==5 ){
-      // std::cout<<"4"<<std::endl;
       scaleFactor = reader.eval_auto_bounds(btagsys ,BTagEntry::FLAV_B, jetEta, jetPt);
       if(jetPt>hb_eff->GetXaxis()->GetBinLowEdge(hb_eff->GetNbinsX()+1))     tagging_efficiency = hb_eff->GetBinContent(hb_eff->GetNbinsX(),hb_eff->GetYaxis()->FindBin(fabs( jetEta ) )); 
       else                                                                   tagging_efficiency = hb_eff->GetBinContent(hb_eff->GetXaxis()->FindBin(jetPt),hb_eff->GetYaxis()->FindBin(fabs( jetEta )));
     }
     else if( jet.getProperty(PropertyEnum::hadronFlavour)==4 ){
-      // std::cout<<"5"<<std::endl;
       scaleFactor = reader.eval_auto_bounds(btagsys ,BTagEntry::FLAV_C, jetEta, jetPt);
 
       if(jetPt>hc_eff->GetXaxis()->GetBinLowEdge(hc_eff->GetNbinsX()+1))     tagging_efficiency = hc_eff->GetBinContent(hc_eff->GetNbinsX(),hc_eff->GetYaxis()->FindBin(fabs( jetEta )));
       else                                                                   tagging_efficiency = hc_eff->GetBinContent(hc_eff->GetXaxis()->FindBin(jetPt),hc_eff->GetYaxis()->FindBin(fabs( jetEta )));
     }
     else{
-      // std::cout<<"6"<<std::endl;
-      // std::cout<<"btagsys "<< btagsys <<std::endl;
-      // std::cout<<"BTagEntry::FLAV_UDSG "<<BTagEntry::FLAV_UDSG<<std::endl;
-      // std::cout<<"jetEta "<<jetEta<<std::endl;
-      // std::cout<<"jetPt "<<jetPt<<std::endl;
       scaleFactor = reader.eval_auto_bounds(btagsys ,BTagEntry::FLAV_UDSG, jetEta, jetPt);
-      // std::cout<<"scaleFactor"<<std::endl;
-      // std::cout<<"hoth_eff->GetXaxis()->GetBinLowEdge(hoth_eff->GetNbinsX()+1)"<< hoth_eff->GetXaxis()->GetBinLowEdge(hoth_eff->GetNbinsX()+1)<<endl;
-      // std::cout<<" passed if "<<std::endl;
       if(jetPt>hoth_eff->GetXaxis()->GetBinLowEdge(hoth_eff->GetNbinsX()+1)) {
-        // std::cout<<"11"<<std::endl;
         tagging_efficiency = hoth_eff->GetBinContent(hoth_eff->GetNbinsX(),hoth_eff->GetYaxis()->FindBin(fabs( jetEta )));
       }
       else {
-        // std::cout<<"12"<<std::endl;
         tagging_efficiency = hoth_eff->GetBinContent(hoth_eff->GetXaxis()->FindBin(jetPt),hoth_eff->GetYaxis()->FindBin(fabs( jetEta )));  
       }
     }
     if(scaleFactor > 1){
-      // std::cout<<"7"<<std::endl;
       scaleRatio = fabs( ( 1-scaleFactor )/( 1-(1/ tagging_efficiency ) ) );
       if( rn < scaleRatio ) btagCurrentCollection.push_back( jet );
     }  
   }
-  // std::cout<<"8"<<std::endl;
   std::sort(btagCurrentCollection.begin(), btagCurrentCollection.end(), sortJets);
-  // std::cout<<"9"<<std::endl;
 
 }
 ////////////////////////////////////////////////
