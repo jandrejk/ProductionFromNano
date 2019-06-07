@@ -1,7 +1,7 @@
 const struct ES{
 	struct Electron{
 		float oneProng0p0 = 0.0;
-		float oneProng1p0 = 0.0;
+		float oneProng1p0 = 0.095;
 		float threeProng0p0 = 0.0;
 		float uncertaintyShift1p   = 0.02;
 		float uncertaintyShift1p1p = 0.02;
@@ -11,8 +11,8 @@ const struct ES{
 	} Electron;
 
 	struct Muon{
-		float oneProng0p0 = 0.0;
-		float oneProng1p0 = 0.0;
+		float oneProng0p0 = -0.002;
+		float oneProng1p0 = 0.015;
 		float threeProng0p0 = 0.0;
 		float uncertaintyShift1p   = 0.02;
 		float uncertaintyShift1p1p = 0.02;
