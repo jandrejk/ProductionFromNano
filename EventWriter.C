@@ -219,38 +219,38 @@ void EventWriter::fillLeptonFakeRateWeights()
     antilep_tauscaling = 1.0;
 
     //values taken from here: https://indico.cern.ch/event/803335/contributions/3359969/attachments/1829820/2996253/TauPOG_HTT_workshop_20190415_v0.pdf
-
+    // values taken from https://twiki.cern.ch/twiki/bin/viewauth/CMS/HiggsToTauTauWorkingLegacyRun2#mu-%3Etau%20FR
     if(channel == HTTAnalysis::MuTau)
     {
 
         if((gen_match_2 == 1 || gen_match_2 == 3) && againstElectronVLooseMVA6_2 > 0.5 )
         {
-            if( std::abs(eta_2) < 1.448 )       eleTauFakeRateWeight *= 1.089;
-            else if ( std::abs(eta_2) > 1.558 ) eleTauFakeRateWeight *= 1.189;
+            if( std::abs(eta_2) < 1.460 )       eleTauFakeRateWeight *= 1.21;
+            else if ( std::abs(eta_2) > 1.559 ) eleTauFakeRateWeight *= 1.38;
         }
         if((gen_match_2 == 2 || gen_match_2 == 4) && againstMuonTight3_2 > 0.5 )
         {
-            if( std::abs(eta_2) < 0.4 )       muTauFakeRateWeight *= 1.28;
-            else if ( std::abs(eta_2) < 0.8 ) muTauFakeRateWeight *= 1.2;
-            else if ( std::abs(eta_2) < 1.2 ) muTauFakeRateWeight *= 1.08;
-            else if ( std::abs(eta_2) < 1.7 ) muTauFakeRateWeight *= 1.0;
-            else if ( std::abs(eta_2) < 2.3 ) muTauFakeRateWeight *= 2.3;
+            if( std::abs(eta_2) < 0.4 )       muTauFakeRateWeight *= 1.47;
+            else if ( std::abs(eta_2) < 0.8 ) muTauFakeRateWeight *= 1.55;
+            else if ( std::abs(eta_2) < 1.2 ) muTauFakeRateWeight *= 1.33;
+            else if ( std::abs(eta_2) < 1.7 ) muTauFakeRateWeight *= 1.72;
+            else if ( std::abs(eta_2) < 2.3 ) muTauFakeRateWeight *= 2.5;
         }        
     }
     if(channel == HTTAnalysis::EleTau)
     {
         if((gen_match_2 == 1 || gen_match_2 == 3) && againstElectronTightMVA6_2 > 0.5 )
         {
-            if( std::abs(eta_2) < 1.448 )       eleTauFakeRateWeight *= 1.78;
-            else if ( std::abs(eta_2) > 1.558 ) eleTauFakeRateWeight *= 1.55;
+            if( std::abs(eta_2) < 1.460 )       eleTauFakeRateWeight *= 1.40;
+            else if ( std::abs(eta_2) > 1.559 ) eleTauFakeRateWeight *= 1.90;
         }
         if((gen_match_2 == 2 || gen_match_2 == 4) && againstMuonLoose3_2> 0.5 )
         {
-            if( std::abs(eta_2) < 0.4 )       muTauFakeRateWeight *= 1.06;
-            else if ( std::abs(eta_2) < 0.8 ) muTauFakeRateWeight *= 0.96;
-            else if ( std::abs(eta_2) < 1.2 ) muTauFakeRateWeight *= 1.05;
-            else if ( std::abs(eta_2) < 1.7 ) muTauFakeRateWeight *= 1.23;
-            else if ( std::abs(eta_2) < 2.3 ) muTauFakeRateWeight *= 1.19;
+            if( std::abs(eta_2) < 0.4 )       muTauFakeRateWeight *= 1.22;
+            else if ( std::abs(eta_2) < 0.8 ) muTauFakeRateWeight *= 1.12;
+            else if ( std::abs(eta_2) < 1.2 ) muTauFakeRateWeight *= 1.26;
+            else if ( std::abs(eta_2) < 1.7 ) muTauFakeRateWeight *= 1.22;
+            else if ( std::abs(eta_2) < 2.3 ) muTauFakeRateWeight *= 2.39;
         }        
     }
     if(channel == HTTAnalysis::TauTau)
@@ -258,30 +258,30 @@ void EventWriter::fillLeptonFakeRateWeights()
 
         if((gen_match_1 == 1 || gen_match_1 == 3) && againstElectronVLooseMVA6_1 > 0.5 )
         {
-            if( std::abs(eta_1) < 1.448 )       eleTauFakeRateWeight *= 1.089;
-            else if ( std::abs(eta_1) > 1.558 ) eleTauFakeRateWeight *= 1.189;
+            if( std::abs(eta_1) < 1.460 )       eleTauFakeRateWeight *= 1.21;
+            else if ( std::abs(eta_1) > 1.559 ) eleTauFakeRateWeight *= 1.38;
         }
         if((gen_match_1 == 2 || gen_match_1 == 4) && againstMuonLoose3_1> 0.5 )
         {
-            if( std::abs(eta_1) < 0.4 )       muTauFakeRateWeight *= 1.06;
-            else if ( std::abs(eta_1) < 0.8 ) muTauFakeRateWeight *= 0.96;
-            else if ( std::abs(eta_1) < 1.2 ) muTauFakeRateWeight *= 1.05;
-            else if ( std::abs(eta_1) < 1.7 ) muTauFakeRateWeight *= 1.23;
-            else if ( std::abs(eta_1) < 2.3 ) muTauFakeRateWeight *= 1.19;
+            if( std::abs(eta_1) < 0.4 )       muTauFakeRateWeight *= 1.22;
+            else if ( std::abs(eta_1) < 0.8 ) muTauFakeRateWeight *= 1.12;
+            else if ( std::abs(eta_1) < 1.2 ) muTauFakeRateWeight *= 1.26;
+            else if ( std::abs(eta_1) < 1.7 ) muTauFakeRateWeight *= 1.22;
+            else if ( std::abs(eta_1) < 2.3 ) muTauFakeRateWeight *= 2.39;
         } 
 
         if((gen_match_2 == 1 || gen_match_2 == 3) && againstElectronVLooseMVA6_2 > 0.5 )
         {
-            if( std::abs(eta_2) < 1.448 )       eleTauFakeRateWeight *= 1.089;
-            else if ( std::abs(eta_2) > 1.558 ) eleTauFakeRateWeight *= 1.189;
+            if( std::abs(eta_2) < 1.460 )       eleTauFakeRateWeight *= 1.21;
+            else if ( std::abs(eta_2) > 1.559 ) eleTauFakeRateWeight *= 1.38;
         }
         if((gen_match_2 == 2 || gen_match_2 == 4) && againstMuonLoose3_2> 0.5 )
         {
-            if( std::abs(eta_2) < 0.4 )       muTauFakeRateWeight *= 1.06;
-            else if ( std::abs(eta_2) < 0.8 ) muTauFakeRateWeight *= 0.96;
-            else if ( std::abs(eta_2) < 1.2 ) muTauFakeRateWeight *= 1.05;
-            else if ( std::abs(eta_2) < 1.7 ) muTauFakeRateWeight *= 1.23;
-            else if ( std::abs(eta_2) < 2.3 ) muTauFakeRateWeight *= 1.19;
+            if( std::abs(eta_2) < 0.4 )       muTauFakeRateWeight *= 1.22;
+            else if ( std::abs(eta_2) < 0.8 ) muTauFakeRateWeight *= 1.12;
+            else if ( std::abs(eta_2) < 1.2 ) muTauFakeRateWeight *= 1.26;
+            else if ( std::abs(eta_2) < 1.7 ) muTauFakeRateWeight *= 1.22;
+            else if ( std::abs(eta_2) < 2.3 ) muTauFakeRateWeight *= 2.39;
         }        
     }
     antilep_tauscaling = eleTauFakeRateWeight * muTauFakeRateWeight;
