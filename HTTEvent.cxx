@@ -397,7 +397,7 @@ void HTTJetCollection::fillCurrentCollections(string uncert, bool up)
 
         if(jet.Pt() > 20 && abs(jet.Eta()) < 2.4 )
         {
-          if( jet.getProperty(PropertyEnum::btagDeepB)> 0.4184) // changes according to https://github.com/CMS-HTT/2018-sync 0.4184
+          if( jet.getProperty(PropertyEnum::btagDeepB)> 0.6321) // see https://twiki.cern.ch/twiki/bin/viewauth/CMS/HiggsToTauTauWorkingLegacyRun2#B_jets
           {
             // std::cout<<"jet.getProperty(PropertyEnum::btagDeepB)> 0.4184"<<std::endl;
 
