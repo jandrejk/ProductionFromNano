@@ -1329,7 +1329,8 @@ int HTauTauTreeFromNanoBase::getTriggerMatching(unsigned int index, TLorentzVect
                 if( triggerBits_[iTrg].leg1L1Pt>0 && !( TrigObj_l1pt[iObj]          > triggerBits_[iTrg].leg1L1Pt) ) continue;
                 if(checkBit) debugWayPoint("[getTriggerMatching] object passes l1pt cut",{(double)triggerBits_[iTrg].leg1L1Pt, (double)TrigObj_l1pt[iObj] },{},{"cut","l1pt"});
 
-                if( checkBit && !( ((int)TrigObj_filterBits[iObj] & triggerBits_[iTrg].leg1BitMask)==triggerBits_[iTrg].leg1BitMask) ) continue;
+                // if( checkBit && !( ((int)TrigObj_filterBits[iObj] & triggerBits_[iTrg].leg1BitMask)==triggerBits_[iTrg].leg1BitMask) ) continue;
+                if( checkBit && True ) continue;
                 if(checkBit) debugWayPoint("[getTriggerMatching] passes filter");
                 decision = true;
                 // break;
@@ -1358,7 +1359,8 @@ int HTauTauTreeFromNanoBase::getTriggerMatching(unsigned int index, TLorentzVect
                 if( triggerBits_[iTrg].leg2Eta>0  && !( std::abs(TrigObj_eta[iObj]) < triggerBits_[iTrg].leg2Eta) ) continue;
                 if( triggerBits_[iTrg].leg2L1Pt>0 && !( TrigObj_l1pt[iObj]          > triggerBits_[iTrg].leg2L1Pt) ) continue;
 
-                if( checkBit && !( ((int)TrigObj_filterBits[iObj] & triggerBits_[iTrg].leg2BitMask)==triggerBits_[iTrg].leg2BitMask) ) continue;
+                // if( checkBit && !( ((int)TrigObj_filterBits[iObj] & triggerBits_[iTrg].leg2BitMask)==triggerBits_[iTrg].leg2BitMask) ) continue;
+                if( checkBit && True ) continue;
                 decision = true;
                 break;
             }
