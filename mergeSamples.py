@@ -48,9 +48,12 @@ class Merger():
             self.log = json.load(FSO)
 
         self.outdir = "/afs/hephy.at/data/higgs01/"
+        self.hephy_redirectory = "hephyse.oeaw.ac.at/"
+        self.pathToCondorProductionNtuples = "/dpm/oeaw.ac.at/home/cms/store/user/mspanrin/condor_production"
         self.indir  = "srm://hephyse.oeaw.ac.at//dpm/oeaw.ac.at/home/cms/store/user/mspanrin/condor_production"
 
         self.samples = self.collectFilesDPM()
+
         #self.samples = self.collectFiles()
         
         self.mergekeys = self.mapCompletedJobs()
@@ -61,22 +64,23 @@ class Merger():
         with open(self.logpath,"w") as FSO:
             json.dump(self.log, FSO, indent=2)
     
-    def lsDPM(self, sample, shift):
-        print "gfal-ls -l --time-style long-iso  {0}/{1}".format(self.indir, sample)
-        proc = sp.Popen( shlex.split( "gfal-ls -l --time-style long-iso  {0}/{1}".format(self.indir, sample) ), stdout=sp.PIPE )
-        (out, err) = proc.communicate()
-        files = []
+    # not needed since it is in bookkeeping.py and was just needed needed to adapt collectFromDPM where we do not need the timestamp info
+    # def lsDPM(self, sample, shift):
+    #     print "gfal-ls -l --time-style long-iso  {0}/{1}".format(self.indir, sample)
+    #     exit(0)
+    #     proc = sp.Popen( shlex.split( "gfal-ls -l --time-style long-iso  {0}/{1}".format(self.indir, sample) ), stdout=sp.PIPE )
+    #     (out, err) = proc.communicate()
+    #     files = []
 
-        for file in out.splitlines():
-            #print file
-            if ".root" in file and "{0}-{1}".format(self.channel, shift) in file:
-                file = [i for i in file.split(" ") if i]
-                # Need to get UTC under control ....
-                timestamp = int( datetime.strptime(" ".join( [file[5], file[6]] ),"%Y-%m-%d %H:%M").strftime("%s") ) + 7200
-                #print (timestamp, "{0}/{1}/{2}".format(self.indir, sample, file[-1] ) )
-                files.append( (timestamp, "{0}/{1}/{2}".format(self.indir, sample, file[-1] ) ) )
-        return files
-
+    #     for file in out.splitlines():
+    #         #print file
+    #         if ".root" in file and "{0}-{1}".format(self.channel, shift) in file:
+    #             file = [i for i in file.split(" ") if i]
+    #             # Need to get UTC under control ....
+    #             timestamp = int( datetime.strptime(" ".join( [file[5], file[6]] ),"%Y-%m-%d %H:%M").strftime("%s") ) + 7200
+    #             #print (timestamp, "{0}/{1}/{2}".format(self.indir, sample, file[-1] ) )
+    #             files.append( (timestamp, "{0}/{1}/{2}".format(self.indir, sample, file[-1] ) ) )
+    #     return files
 
     def createSamples(self):
 
@@ -104,8 +108,10 @@ class Merger():
             FM.OutputFile(outfile)
             success = True
             print "Adding files for merging... "
+            
             for f in self.samples[m[0]][m[1]][m[2]]["files"] :
-                f = f.replace("srm:","root:")
+                #f = f.replace("srm:","root:") # when gfal-ls was still in use
+                f = "root://{redir}/{file}".format(redir=self.hephy_redirectory,file=f)
                 if not FM.AddFile(f,False):
                     success = False
                     break
@@ -201,37 +207,27 @@ class Merger():
                         mergekeys.append((sample,channel,shift))
         return np.array(mergekeys)
 
-    def lsDPM(self, sample, shift):
-        print "gfal-ls -l --time-style long-iso  {0}/{1}".format(self.indir, sample)
-        proc = sp.Popen( shlex.split( "gfal-ls -l --time-style long-iso  {0}/{1}".format(self.indir, sample) ), stdout=sp.PIPE )
-        (out, err) = proc.communicate()
-        files = []
-
-        for file in out.splitlines():
-            #print file
-            if ".root" in file and "{0}-{1}".format(self.channel, shift) in file:
-                file = [i for i in file.split(" ") if i]
-                # Need to get UTC under control ....
-                timestamp = int( datetime.strptime(" ".join( [file[5], file[6]] ),"%Y-%m-%d %H:%M").strftime("%s") ) + 7200
-                #print (timestamp, "{0}/{1}/{2}".format(self.indir, sample, file[-1] ) )
-                files.append( (timestamp, "{0}/{1}/{2}".format(self.indir, sample, file[-1] ) ) )
-        return files
+    
 
 
     def collectFilesDPM (self):
         
         samples = {}
-        
-        proc = sp.Popen( shlex.split( "gfal-ls {0}".format(self.indir) ), stdout=sp.PIPE )
+        # xrdfs srm://hephyse.oeaw.ac.at/ ls /dpm/oeaw.ac.at/home/cms/store/user/jaandrej/
+        # print "gfal-ls {0}".format(self.indir) # does not work on heplx anymore 
+        print shlex.split( "xrdfs {redir} ls {path}".format(redir=self.hephy_redirectory,path=self.pathToCondorProductionNtuples) )
+        proc = sp.Popen( shlex.split( "xrdfs {redir} ls {path}".format(redir=self.hephy_redirectory,path=self.pathToCondorProductionNtuples) )  , stdout=sp.PIPE )
         (out, err) = proc.communicate()
         
         #files = []
 
         for samplename in out.splitlines():
             if ".root" in samplename : continue # This is a root file not a sample directory
-            samples[samplename] = {}
 
-            proc = sp.Popen( shlex.split( "gfal-ls {0}/{1}".format(self.indir,samplename) ), stdout=sp.PIPE )
+            split_samplename = samplename.split("/")[-1] # changes because xrdfs does list the whole path to the directory not just from the parent one
+            samples[split_samplename] = {}
+            # proc = sp.Popen( shlex.split( "gfal-ls {0}/{1}".format(self.indir,samplename) ), stdout=sp.PIPE ) # does not work on heplx anymore
+            proc = sp.Popen( shlex.split( "xrdfs {redir} ls {sample}".format(redir=self.hephy_redirectory,path=self.pathToCondorProductionNtuples,sample=samplename) ), stdout=sp.PIPE )
             (out2, err2) = proc.communicate()
             
             for file in out2.splitlines() :
@@ -239,10 +235,11 @@ class Merger():
                 channel = root_file.split("-")[0]
                 shift = root_file.split("_")[0].replace(channel+"-","")
 
-                if not samples[samplename].get(channel,False): samples[samplename][channel] = {}
-                if not samples[samplename][channel].get(shift,False): samples[samplename][channel][shift] = {"files":[]}
+                if not samples[split_samplename].get(channel,False): samples[split_samplename][channel] = {}
+                if not samples[split_samplename][channel].get(shift,False): samples[split_samplename][channel][shift] = {"files":[]}
 
-                samples[samplename][channel][shift]["files"].append( "{0}/{1}/{2}".format(self.indir,samplename,root_file))
+
+                samples[split_samplename][channel][shift]["files"].append( "{0}/{1}".format(samplename,root_file))
                 # print samplename
                 # print root_file
                 # print channel

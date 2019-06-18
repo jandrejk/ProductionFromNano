@@ -303,5 +303,12 @@
         "nevents_from_DAS": 1342976, 
         "putag": "pileup", 
         "xsec": 0.23720704
+    },
+    "VBFHToTauTau_M125_13TeV_powheg_pythia8_PUMoriond17_94X_mcRun2_asymptotic_v3_v2": {
+        "fromDAS": "False", 
+        "nevents": 1499400, 
+        "nevents_from_DAS": 1499400, 
+        "putag": "pileup", 
+        "xsec": 0.23720704
     }
 }

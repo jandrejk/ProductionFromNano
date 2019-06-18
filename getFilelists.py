@@ -14,7 +14,9 @@ def main():
     args = parser.parse_args()
 
     if args.location == "private": 
-        getfromPrivate("/dpm/oeaw.ac.at/home/cms/store/user/jaandrej/nanoAOD/20190424/",update=args.update)
+        # VBFHToTauTau_M125_13TeV_powheg_pythia8_PUMoriond17_94X_mcRun2_asymptotic_v3_v2
+        getfromPrivate("/dpm/oeaw.ac.at/home/cms/store/user/jaandrej/nanoAOD/20190618/",update=args.update)
+        # getfromPrivate("/dpm/oeaw.ac.at/home/cms/store/user/jaandrej/nanoAOD/20190424/",update=args.update)
         #getfromPrivate("/dpm/oeaw.ac.at/home/cms/store/user/jaandrej/nanoAOD/20190318/")
         #getfromPrivate("/dpm/oeaw.ac.at/home/cms/store/user/jaandrej/")
     else:
