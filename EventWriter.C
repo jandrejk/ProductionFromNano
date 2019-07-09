@@ -623,10 +623,10 @@ void EventWriter::fillPairBranches(HTTPair *pair, HTTJetCollection *jets)
 {
 
 
-    // metcov00=pair->getMETMatrix().at(0);
-    // metcov01=pair->getMETMatrix().at(1);
-    // metcov10=pair->getMETMatrix().at(2);
-    // metcov11=pair->getMETMatrix().at(3);
+    metcov00=pair->getMETMatrix().at(0);
+    metcov01=pair->getMETMatrix().at(1);
+    metcov10=pair->getMETMatrix().at(2);
+    metcov11=pair->getMETMatrix().at(3);
 
     for(unsigned int shift = 0; shift<metShifts.size(); ++shift )
     {
