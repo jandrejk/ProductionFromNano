@@ -4,12 +4,13 @@
 		"stitching":true,
 		"NNLO_xsec":5765.4,
 		"samples":[
-			"DY1JetsToLL_M_50_TuneCP5_13TeV_madgraphMLM_pythia8_102X_upgrade2018_realistic_v15_v1",
-			"DY2JetsToLL_M_50_TuneCP5_13TeV_madgraphMLM_pythia8_102X_upgrade2018_realistic_v15_v1",
-			"DY3JetsToLL_M_50_TuneCP5_13TeV_madgraphMLM_pythia8_102X_upgrade2018_realistic_v15_v1",
-			"DY4JetsToLL_M_50_TuneCP5_13TeV_madgraphMLM_pythia8_102X_upgrade2018_realistic_v15_v1",
-			"DYJetsToLL_M_10to50_TuneCP5_13TeV_madgraphMLM_pythia8_102X_upgrade2018_realistic_v15_v2",
-			"DYJetsToLL_M_50_TuneCP5_13TeV_madgraphMLM_pythia8_102X_upgrade2018_realistic_v15_v1"
+			"DY1JetsToLL_M_50_TuneCUETP8M1_13TeV_madgraphMLM_pythia8_RunIISummer16NanoAOD_01Jul2019_v1",
+			"DY2JetsToLL_M_50_TuneCUETP8M1_13TeV_madgraphMLM_pythia8_RunIISummer16NanoAOD_01Jul2019_v2",
+			"DY3JetsToLL_M_50_TuneCUETP8M1_13TeV_madgraphMLM_pythia8_RunIISummer16NanoAOD_01Jul2019_v2",
+			"DY4JetsToLL_M_50_TuneCUETP8M1_13TeV_madgraphMLM_pythia8_RunIISummer16NanoAOD_01Jul2019_v2",
+			"DYJetsToLL_M_50_TuneCUETP8M1_13TeV_madgraphMLM_pythia8_RunIISummer16NanoAOD_01Jul2019_v2_ext1_v2",
+			"DYJetsToLL_M_50_TuneCUETP8M1_13TeV_madgraphMLM_pythia8_RunIISummer16NanoAOD_01Jul2019_v2_ext2_v2",
+			"DYJetsToLL_M_10to50_TuneCUETP8M1_13TeV_madgraphMLM_pythia8_RunIISummer16NanoAOD_01Jul2019_v2"
 		]
 	},
 	"BASIS_ntuple_WJets":{
@@ -17,63 +18,78 @@
 		"stitching":true,
 		"NNLO_xsec":61526.7,
 		"samples":[
-			"W1JetsToLNu_TuneCP5_13TeV_madgraphMLM_pythia8_102X_upgrade2018_realistic_v15_v2",
-			"W2JetsToLNu_TuneCP5_13TeV_madgraphMLM_pythia8_102X_upgrade2018_realistic_v15_v2",
-			"W3JetsToLNu_TuneCP5_13TeV_madgraphMLM_pythia8_102X_upgrade2018_realistic_v15_v2",
-			"W4JetsToLNu_TuneCP5_13TeV_madgraphMLM_pythia8_102X_upgrade2018_realistic_v15_v2",
-			"WJetsToLNu_TuneCP5_13TeV_madgraphMLM_pythia8_102X_upgrade2018_realistic_v15_v2"
+			"W1JetsToLNu_TuneCUETP8M1_13TeV_madgraphMLM_pythia8_RunIISummer16NanoAOD_01Jul2019_v1",
+			"W2JetsToLNu_TuneCUETP8M1_13TeV_madgraphMLM_pythia8_RunIISummer16NanoAOD_01Jul2019_v2",
+			"W2JetsToLNu_TuneCUETP8M1_13TeV_madgraphMLM_pythia8_RunIISummer16NanoAOD_01Jul2019_v2_ext1_v2",
+			"W3JetsToLNu_TuneCUETP8M1_13TeV_madgraphMLM_pythia8_RunIISummer16NanoAOD_01Jul2019_v2",
+			"W3JetsToLNu_TuneCUETP8M1_13TeV_madgraphMLM_pythia8_RunIISummer16NanoAOD_01Jul2019_v2_ext1_v2",
+			"W4JetsToLNu_TuneCUETP8M1_13TeV_madgraphMLM_pythia8_RunIISummer16NanoAOD_01Jul2019_v1_ext2_v1",
+			"W4JetsToLNu_TuneCUETP8M1_13TeV_madgraphMLM_pythia8_RunIISummer16NanoAOD_01Jul2019_v2",
+			"W4JetsToLNu_TuneCUETP8M1_13TeV_madgraphMLM_pythia8_RunIISummer16NanoAOD_01Jul2019_v2_ext1_v2",
+			"WJetsToLNu_TuneCUETP8M1_13TeV_madgraphMLM_pythia8_RunIISummer16NanoAOD_01Jul2019_v2",
+			"WJetsToLNu_TuneCUETP8M1_13TeV_madgraphMLM_pythia8_RunIISummer16NanoAOD_01Jul2019_v2_ext2_v2"
 		]
 	},
 	"BASIS_ntuple_TT":{
 		"data":false,
 		"stitching":false,
 		"samples":	[
-			"TTTo2L2Nu_TuneCP5_13TeV_powheg_pythia8_102X_upgrade2018_realistic_v15_v1",
-			"TTToHadronic_TuneCP5_13TeV_powheg_pythia8_102X_upgrade2018_realistic_v15_v1",
-			"TTToSemiLeptonic_TuneCP5_13TeV_powheg_pythia8_102X_upgrade2018_realistic_v15_v1"
+			"TT_TuneCUETP8M2T4_13TeV_powheg_pythia8_RunIISummer16NanoAOD_01Jul2019_v1"
 		]
 	},
 	"BASIS_ntuple_VV":{
 		"data":false,
 		"stitching":false,
 		"samples":[
-			"WW_TuneCP5_13TeV_pythia8_102X_upgrade2018_realistic_v15_v2",
-			"WZ_TuneCP5_13TeV_pythia8_102X_upgrade2018_realistic_v15_v3",
-			"ZZ_TuneCP5_13TeV_pythia8_102X_upgrade2018_realistic_v15_v2",
-			"ST_tW_antitop_5f_inclusiveDecays_TuneCP5_13TeV_powheg_pythia8_102X_upgrade2018_realistic_v15_ext1_v1",
-			"ST_tW_top_5f_inclusiveDecays_TuneCP5_13TeV_powheg_pythia8_102X_upgrade2018_realistic_v15_ext1_v1",
-			"ST_t_channel_antitop_4f_InclusiveDecays_TuneCP5_13TeV_powheg_madspin_pythia8_102X_upgrade2018_realistic_v15_v1",
-			"ST_t_channel_top_5f_TuneCP5_13TeV_powheg_pythia8_102X_upgrade2018_realistic_v15_v1"
+			"WW_TuneCUETP8M1_13TeV_pythia8_RunIISummer16NanoAOD_01Jul2019_v2",
+			"WW_TuneCUETP8M1_13TeV_pythia8_RunIISummer16NanoAOD_01Jul2019_v2_ext1_v2",
+			"WZ_TuneCUETP8M1_13TeV_pythia8_RunIISummer16NanoAOD_01Jul2019_v2",
+			"WZ_TuneCUETP8M1_13TeV_pythia8_RunIISummer16NanoAOD_01Jul2019_v2_ext1_v2",
+			"ZZ_TuneCUETP8M1_13TeV_pythia8_RunIISummer16NanoAOD_01Jul2019_v2",
+			"ZZ_TuneCUETP8M1_13TeV_pythia8_RunIISummer16NanoAOD_01Jul2019_v2_ext1_v2",
+			"ST_tW_antitop_5f_inclusiveDecays_13TeV_powheg_pythia8_TuneCUETP8M1_RunIISummer16NanoAOD_01Jul2019_v1_ext1_v1",
+			"ST_tW_top_5f_inclusiveDecays_13TeV_powheg_pythia8_TuneCUETP8M1_RunIISummer16NanoAOD_01Jul2019_v1_ext1_v1",
+			"ST_t_channel_antitop_4f_inclusiveDecays_13TeV_powhegV2_madspin_pythia8_TuneCUETP8M1_RunIISummer16NanoAOD_01Jul2019_v1",
+			"ST_t_channel_top_4f_inclusiveDecays_13TeV_powhegV2_madspin_pythia8_TuneCUETP8M1_RunIISummer16NanoAOD_01Jul2019_v1"
 		]
 	},
 	"BASIS_ntuple_SingleElectron":{
 		"data":true,
 		"stitching":false,
 		"samples":[
-			"EGamma_Run2018A_17Sep2018_v2",
-			"EGamma_Run2018B_17Sep2018_v1",
-			"EGamma_Run2018C_17Sep2018_v1",
-			"EGamma_Run2018D_PromptReco_v2"
+			"SingleElectron_Run2016B_01Jul2019_v1",  
+			"SingleElectron_Run2016E_01Jul2019_v1",  
+			"SingleElectron_Run2016H_01Jul2019_v1",
+			"SingleElectron_Run2016C_01Jul2019_v1",  
+			"SingleElectron_Run2016F_01Jul2019_v1",
+			"SingleElectron_Run2016D_01Jul2019_v1",  
+			"SingleElectron_Run2016G_01Jul2019_v1"
 		]
 	},
 	"BASIS_ntuple_SingleMuon":{
 		"data":true,
 		"stitching":false,
 		"samples":[
-			"SingleMuon_Run2018A_17Sep2018_v2",
-			"SingleMuon_Run2018B_17Sep2018_v1",
-			"SingleMuon_Run2018C_17Sep2018_v1",
-			"SingleMuon_Run2018D_PromptReco_v2"
+			"SingleMuon_Run2016B_01Jul2019_v1",  
+			"SingleMuon_Run2016E_01Jul2019_v1",  
+			"SingleMuon_Run2016H_01Jul2019_v1",
+			"SingleMuon_Run2016C_01Jul2019_v1",  
+			"SingleMuon_Run2016F_01Jul2019_v1",
+			"SingleMuon_Run2016D_01Jul2019_v1",  
+			"SingleMuon_Run2016G_01Jul2019_v1"
 		]
 	},
 	"BASIS_ntuple_Tau":{
 		"data":true,
 		"stitching":false,
 		"samples":[
-			"Tau_Run2018A_17Sep2018_v1",
-			"Tau_Run2018B_17Sep2018_v1",
-			"Tau_Run2018C_17Sep2018_v1",
-			"Tau_Run2018D_PromptReco_v2"
+			"Tau_Run2016B_01Jul2019_v1",  
+			"Tau_Run2016D_01Jul2019_v1",  
+			"Tau_Run2016F_01Jul2019_v1",  
+			"Tau_Run2016H_01Jul2019_v1",
+			"Tau_Run2016C_01Jul2019_v1",  
+			"Tau_Run2016E_01Jul2019_v1",  
+			"Tau_Run2016G_01Jul2019_v1"
 		]
 	}
 }

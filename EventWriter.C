@@ -194,21 +194,20 @@ void EventWriter::fillStitchingWeight(HTTEvent::sampleTypeEnum sampleType)
 {
     if(sampleType == HTTEvent::DY)
     {
-
-        if(NUP == 0) stitchedWeight = 0.05754202;
-        if(NUP == 1) stitchedWeight = 0.01043099;
-        if(NUP == 2) stitchedWeight = 0.01182316;
-        if(NUP == 3) stitchedWeight = 0.01469024;
-        if(NUP == 4) stitchedWeight = 0.01228861;
+        if(NUP == 0) stitchedWeight = 0.03941307;
+        if(NUP == 1) stitchedWeight = 0.01132200;
+        if(NUP == 2) stitchedWeight = 0.01175009;
+        if(NUP == 3) stitchedWeight = 0.01203609;
+        if(NUP == 4) stitchedWeight = 0.00980626;
 
 
     } else if(sampleType == HTTEvent::WJets)
     {
-        if(NUP == 0) stitchedWeight = 0.92600048;
-        if(NUP == 1) stitchedWeight = 0.13544050;
-        if(NUP == 2) stitchedWeight = 0.10616984;
-        if(NUP == 3) stitchedWeight = 0.06370226;
-        if(NUP == 4) stitchedWeight = 0.05100958;
+        if(NUP == 0) stitchedWeight = 0.70788322;
+        if(NUP == 1) stitchedWeight = 0.16372267;
+        if(NUP == 2) stitchedWeight = 0.04846574;
+        if(NUP == 3) stitchedWeight = 0.01574309;
+        if(NUP == 4) stitchedWeight = 0.01585509;
 
     } else stitchedWeight=lumiWeight;
 }
