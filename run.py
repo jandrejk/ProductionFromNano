@@ -261,8 +261,8 @@ class SteerNanoProduction():
                 FSO.write(condor_templ.substitute(rundir=runpath+"*"))
             # useToken("cern")
 
-            print "condor_submit {0}".format(run_file)
-            # os.system("condor_submit {0}".format(run_file))
+            # print "condor_submit {0}".format(run_file)
+            os.system("condor_submit {0}".format(run_file))
 
 
         
