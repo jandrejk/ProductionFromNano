@@ -12,7 +12,8 @@ import argparse
 import string
 import json
 from runUtils import checkProxy, checkTokens, useToken, getSystem, getHeplxPublicFolder
-
+from terminal_colors import bcolors
+from goldenJSON.py import golden
 def main():
 
     parser = argparse.ArgumentParser()
@@ -23,15 +24,17 @@ def main():
                                                                                                       'e0u','e1u','e10u','e0d','e1d','e10d',
                                                                                                       'eeu','eed'], default = [''])
     parser.add_argument('-t', dest='submit', help='Where to submit the job',choices = ['condor','batch','local'], default = 'local')
+    parser.add_argument('-y', dest='year', help='Which era are you prosessing. Relevent for the golden JSON file',choices = ["2016","2017","2018"])
     parser.add_argument('-j', dest='jobs', help='If set to NJOBS > 0: Run NJOBS in parallel on heplx. Otherwise submit to batch.', type=int, default = 8)
     parser.add_argument('-o', dest='outdir', help='Where to write output when running on batch.', type=str, default = 'DPM://hephyse.oeaw.ac.at//dpm/oeaw.ac.at/home/cms/store/user/mspanrin/condor_production')
     parser.add_argument('-d', dest='debug', help='Debug', action = "store_true")
     parser.add_argument('-f', dest='force', help="Forces submission to batch when status in submit_log is 'NEW'", action = "store_true")
-    parser.add_argument('--cert', dest='cert', help='Cert when running over data.', type=str, choices=[  'Cert_294927-306462_13TeV_EOY2017ReReco_Collisions17_JSON.txt','Cert_314472-325175_13TeV_PromptReco_Collisions18_JSON.txt'],
-                        default = 'Cert_314472-325175_13TeV_PromptReco_Collisions18_JSON.txt')
+    # parser.add_argument('--cert', dest='cert', help='Cert when running over data.', type=str, choices=["Cert_271036-284044_13TeV_23Sep2016ReReco_Collisions16_JSON.txt", 
+        # "Cert_314472-325175_13TeV_17SeptEarlyReReco2018ABC_PromptEraD_Collisions18_JSON.txt", "Cert_294927-306462_13TeV_EOY2017ReReco_Collisions17_JSON.txt"])
     parser.add_argument('--event', dest='event', help='Debug', default = 0)
     parser.add_argument('--massfit', dest='massfit', help='Calculate massfit mass', choices=['svfit','fastmtt'], default='')
     parser.add_argument('--sync', dest='sync', help='Produce sync ntuple', action = "store_true")     
+    parser.add_argument('--aFC', dest='fileCombination', help='use automated file combination for job submission', action = "store_true")     
 
 
     args = parser.parse_args()
@@ -44,7 +47,7 @@ def main():
         print "You forgot to source cmssw"
         sys.exit()
 
-    SNP = SteerNanoProduction(args.outdir, args.submit, args.massfit, args.jobs, args.debug, args.sync, args.force, args.event, args.cert)
+    SNP = SteerNanoProduction(args.outdir, args.submit, args.massfit, args.jobs, args.debug, args.sync, args.force, args.event, cert=golden[args.year])
     for cmd in makeSubmitList(args.sample, args.channel):
 
         cmd["use_shift"] = args.shift
@@ -110,7 +113,9 @@ class SteerNanoProduction():
             if cell == "cern.ch": self.submit = "condor"
             if cell == "hephy.at":
                 print "Sorry! Condor not available on heplx. Submitting to batch."
-                self.submit = "hephybatch"
+                print bcolors.WARNING + "temporary disabled to test on heplx setting self.submit = \"condor\"" + bcolors.ENDC
+                self.submit = "condor"
+                # self.submit = "hephybatch"
 
         else: self.submit = submit
 
@@ -244,8 +249,9 @@ class SteerNanoProduction():
 
         for runpath in runpaths:
             run_file = runpath.replace("rundir_","") + ".sub"
-
+            print "run_file: {0}".format(run_file)
             for df in glob(run_file + "*"):
+                print "df: {0}".format(df)
                 os.remove(df)
 
             with open("condor_template.sub","r") as FSO:
@@ -254,7 +260,9 @@ class SteerNanoProduction():
             with open(run_file,"w") as FSO:
                 FSO.write(condor_templ.substitute(rundir=runpath+"*"))
             # useToken("cern")
-            os.system("condor_submit {0}".format(run_file))
+
+            print "condor_submit {0}".format(run_file)
+            # os.system("condor_submit {0}".format(run_file))
 
 
         
@@ -316,7 +324,7 @@ class SteerNanoProduction():
                                                 self.channel,
                                                 configBall["systShift"], 
                                                 configBall["file"].split("/")[-1] )
-
+            print "jobname: {0}".format(jobname)
             runscript = templ.substitute(samplename = jobname,
                                          rundir = rundir,
                                          outdir = "/".join([self.outdir, configBall["samplename"]]),
@@ -355,42 +363,92 @@ class SteerNanoProduction():
     def makeConfigBalls(self,sample, shift):
         configBalls = []
         samples_avail = glob("samples/*/*/*")
+        
         for sa in samples_avail:
             if sample + ".txt" in sa:
-                files = self.getFiles(sa)
+                files, N = self.getFiles(sa)
                 parts = sa.split("/")
+
 
         with open("tagMapping.json","r") as FSO:
             puTag = json.load(FSO)
 
-        for file in files:
-            configBall = {}
-            configBall["file"]        = file
-
-            configBall["sample"]      = parts[2]
-            configBall["samplename"]  = sample
-            configBall["channel"]     = self.channel
-            configBall["systShift"]   = shift
-            configBall["massfit"]     = self.massfit
-            configBall["recoil"]      = self.recoil
-            configBall["system"]      = self.submit
-            configBall["nevents"]     = int(self.nevents)
-            configBall["check_event"] = int(self.event)
-            configBall["isSync"]      = self.sync
-            if  parts[1] == "mc":
-                configBall["isMC"]        = True
-                configBall["certJson"] = ""
-                configBall["puTag"]    = puTag[ sample ]["putag"]
-                configBall["xsec"]     = puTag[ sample ]["xsec"]
-                configBall["genNEvents"]  = puTag[ sample ]["nevents"]
-
-            else:
-                configBall["isMC"]        = False
-                configBall["certJson"] = self.certJson
-                configBall["puTag"]   = "pileup"
+        # define thresholds for how many events are put in one file for the ntuplizer-jopb
+        if parts[1] == "mc" :
+            N_max   =  500000
+        else :  
+            N_max = 2000000
 
 
-            configBalls.append(configBall)
+        merge_package = []
+        event_counter = 0
+        jobID = 0
+            
+        for i,file in enumerate(files):
+            # adding files until there are 500k for MC or 2M for DATA
+            # skip this if you run local test
+            if (event_counter < N_max and i < len(files)-1) :
+                merge_package.append(file)
+                event_counter += N[i]
+
+            else :
+                if i == len(files)-1 : # the last file
+                    merge_package.append(file) 
+
+                print merge_package
+                configBall = {}
+                configBall["files"]        = merge_package
+                configBall["file"]         = "nano_{0}.root".format(jobID)
+                jobID += 1
+
+
+                configBall["sample"]      = parts[2]
+                configBall["samplename"]  = sample
+                configBall["channel"]     = self.channel
+                configBall["systShift"]   = shift
+                configBall["massfit"]     = self.massfit
+                configBall["recoil"]      = self.recoil
+                configBall["system"]      = self.submit
+                configBall["nevents"]     = int(self.nevents)
+                configBall["check_event"] = int(self.event)
+                configBall["isSync"]      = self.sync
+                if  parts[1] == "mc":
+                    configBall["isMC"]        = True
+                    configBall["certJson"] = ""
+                    configBall["puTag"]    = puTag[ sample ]["putag"]
+                    configBall["xsec"]     = puTag[ sample ]["xsec"]
+                    configBall["genNEvents"]  = puTag[ sample ]["nevents"]
+
+                else:
+                    configBall["isMC"]        = False
+                    configBall["certJson"] = self.certJson
+                    configBall["puTag"]   = "pileup"
+
+
+                configBalls.append(configBall)
+
+                # reset counter and merge package 
+                event_counter = N[i]
+                merge_package = [file]
+
+            # Nevts = ch.GetEntries() # check if empty root files
+            # if Nevts == 0 :
+            #     continue
+
+            # nevents += Nevts
+            # if nevents > threshold:
+            #     nevents = 0
+            #     merge_pack.append(pack)
+            #     pack = []
+            # pack.append(f)
+
+            # if nevents < 200000 and len(merge_pack) != 0 : # fix the case where merge_pack is empty
+            # merge_pack[-1] += pack
+
+
+
+
+           
 
         return configBalls
 
@@ -404,7 +462,15 @@ class SteerNanoProduction():
 
         with open( "{0}/{1}".format(self.basedir, sample) ) as FSO:
             buf = FSO.read()
-        return buf.splitlines()    
+
+        files = []
+        N = []
+        for b in buf.splitlines() :
+            linesplit = b.split(", ")
+            files.append(linesplit[0])
+            N.append(int(linesplit[1]))
+        
+        return files, N    
 
 
 def checkProxy():
