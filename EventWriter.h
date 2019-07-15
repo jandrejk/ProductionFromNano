@@ -189,6 +189,36 @@ class EventWriter
   int byVTightIsolationMVArun2017v2DBoldDMwLT2017_1;
   int byVVTightIsolationMVArun2017v2DBoldDMwLT2017_1;
 
+
+  float byIsolationDeepTau2017v2VSjet_raw_1;
+  int byIsolationDeepTau2017v2VSjet_1;
+  int byVVVLooseIsolationDeepTau2017v2VSjet_1;
+  int byVVLooseIsolationDeepTau2017v2VSjet_1; 
+  int byVLooseIsolationDeepTau2017v2VSjet_1;  
+  int byLooseIsolationDeepTau2017v2VSjet_1; 
+  int byMediumIsolationDeepTau2017v2VSjet_1;  
+  int byTightIsolationDeepTau2017v2VSjet_1; 
+  int byVTightIsolationDeepTau2017v2VSjet_1;
+  int byVVTightIsolationDeepTau2017v2VSjet_1; 
+
+  float byIsolationDeepTau2017v2VSe_raw_1;
+  int byIsolationDeepTau2017v2VSe_1;
+  int byVVVLooseIsolationDeepTau2017v2VSe_1;
+  int byVVLooseIsolationDeepTau2017v2VSe_1; 
+  int byVLooseIsolationDeepTau2017v2VSe_1;  
+  int byLooseIsolationDeepTau2017v2VSe_1; 
+  int byMediumIsolationDeepTau2017v2VSe_1;  
+  int byTightIsolationDeepTau2017v2VSe_1; 
+  int byVTightIsolationDeepTau2017v2VSe_1;
+  int byVVTightIsolationDeepTau2017v2VSe_1; 
+
+  float byIsolationDeepTau2017v2VSmu_raw_1;
+  int byIsolationDeepTau2017v2VSmu_1;
+  int byVLooseIsolationDeepTau2017v2VSmu_1;  
+  int byLooseIsolationDeepTau2017v2VSmu_1; 
+  int byMediumIsolationDeepTau2017v2VSmu_1;  
+  int byTightIsolationDeepTau2017v2VSmu_1; 
+  
   float chargedIsoPtSum_1;
   float neutralIsoPtSum_1;
   float puCorrPtSum_1;
@@ -239,6 +269,36 @@ class EventWriter
   int byTightIsolationMVArun2017v2DBoldDMwLT2017_2;
   int byVTightIsolationMVArun2017v2DBoldDMwLT2017_2;
   int byVVTightIsolationMVArun2017v2DBoldDMwLT2017_2;
+
+
+  float byIsolationDeepTau2017v2VSjet_raw_2;
+  int byIsolationDeepTau2017v2VSjet_2;
+  int byVVVLooseIsolationDeepTau2017v2VSjet_2;
+  int byVVLooseIsolationDeepTau2017v2VSjet_2; 
+  int byVLooseIsolationDeepTau2017v2VSjet_2;  
+  int byLooseIsolationDeepTau2017v2VSjet_2; 
+  int byMediumIsolationDeepTau2017v2VSjet_2;  
+  int byTightIsolationDeepTau2017v2VSjet_2; 
+  int byVTightIsolationDeepTau2017v2VSjet_2;
+  int byVVTightIsolationDeepTau2017v2VSjet_2; 
+
+  float byIsolationDeepTau2017v2VSe_raw_2;
+  int byIsolationDeepTau2017v2VSe_2;
+  int byVVVLooseIsolationDeepTau2017v2VSe_2;
+  int byVVLooseIsolationDeepTau2017v2VSe_2; 
+  int byVLooseIsolationDeepTau2017v2VSe_2;  
+  int byLooseIsolationDeepTau2017v2VSe_2; 
+  int byMediumIsolationDeepTau2017v2VSe_2;  
+  int byTightIsolationDeepTau2017v2VSe_2; 
+  int byVTightIsolationDeepTau2017v2VSe_2;
+  int byVVTightIsolationDeepTau2017v2VSe_2; 
+
+  float byIsolationDeepTau2017v2VSmu_raw_2;
+  int byIsolationDeepTau2017v2VSmu_2;
+  int byVLooseIsolationDeepTau2017v2VSmu_2;  
+  int byLooseIsolationDeepTau2017v2VSmu_2; 
+  int byMediumIsolationDeepTau2017v2VSmu_2;  
+  int byTightIsolationDeepTau2017v2VSmu_2; 
 
   float chargedIsoPtSum_2;
   float neutralIsoPtSum_2;

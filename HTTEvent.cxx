@@ -24,8 +24,31 @@ const TString HTTEvent::tauIDStrings[ntauIds] = {
   "byMediumIsolationMVArun2v1DBoldDMwLT",
   "byTightIsolationMVArun2v1DBoldDMwLT",
   "byVTightIsolationMVArun2v1DBoldDMwLT",
-  "byVVTightIsolationMVArun2v1DBoldDMwLT"
-};
+  "byVVTightIsolationMVArun2v1DBoldDMwLT",
+  // deepTauIDv2 vs jet discriminator
+  "byVVVLooseDeepTau2017v2VSjet",
+  "byVVLooseDeepTau2017v2VSjet",
+  "byVLooseDeepTau2017v2VSjet",
+  "byLooseDeepTau2017v2VSjet",
+  "byMediumDeepTau2017v2VSjet",
+  "byTightDeepTau2017v2VSjet",
+  "byVTightDeepTau2017v2VSjet",
+  "byVVTightDeepTau2017v2VSjet",
+  // deepTauIDv2 vs electron discriminator
+  "byVVVLooseDeepTau2017v2VSe",
+  "byVVLooseDeepTau2017v2VSe",
+  "byVLooseDeepTau2017v2VSe",
+  "byLooseDeepTau2017v2VSe",
+  "byMediumDeepTau2017v2VSe",
+  "byTightDeepTau2017v2VSe",
+  "byVTightDeepTau2017v2VSe",
+  "byVVTightDeepTau2017v2VSe",
+  // deepTauIDv2 vs muon discriminator
+  "byVLooseDeepTau2017v2VSmu",
+  "byLooseDeepTau2017v2VSmu",
+  "byMediumDeepTau2017v2VSmu",
+  "byTightDeepTau2017v2VSmu"
+ };
 ////////////////////////////////////////////////
 ////////////////////////////////////////////////
 void HTTEvent::clear(){

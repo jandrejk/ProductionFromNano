@@ -26,6 +26,7 @@ void EventWriter::fill(HTTEvent *ev, HTTJetCollection *jets, std::vector<HTTPart
     pdg2=std::abs(leg2.getProperty(PropertyEnum::pdgId));
 
     runID=ev->getRunId();
+
     lumiBlock=ev->getLSId();
     eventNr=ev->getEventId();
   
@@ -38,10 +39,11 @@ void EventWriter::fill(HTTEvent *ev, HTTJetCollection *jets, std::vector<HTTPart
     fillLeg2Branches();
     
     fillJetBranches(jets);
-    
+
     fillPairBranches(pair, jets);
-    
+
     fillAdditionalLeptons( leptons, pair );
+
     fillMELA(jets);
   
     //////////////////////////////////////////////////////////////////  
@@ -449,19 +451,53 @@ void EventWriter::fillLeg1Branches()
 
     byIsolationMVA3oldDMwLTraw_1 =leg1.getProperty(HTTEvent::usePropertyFor.at("tauID"));
 
+    // Tau ID based on BDT trained with 2017 data
     byIsolationMVArun2017v2DBoldDMwLTraw2017_1=leg1.getProperty(HTTEvent::usePropertyFor.at("tauIsolation")); // Raw value
     byIsolationMVArun2017v2DBoldDMwLT2017_1=leg1.getProperty(HTTEvent::usePropertyFor.at("tauID"));    // Bitmask
 
     byVVLooseIsolationMVArun2017v2DBoldDMwLT2017_1 = (byIsolationMVArun2017v2DBoldDMwLT2017_1 & 0x1)>0;
     byVLooseIsolationMVArun2017v2DBoldDMwLT2017_1  = (byIsolationMVArun2017v2DBoldDMwLT2017_1 & 0x2)>0;
-    byLooseIsolationMVArun2017v2DBoldDMwLT2017_1   = (byIsolationMVArun2017v2DBoldDMwLT2017_1 & 0x4)>0;;
+    byLooseIsolationMVArun2017v2DBoldDMwLT2017_1   = (byIsolationMVArun2017v2DBoldDMwLT2017_1 & 0x4)>0;
     byMediumIsolationMVArun2017v2DBoldDMwLT2017_1  = (byIsolationMVArun2017v2DBoldDMwLT2017_1 & 0x8)>0;
     byTightIsolationMVArun2017v2DBoldDMwLT2017_1   = (byIsolationMVArun2017v2DBoldDMwLT2017_1 & 0x10)>0;
     byVTightIsolationMVArun2017v2DBoldDMwLT2017_1  = (byIsolationMVArun2017v2DBoldDMwLT2017_1 & 0x20)>0;
     byVVTightIsolationMVArun2017v2DBoldDMwLT2017_1  = (byIsolationMVArun2017v2DBoldDMwLT2017_1 & 0x40)>0;
 
+    // Tau ID based on DeepTauIDv2 against jets
+    byIsolationDeepTau2017v2VSjet_raw_1=leg1.getProperty(HTTEvent::usePropertyFor.at("tauIsolation")); // Raw value
+    byIsolationDeepTau2017v2VSjet_1=leg1.getProperty(HTTEvent::usePropertyFor.at("tauID"));    // Bitmask
 
+    byVVVLooseIsolationDeepTau2017v2VSjet_1 = (byIsolationDeepTau2017v2VSjet_1 & 0x1)>0;
+    byVVLooseIsolationDeepTau2017v2VSjet_1  = (byIsolationDeepTau2017v2VSjet_1 & 0x2)>0;
+    byVLooseIsolationDeepTau2017v2VSjet_1   = (byIsolationDeepTau2017v2VSjet_1 & 0x4)>0;
+    byLooseIsolationDeepTau2017v2VSjet_1  = (byIsolationDeepTau2017v2VSjet_1 & 0x8)>0;
+    byMediumIsolationDeepTau2017v2VSjet_1   = (byIsolationDeepTau2017v2VSjet_1 & 0x10)>0;
+    byTightIsolationDeepTau2017v2VSjet_1  = (byIsolationDeepTau2017v2VSjet_1 & 0x20)>0;
+    byVTightIsolationDeepTau2017v2VSjet_1  = (byIsolationDeepTau2017v2VSjet_1 & 0x40)>0; // 4*16 = 64   
+    byVVTightIsolationDeepTau2017v2VSjet_1  = (byIsolationDeepTau2017v2VSjet_1 & 0x80)>0; //8*16     = 128
 
+    // Tau ID based on DeepTauIDv2 against electrons
+    byIsolationDeepTau2017v2VSe_raw_1=leg1.getProperty(HTTEvent::usePropertyFor.at("tauIsolation")); // Raw value
+    byIsolationDeepTau2017v2VSe_1=leg1.getProperty(HTTEvent::usePropertyFor.at("tauID"));    // Bitmask
+
+    byVVVLooseIsolationDeepTau2017v2VSe_1 = (byIsolationDeepTau2017v2VSe_1 & 0x1)>0;
+    byVVLooseIsolationDeepTau2017v2VSe_1  = (byIsolationDeepTau2017v2VSe_1 & 0x2)>0;
+    byVLooseIsolationDeepTau2017v2VSe_1   = (byIsolationDeepTau2017v2VSe_1 & 0x4)>0;
+    byLooseIsolationDeepTau2017v2VSe_1  = (byIsolationDeepTau2017v2VSe_1 & 0x8)>0;
+    byMediumIsolationDeepTau2017v2VSe_1   = (byIsolationDeepTau2017v2VSe_1 & 0x10)>0;
+    byTightIsolationDeepTau2017v2VSe_1  = (byIsolationDeepTau2017v2VSe_1 & 0x20)>0;
+    byVTightIsolationDeepTau2017v2VSe_1  = (byIsolationDeepTau2017v2VSe_1 & 0x40)>0; // 4*16 = 64   
+    byVVTightIsolationDeepTau2017v2VSe_1  = (byIsolationDeepTau2017v2VSe_1 & 0x80)>0; //8*16     = 128
+
+    // Tau ID based on DeepTauIDv2 against muons
+    byIsolationDeepTau2017v2VSmu_raw_1=leg1.getProperty(HTTEvent::usePropertyFor.at("tauIsolation")); // Raw value
+    byIsolationDeepTau2017v2VSmu_1=leg1.getProperty(HTTEvent::usePropertyFor.at("tauID"));    // Bitmask
+
+    byVLooseIsolationDeepTau2017v2VSmu_1   = (byIsolationDeepTau2017v2VSmu_1 & 0x4)>0;
+    byLooseIsolationDeepTau2017v2VSmu_1  = (byIsolationDeepTau2017v2VSmu_1 & 0x8)>0;
+    byMediumIsolationDeepTau2017v2VSmu_1   = (byIsolationDeepTau2017v2VSmu_1 & 0x10)>0;
+    byTightIsolationDeepTau2017v2VSmu_1  = (byIsolationDeepTau2017v2VSmu_1 & 0x20)>0;
+   
     chargedIsoPtSum_1=leg1.getProperty(PropertyEnum::chargedIso);
     neutralIsoPtSum_1=leg1.getProperty(PropertyEnum::neutralIso);
     puCorrPtSum_1=leg1.getProperty(PropertyEnum::puCorr);
@@ -527,6 +563,41 @@ void EventWriter::fillLeg2Branches()
     byTightIsolationMVArun2017v2DBoldDMwLT2017_2   = (byIsolationMVArun2017v2DBoldDMwLT2017_2 & 0x10)>0;
     byVTightIsolationMVArun2017v2DBoldDMwLT2017_2  = (byIsolationMVArun2017v2DBoldDMwLT2017_2 & 0x20)>0;
     byVVTightIsolationMVArun2017v2DBoldDMwLT2017_2  = (byIsolationMVArun2017v2DBoldDMwLT2017_2 & 0x40)>0;
+
+    // Tau ID based on DeepTauIDv2 against jets
+    byIsolationDeepTau2017v2VSjet_raw_2=leg1.getProperty(HTTEvent::usePropertyFor.at("tauIsolation")); // Raw value
+    byIsolationDeepTau2017v2VSjet_2=leg1.getProperty(HTTEvent::usePropertyFor.at("tauID"));    // Bitmask
+
+    byVVVLooseIsolationDeepTau2017v2VSjet_2 = (byIsolationDeepTau2017v2VSjet_2 & 0x1)>0;
+    byVVLooseIsolationDeepTau2017v2VSjet_2  = (byIsolationDeepTau2017v2VSjet_2 & 0x2)>0;
+    byVLooseIsolationDeepTau2017v2VSjet_2   = (byIsolationDeepTau2017v2VSjet_2 & 0x4)>0;
+    byLooseIsolationDeepTau2017v2VSjet_2  = (byIsolationDeepTau2017v2VSjet_2 & 0x8)>0;
+    byMediumIsolationDeepTau2017v2VSjet_2   = (byIsolationDeepTau2017v2VSjet_2 & 0x10)>0;
+    byTightIsolationDeepTau2017v2VSjet_2  = (byIsolationDeepTau2017v2VSjet_2 & 0x20)>0;
+    byVTightIsolationDeepTau2017v2VSjet_2  = (byIsolationDeepTau2017v2VSjet_2 & 0x40)>0; // 4*16 = 64   
+    byVVTightIsolationDeepTau2017v2VSjet_2  = (byIsolationDeepTau2017v2VSjet_2 & 0x80)>0; //8*16     = 128
+
+    // Tau ID based on DeepTauIDv2 against electrons
+    byIsolationDeepTau2017v2VSe_raw_2=leg1.getProperty(HTTEvent::usePropertyFor.at("tauIsolation")); // Raw value
+    byIsolationDeepTau2017v2VSe_2=leg1.getProperty(HTTEvent::usePropertyFor.at("tauID"));    // Bitmask
+
+    byVVVLooseIsolationDeepTau2017v2VSe_2 = (byIsolationDeepTau2017v2VSe_2 & 0x1)>0;
+    byVVLooseIsolationDeepTau2017v2VSe_2  = (byIsolationDeepTau2017v2VSe_2 & 0x2)>0;
+    byVLooseIsolationDeepTau2017v2VSe_2   = (byIsolationDeepTau2017v2VSe_2 & 0x4)>0;
+    byLooseIsolationDeepTau2017v2VSe_2  = (byIsolationDeepTau2017v2VSe_2 & 0x8)>0;
+    byMediumIsolationDeepTau2017v2VSe_2   = (byIsolationDeepTau2017v2VSe_2 & 0x10)>0;
+    byTightIsolationDeepTau2017v2VSe_2  = (byIsolationDeepTau2017v2VSe_2 & 0x20)>0;
+    byVTightIsolationDeepTau2017v2VSe_2  = (byIsolationDeepTau2017v2VSe_2 & 0x40)>0; // 4*16 = 64   
+    byVVTightIsolationDeepTau2017v2VSe_2  = (byIsolationDeepTau2017v2VSe_2 & 0x80)>0; //8*16     = 128
+
+    // Tau ID based on DeepTauIDv2 against muons
+    byIsolationDeepTau2017v2VSmu_raw_2=leg1.getProperty(HTTEvent::usePropertyFor.at("tauIsolation")); // Raw value
+    byIsolationDeepTau2017v2VSmu_2=leg1.getProperty(HTTEvent::usePropertyFor.at("tauID"));    // Bitmask
+
+    byVLooseIsolationDeepTau2017v2VSmu_2   = (byIsolationDeepTau2017v2VSmu_2 & 0x4)>0;
+    byLooseIsolationDeepTau2017v2VSmu_2  = (byIsolationDeepTau2017v2VSmu_2 & 0x8)>0;
+    byMediumIsolationDeepTau2017v2VSmu_2   = (byIsolationDeepTau2017v2VSmu_2 & 0x10)>0;
+    byTightIsolationDeepTau2017v2VSmu_2  = (byIsolationDeepTau2017v2VSmu_2 & 0x20)>0;
 
     chargedIsoPtSum_2=leg2.getProperty(PropertyEnum::chargedIso);
     neutralIsoPtSum_2=leg2.getProperty(PropertyEnum::neutralIso);
@@ -622,11 +693,11 @@ void EventWriter::fillJetBranches(HTTJetCollection *jets)
 void EventWriter::fillPairBranches(HTTPair *pair, HTTJetCollection *jets)
 {
 
-
     metcov00=pair->getMETMatrix().at(0);
     metcov01=pair->getMETMatrix().at(1);
     metcov10=pair->getMETMatrix().at(2);
     metcov11=pair->getMETMatrix().at(3);
+    
 
     for(unsigned int shift = 0; shift<metShifts.size(); ++shift )
     {
@@ -1096,15 +1167,64 @@ void EventWriter::setDefault(){
     againstMuonLoose3_1=DEF;
     againstMuonTight3_1=DEF;
     byCombinedIsolationDeltaBetaCorrRaw3Hits_1=DEF;
+    
     byIsolationMVA3newDMwoLTraw_1=DEF;
     byIsolationMVA3oldDMwoLTraw_1=DEF;
     byIsolationMVA3newDMwLTraw_1=DEF;
     byIsolationMVA3oldDMwLTraw_1=DEF;
+    
     byVLooseIsolationMVArun2017v2DBoldDMwLT2017_1=DEF;
     byLooseIsolationMVArun2017v2DBoldDMwLT2017_1=DEF;
     byMediumIsolationMVArun2017v2DBoldDMwLT2017_1=DEF;
     byTightIsolationMVArun2017v2DBoldDMwLT2017_1=DEF;
     byVTightIsolationMVArun2017v2DBoldDMwLT2017_1=DEF;
+    byVVVLooseIsolationDeepTau2017v2VSjet_1=DEF;
+    byVVLooseIsolationDeepTau2017v2VSjet_1=DEF; 
+    byVLooseIsolationDeepTau2017v2VSjet_1=DEF;  
+    byLooseIsolationDeepTau2017v2VSjet_1=DEF; 
+    byMediumIsolationDeepTau2017v2VSjet_1=DEF;  
+    byTightIsolationDeepTau2017v2VSjet_1=DEF; 
+    byVTightIsolationDeepTau2017v2VSjet_1=DEF; 
+    byVVTightIsolationDeepTau2017v2VSjet_1=DEF; 
+    byVVVLooseIsolationDeepTau2017v2VSe_1=DEF;
+    byVVLooseIsolationDeepTau2017v2VSe_1=DEF; 
+    byVLooseIsolationDeepTau2017v2VSe_1=DEF;  
+    byLooseIsolationDeepTau2017v2VSe_1=DEF; 
+    byMediumIsolationDeepTau2017v2VSe_1=DEF;  
+    byTightIsolationDeepTau2017v2VSe_1=DEF; 
+    byVTightIsolationDeepTau2017v2VSe_1=DEF; 
+    byVVTightIsolationDeepTau2017v2VSe_1=DEF; 
+    byVLooseIsolationDeepTau2017v2VSmu_1=DEF;  
+    byLooseIsolationDeepTau2017v2VSmu_1=DEF; 
+    byMediumIsolationDeepTau2017v2VSmu_1=DEF;  
+    byTightIsolationDeepTau2017v2VSmu_1=DEF; 
+    
+    byVLooseIsolationMVArun2017v2DBoldDMwLT2017_2=DEF;
+    byLooseIsolationMVArun2017v2DBoldDMwLT2017_2=DEF;
+    byMediumIsolationMVArun2017v2DBoldDMwLT2017_2=DEF;
+    byTightIsolationMVArun2017v2DBoldDMwLT2017_2=DEF;
+    byVTightIsolationMVArun2017v2DBoldDMwLT2017_2=DEF;
+    byVVVLooseIsolationDeepTau2017v2VSjet_2=DEF;
+    byVVLooseIsolationDeepTau2017v2VSjet_2=DEF; 
+    byVLooseIsolationDeepTau2017v2VSjet_2=DEF;  
+    byLooseIsolationDeepTau2017v2VSjet_2=DEF; 
+    byMediumIsolationDeepTau2017v2VSjet_2=DEF;  
+    byTightIsolationDeepTau2017v2VSjet_2=DEF; 
+    byVTightIsolationDeepTau2017v2VSjet_2=DEF; 
+    byVVTightIsolationDeepTau2017v2VSjet_2=DEF; 
+    byVVVLooseIsolationDeepTau2017v2VSe_2=DEF;
+    byVVLooseIsolationDeepTau2017v2VSe_2=DEF; 
+    byVLooseIsolationDeepTau2017v2VSe_2=DEF;  
+    byLooseIsolationDeepTau2017v2VSe_2=DEF; 
+    byMediumIsolationDeepTau2017v2VSe_2=DEF;  
+    byTightIsolationDeepTau2017v2VSe_2=DEF; 
+    byVTightIsolationDeepTau2017v2VSe_2=DEF; 
+    byVVTightIsolationDeepTau2017v2VSe_2=DEF; 
+    byVLooseIsolationDeepTau2017v2VSmu_2=DEF;  
+    byLooseIsolationDeepTau2017v2VSmu_2=DEF; 
+    byMediumIsolationDeepTau2017v2VSmu_2=DEF;  
+    byTightIsolationDeepTau2017v2VSmu_2=DEF; 
+    
     chargedIsoPtSum_1=DEF;
     neutralIsoPtSum_1=DEF;
     puCorrPtSum_1=DEF;
@@ -1558,7 +1678,36 @@ void EventWriter::initTree(TTree *t, vector< pair< string, pair<string,bool> > >
     t->Branch("byTightIsolationMVArun2017v2DBoldDMwLT2017_1", &byTightIsolationMVArun2017v2DBoldDMwLT2017_1);
     t->Branch("byVTightIsolationMVArun2017v2DBoldDMwLT2017_1", &byVTightIsolationMVArun2017v2DBoldDMwLT2017_1);
     t->Branch("byVVTightIsolationMVArun2017v2DBoldDMwLT2017_1", &byVVTightIsolationMVArun2017v2DBoldDMwLT2017_1);
+    
+    t->Branch("byIsolationDeepTau2017v2VSjet_raw_1", &byIsolationDeepTau2017v2VSjet_raw_1);
+    t->Branch("byIsolationDeepTau2017v2VSjet_1", &byIsolationDeepTau2017v2VSjet_1);
+    t->Branch("byVVVLooseIsolationDeepTau2017v2VSjet_1", &byVVVLooseIsolationDeepTau2017v2VSjet_1);
+    t->Branch("byVVLooseIsolationDeepTau2017v2VSjet_1", &byVVLooseIsolationDeepTau2017v2VSjet_1);
+    t->Branch("byVLooseIsolationDeepTau2017v2VSjet_1", &byVLooseIsolationDeepTau2017v2VSjet_1);
+    t->Branch("byLooseIsolationDeepTau2017v2VSjet_1", &byLooseIsolationDeepTau2017v2VSjet_1);
+    t->Branch("byMediumIsolationDeepTau2017v2VSjet_1", &byMediumIsolationDeepTau2017v2VSjet_1);
+    t->Branch("byTightIsolationDeepTau2017v2VSjet_1", &byTightIsolationDeepTau2017v2VSjet_1);
+    t->Branch("byVTightIsolationDeepTau2017v2VSjet_1", &byVTightIsolationDeepTau2017v2VSjet_1);
+    t->Branch("byVVTightIsolationDeepTau2017v2VSjet_1", &byVVTightIsolationDeepTau2017v2VSjet_1);
 
+    t->Branch("byIsolationDeepTau2017v2VSe_raw_1", &byIsolationDeepTau2017v2VSe_raw_1);
+    t->Branch("byIsolationDeepTau2017v2VSe_1", &byIsolationDeepTau2017v2VSe_1);
+    t->Branch("byVVVLooseIsolationDeepTau2017v2VSe_1", &byVVVLooseIsolationDeepTau2017v2VSe_1);
+    t->Branch("byVVLooseIsolationDeepTau2017v2VSe_1", &byVVLooseIsolationDeepTau2017v2VSe_1);
+    t->Branch("byVLooseIsolationDeepTau2017v2VSe_1", &byVLooseIsolationDeepTau2017v2VSe_1);
+    t->Branch("byLooseIsolationDeepTau2017v2VSe_1", &byLooseIsolationDeepTau2017v2VSe_1);
+    t->Branch("byMediumIsolationDeepTau2017v2VSe_1", &byMediumIsolationDeepTau2017v2VSe_1);
+    t->Branch("byTightIsolationDeepTau2017v2VSe_1", &byTightIsolationDeepTau2017v2VSe_1);
+    t->Branch("byVTightIsolationDeepTau2017v2VSe_1", &byVTightIsolationDeepTau2017v2VSe_1);
+    t->Branch("byVVTightIsolationDeepTau2017v2VSe_1", &byVVTightIsolationDeepTau2017v2VSe_1);
+
+    t->Branch("byIsolationDeepTau2017v2VSmu_raw_1", &byIsolationDeepTau2017v2VSmu_raw_1);
+    t->Branch("byIsolationDeepTau2017v2VSmu_1", &byIsolationDeepTau2017v2VSmu_1);
+    t->Branch("byVLooseIsolationDeepTau2017v2VSmu_1", &byVLooseIsolationDeepTau2017v2VSmu_1);
+    t->Branch("byLooseIsolationDeepTau2017v2VSmu_1", &byLooseIsolationDeepTau2017v2VSmu_1);
+    t->Branch("byMediumIsolationDeepTau2017v2VSmu_1", &byMediumIsolationDeepTau2017v2VSmu_1);
+    t->Branch("byTightIsolationDeepTau2017v2VSmu_1", &byTightIsolationDeepTau2017v2VSmu_1);
+    
     t->Branch("chargedIsoPtSum_1", &chargedIsoPtSum_1);
     t->Branch("neutralIsoPtSum_1", &neutralIsoPtSum_1);
     t->Branch("puCorrPtSum_1", &puCorrPtSum_1);
@@ -1608,6 +1757,35 @@ void EventWriter::initTree(TTree *t, vector< pair< string, pair<string,bool> > >
     t->Branch("byTightIsolationMVArun2017v2DBoldDMwLT2017_2", &byTightIsolationMVArun2017v2DBoldDMwLT2017_2);
     t->Branch("byVTightIsolationMVArun2017v2DBoldDMwLT2017_2", &byVTightIsolationMVArun2017v2DBoldDMwLT2017_2);
     t->Branch("byVVTightIsolationMVArun2017v2DBoldDMwLT2017_2", &byVVTightIsolationMVArun2017v2DBoldDMwLT2017_2);
+
+    t->Branch("byIsolationDeepTau2017v2VSjet_raw_2", &byIsolationDeepTau2017v2VSjet_raw_2);
+    t->Branch("byIsolationDeepTau2017v2VSjet_2", &byIsolationDeepTau2017v2VSjet_2);
+    t->Branch("byVVVLooseIsolationDeepTau2017v2VSjet_2", &byVVVLooseIsolationDeepTau2017v2VSjet_2);
+    t->Branch("byVVLooseIsolationDeepTau2017v2VSjet_2", &byVVLooseIsolationDeepTau2017v2VSjet_2);
+    t->Branch("byVLooseIsolationDeepTau2017v2VSjet_2", &byVLooseIsolationDeepTau2017v2VSjet_2);
+    t->Branch("byLooseIsolationDeepTau2017v2VSjet_2", &byLooseIsolationDeepTau2017v2VSjet_2);
+    t->Branch("byMediumIsolationDeepTau2017v2VSjet_2", &byMediumIsolationDeepTau2017v2VSjet_2);
+    t->Branch("byTightIsolationDeepTau2017v2VSjet_2", &byTightIsolationDeepTau2017v2VSjet_2);
+    t->Branch("byVTightIsolationDeepTau2017v2VSjet_2", &byVTightIsolationDeepTau2017v2VSjet_2);
+    t->Branch("byVVTightIsolationDeepTau2017v2VSjet_2", &byVVTightIsolationDeepTau2017v2VSjet_2);
+
+    t->Branch("byIsolationDeepTau2017v2VSe_raw_2", &byIsolationDeepTau2017v2VSe_raw_2);
+    t->Branch("byIsolationDeepTau2017v2VSe_2", &byIsolationDeepTau2017v2VSe_2);
+    t->Branch("byVVVLooseIsolationDeepTau2017v2VSe_2", &byVVVLooseIsolationDeepTau2017v2VSe_2);
+    t->Branch("byVVLooseIsolationDeepTau2017v2VSe_2", &byVVLooseIsolationDeepTau2017v2VSe_2);
+    t->Branch("byVLooseIsolationDeepTau2017v2VSe_2", &byVLooseIsolationDeepTau2017v2VSe_2);
+    t->Branch("byLooseIsolationDeepTau2017v2VSe_2", &byLooseIsolationDeepTau2017v2VSe_2);
+    t->Branch("byMediumIsolationDeepTau2017v2VSe_2", &byMediumIsolationDeepTau2017v2VSe_2);
+    t->Branch("byTightIsolationDeepTau2017v2VSe_2", &byTightIsolationDeepTau2017v2VSe_2);
+    t->Branch("byVTightIsolationDeepTau2017v2VSe_2", &byVTightIsolationDeepTau2017v2VSe_2);
+    t->Branch("byVVTightIsolationDeepTau2017v2VSe_2", &byVVTightIsolationDeepTau2017v2VSe_2);
+
+    t->Branch("byIsolationDeepTau2017v2VSmu_raw_2", &byIsolationDeepTau2017v2VSmu_raw_2);
+    t->Branch("byIsolationDeepTau2017v2VSmu_2", &byIsolationDeepTau2017v2VSmu_2);
+    t->Branch("byVLooseIsolationDeepTau2017v2VSmu_2", &byVLooseIsolationDeepTau2017v2VSmu_2);
+    t->Branch("byLooseIsolationDeepTau2017v2VSmu_2", &byLooseIsolationDeepTau2017v2VSmu_2);
+    t->Branch("byMediumIsolationDeepTau2017v2VSmu_2", &byMediumIsolationDeepTau2017v2VSmu_2);
+    t->Branch("byTightIsolationDeepTau2017v2VSmu_2", &byTightIsolationDeepTau2017v2VSmu_2);
 
     t->Branch("chargedIsoPtSum_2", &chargedIsoPtSum_2);
     t->Branch("neutralIsoPtSum_2", &neutralIsoPtSum_2);
