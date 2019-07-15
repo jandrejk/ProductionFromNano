@@ -81,6 +81,7 @@ HTauTauTreeFromNanoBase::HTauTauTreeFromNanoBase(TTree *tree, std::vector<edm::L
         initJecUnc("utils/jec_uncert/Summer16_23Sep2016V4_MC_UncertaintySources_AK4PFchs.txt");
         
         std::cout<<"[HTauTauTreeFromNanoBase]: Load files and init for promote-demote"<<std::endl;
+        // comment this in if you want to use promote demote method!
         // httJetCollection.initForPromoteDemote();
     }
 
