@@ -251,9 +251,9 @@ class SteerNanoProduction():
 
         for runpath in runpaths:
             run_file = runpath.replace("rundir_","") + ".sub"
-            print "run_file: {0}".format(run_file)
+            # print "run_file: {0}".format(run_file)
             for df in glob(run_file + "*"):
-                print "df: {0}".format(df)
+                # print "df: {0}".format(df)
                 os.remove(df)
 
             with open("condor_template.sub","r") as FSO:
@@ -326,7 +326,7 @@ class SteerNanoProduction():
                                                 self.channel,
                                                 configBall["systShift"], 
                                                 configBall["file"].split("/")[-1] )
-            print "jobname: {0}".format(jobname)
+            # print "jobname: {0}".format(jobname)
             runscript = templ.substitute(samplename = jobname,
                                          rundir = rundir,
                                          outdir = "/".join([self.outdir, configBall["samplename"]]),
