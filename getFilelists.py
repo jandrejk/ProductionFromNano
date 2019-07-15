@@ -201,7 +201,7 @@ def buildFileName(link, run, creation):
     parts = link.split("/")
     expr = "(_v[0-9]-)|(_v[0-9]_)"
    
-    ext = re.search(pattern=expr, string=link).group(1)[:-1]
+    ext = re.search(pattern=expr, string=link).group()[:-1]
     ext = ext.replace("-","_")
     if "_ext" in parts[2]:
         ext += "_ext" + parts[2].split("_ext")[1].split("-")[0]

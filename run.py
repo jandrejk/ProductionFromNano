@@ -13,7 +13,7 @@ import string
 import json
 from runUtils import checkProxy, checkTokens, useToken, getSystem, getHeplxPublicFolder
 from terminal_colors import bcolors
-from goldenJSON.py import golden
+from goldenJSON import golden
 def main():
 
     parser = argparse.ArgumentParser()
@@ -47,6 +47,8 @@ def main():
         print "You forgot to source cmssw"
         sys.exit()
 
+
+    print "use golden JSON file: {0}".format(golden[args.year])
     SNP = SteerNanoProduction(args.outdir, args.submit, args.massfit, args.jobs, args.debug, args.sync, args.force, args.event, cert=golden[args.year])
     for cmd in makeSubmitList(args.sample, args.channel):
 

@@ -94,7 +94,7 @@ if not "root://" in aFile: aFile = "file://" + aFile
 print "Job file name is: {0}".format(aFile)
 
 
-if "files" in configBall :
+if "files" in configBall and str( configBall["system"] ) != "local":
     nameOfFilesToBeMerged = []
     print "several files need to to be copied and merged before compiling"
     for name in configBall["files"] :
@@ -106,7 +106,10 @@ if "files" in configBall :
     os.system(hadd_cmd)
     aROOTFile = TFile.Open(aFile)
     aTree = aROOTFile.Get("Events")
-    
+elif (str( configBall["system"] ) == "local") :
+    fname = configBall["files"][0]
+    aROOTFile = TFile.Open(fname)
+    aTree = aROOTFile.Get("Events")
 else :
     fname = CopyFile(file_path=aFile, system=str( configBall["system"] ),check_event=check_event)
     aROOTFile = TFile.Open(fname)

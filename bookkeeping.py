@@ -8,6 +8,7 @@ import string
 import subprocess as sp
 import argparse
 import time
+import math
 from datetime import datetime
 from runUtils import checkProxy, checkTokens, useToken, getSystem, getHeplxPublicFolder
 
@@ -69,9 +70,24 @@ class Bookkeeping():
     self.outdir = "srm://hephyse.oeaw.ac.at//dpm/oeaw.ac.at/home/cms/store/user/mspanrin/condor_production"
 
     for sample in self.log:
+      
+
       if len( glob.glob( "samples/*/*/{0}.txt".format(sample) ) ) == 0: continue
+
+      if "mc" in glob.glob( "samples/*/*/{0}.txt".format(sample) )[0] :
+        N_max = 500000
+      else:
+        N_max = 2000000
       with open( glob.glob( "samples/*/*/{0}.txt".format(sample) )[0], "r" ) as FSO:
-        ntotal = len(FSO.read().splitlines() )
+        buf = FSO.read()
+
+      ntotal = 0
+      for l in buf.splitlines() :
+        ntotal += int(l.split(", ")[1])
+      ntotal = int(math.ceil(1.*ntotal / N_max))
+        # ntotal = len(FSO.read().splitlines() )
+
+
       for channel in self.log[sample]:
         for shift in self.log[sample][channel]:
 
