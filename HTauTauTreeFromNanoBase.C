@@ -81,6 +81,7 @@ HTauTauTreeFromNanoBase::HTauTauTreeFromNanoBase(TTree *tree, std::vector<edm::L
         initJecUnc("utils/jec_uncert/Summer16_23Sep2016V4_MC_UncertaintySources_AK4PFchs.txt");
         
         std::cout<<"[HTauTauTreeFromNanoBase]: Load files and init for promote-demote"<<std::endl;
+        // comment this in if you want to use promote demote method!
         // httJetCollection.initForPromoteDemote();
     }
 
@@ -251,7 +252,7 @@ void HTauTauTreeFromNanoBase::Loop(Long64_t nentries_max, unsigned int sync_even
 
         if(bestPairIndex<9999)
         {
-            //std::cout<<"jentry "<<jentry<<std::endl;
+            // std::cout<<"jentry "<<jentry<<std::endl;
             // std::cout<<"bla3"<<std::endl;
         
             debugWayPoint("[Loop] good pair index found");
@@ -280,19 +281,19 @@ void HTauTauTreeFromNanoBase::Loop(Long64_t nentries_max, unsigned int sync_even
                 bool fastMTT = false;
                 computeSvFit(bestPair,fastMTT);
             }
-            //std::cout<<"2.1"<<std::endl;
+            // std::cout<<"2.1"<<std::endl;
             evtWriter->fill(httEvent.get(), &httJetCollection, httLeptonCollection, &bestPair);
-            //std::cout<<"2.2"<<std::endl;
+            // std::cout<<"2.2"<<std::endl;
             evtWriter->entry=entry++;
             evtWriter->fileEntry=jentry;
             t_TauCheck->Fill();
-            //std::cout<<"1"<<std::endl;
+            // std::cout<<"1"<<std::endl;
             
             
             hStats->Fill(2);//Number of events saved to ntuple
             hStats->Fill(3,httEvent->getMCWeight());//Sum of weights saved to ntuple
             if(firstWarningOccurence_) firstWarningOccurence_ = false; //stop to warn once the first pair is found and filled
-            //std::cout<<"1"<<std::endl;
+            // std::cout<<"1"<<std::endl;
             
         }
     }
@@ -1667,7 +1668,7 @@ void HTauTauTreeFromNanoBase::applyMetRecoilCorrections(HTTPair &aPair)
 
     // Shift met by jec if there is not best pair or recoilCorrector is not initialized
     TVector2 met; met.SetMagPhi(MET_pt, MET_phi);
-    //aPair.setMETMatrix(MET_covXX, MET_covXY, MET_covXY, MET_covYY);
+    aPair.setMETMatrix(MET_covXX, MET_covXY, MET_covXY, MET_covYY);
 
     if( recoilCorrector_==nullptr
         || httPairCollection.empty()

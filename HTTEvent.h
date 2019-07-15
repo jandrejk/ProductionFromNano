@@ -39,7 +39,7 @@ class HTTEvent{
 
   enum sampleTypeEnum {DUMMY, MuonData, EleData, TauData , DY, DYLowM, WJets, TTbar, ST, Diboson, EWK, h, H, A};
 
-  static const int ntauIds = 13;
+  static const int ntauIds = 33;
   static const int againstMuIdOffset = 0;
   static const int againstEIdOffset = againstMuIdOffset+2;
   static const int mvaIsoIdOffset = againstEIdOffset+5;

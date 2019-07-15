@@ -37,6 +37,42 @@ def getLumisToRun(JSON):
                                                     edm.LuminosityBlockID(endRun, endLumiBlock) ) )
     return vlumis
 #######################################################################################################
+def CopyFile(file_path,system,check_event) :
+    aROOTFile = TFile.Open(file_path)
+    aTree = aROOTFile.Get("Events")
+    remoteEvts = aTree.GetEntries()   
+
+
+    print "Remote file {file} has {n} number of events".format(file=file_path,n=remoteEvts)
+    
+    aROOTFile.Close()
+
+    if system == "lxbatch" or system == "condor":
+        os.system("xrdcp {0} {1}".format(file_path, file_path.split("/")[-1] ) )
+        local_filename = file_path.split("/")[-1]
+
+    aROOTFile = TFile.Open(local_filename)
+    aTree = aROOTFile.Get("Events")
+
+    if check_event > 0:
+        aTree = aTree.CopyTree("event == {0}".format(check_event) )
+
+    entries = aTree.GetEntries()
+
+    if not entries:
+        print "file is empty. Aborting"
+        exit(1)
+    if not remoteEvts == entries and not check_event > 0:
+        print "File was not copied properly. Aborting"
+        exit(2)
+    else:
+        print "Copying successful! TTree entries: ", entries
+
+    aROOTFile.Close()
+    return local_filename
+
+
+#######################################################################################################
 
 with open("configBall.json","r") as FSO:
     configBall = json.load(FSO)
@@ -55,39 +91,33 @@ for i,k in configBall.items():
 print "-"*30
 
 if not "root://" in aFile: aFile = "file://" + aFile
+print "Job file name is: {0}".format(aFile)
 
-print aFile
-aROOTFile = TFile.Open(aFile)
-aTree = aROOTFile.Get("Events")
-remoteEvts = aTree.GetEntries()
 
-print "Using file: ",aFile
-if str( configBall["system"] ) == "lxbatch" or str( configBall["system"] ) == "condor":
-    os.system("xrdcp {0} {1}".format(aFile, aFile.split("/")[-1] ) )
-    aFile = aFile.split("/")[-1]
-
-aROOTFile = TFile.Open(aFile)
-aTree = aROOTFile.Get("Events")
-
-if check_event > 0:
-    aTree = aTree.CopyTree("event == {0}".format(check_event) )
-
-entries = aTree.GetEntries()
-
-if not entries:
-    print "file is empty. Aborting"
-    exit(1)
-if not remoteEvts == entries and not check_event > 0:
-    print "File was not copied properly. Aborting"
-    exit(2)
-else:
-    print "TTree entries: ", entries
+if "files" in configBall :
+    nameOfFilesToBeMerged = []
+    print "several files need to to be copied and merged before compiling"
+    for name in configBall["files"] :
+        print name
+        nameOfFilesToBeMerged.append(CopyFile(file_path=name,system=str( configBall["system"] ),check_event=check_event))
+    print "copying of all files sucessfull. Merging with the command:"
+    hadd_cmd = "python haddnano.py {output} {input}".format(output=aFile,input=" ".join(nameOfFilesToBeMerged))
+    print hadd_cmd
+    os.system(hadd_cmd)
+    aROOTFile = TFile.Open(aFile)
+    aTree = aROOTFile.Get("Events")
+    
+else :
+    fname = CopyFile(file_path=aFile, system=str( configBall["system"] ),check_event=check_event)
+    aROOTFile = TFile.Open(fname)
+    aTree = aROOTFile.Get("Events")
 
 
 print "Compiling...."
 
-#Some system have problem runnig compilation (missing glibc-static library?).
-#First we try to compile, and only then we start time consuming cmssw
+
+# Some system have problem runnig compilation (missing glibc-static library?).
+# First we try to compile, and only then we start time consuming cmssw
 
 gSystem.Load("$CMSSW_BASE/lib/$SCRAM_ARCH/libZZMatrixElementMELA.so");
 
