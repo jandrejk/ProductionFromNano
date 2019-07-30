@@ -397,7 +397,7 @@ class SteerNanoProduction():
                 if i == len(files)-1 : # the last file
                     merge_package.append(file) 
 
-                print merge_package
+                #print merge_package
                 configBall = {}
                 configBall["files"]        = merge_package
                 configBall["file"]         = "nano_{0}.root".format(jobID)
