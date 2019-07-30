@@ -501,6 +501,7 @@ void EventWriter::fillLeg1Branches()
     neutralIsoPtSum_1=leg1.getProperty(PropertyEnum::neutralIso);
     puCorrPtSum_1=leg1.getProperty(PropertyEnum::puCorr);
     decayModeFindingOldDMs_1=leg1.getProperty(PropertyEnum::idDecayMode);
+    decayModeFindingNewDMs_1=leg1.getProperty(PropertyEnum::idDecayModeNewDMs);
     decayMode_1=leg1.getProperty(PropertyEnum::decayMode);
 
     if (pdg1==13) id_m_loose_1=1; //already filtered at NanoAOD production
@@ -602,6 +603,7 @@ void EventWriter::fillLeg2Branches()
     neutralIsoPtSum_2=leg2.getProperty(PropertyEnum::neutralIso);
     puCorrPtSum_2=leg2.getProperty(PropertyEnum::puCorr);
     decayModeFindingOldDMs_2=leg2.getProperty(PropertyEnum::idDecayMode);
+    decayModeFindingNewDMs_2=leg2.getProperty(PropertyEnum::idDecayModeNewDMs);
     decayMode_2=leg2.getProperty(PropertyEnum::decayMode);
 
 }
@@ -1228,6 +1230,7 @@ void EventWriter::setDefault(){
     neutralIsoPtSum_1=DEF;
     puCorrPtSum_1=DEF;
     decayModeFindingOldDMs_1=DEF;
+    decayModeFindingNewDMs_1=DEF;
     decayMode_1=DEF;
     id_e_mva_nt_loose_1=DEF;
     id_m_loose_1=DEF;
@@ -1269,6 +1272,7 @@ void EventWriter::setDefault(){
     neutralIsoPtSum_2=DEF;
     puCorrPtSum_2=DEF;
     decayModeFindingOldDMs_2=DEF;
+    decayModeFindingNewDMs_2=DEF;
     decayMode_2=DEF;
     //////////////////////////////////////////////////////////////////
     for(unsigned int shift = 0; shift<jecShifts.size(); ++shift )
@@ -1711,6 +1715,7 @@ void EventWriter::initTree(TTree *t, vector< pair< string, pair<string,bool> > >
     t->Branch("neutralIsoPtSum_1", &neutralIsoPtSum_1);
     t->Branch("puCorrPtSum_1", &puCorrPtSum_1);
     t->Branch("decayModeFindingOldDMs_1", &decayModeFindingOldDMs_1);
+    t->Branch("decayModeFindingNewDMs_1", &decayModeFindingNewDMs_1);
     t->Branch("decayMode_1", &decayMode_1);
     t->Branch("id_e_mva_nt_loose_1", &id_e_mva_nt_loose_1);
 
@@ -1790,6 +1795,7 @@ void EventWriter::initTree(TTree *t, vector< pair< string, pair<string,bool> > >
     t->Branch("neutralIsoPtSum_2", &neutralIsoPtSum_2);
     t->Branch("puCorrPtSum_2", &puCorrPtSum_2);
     t->Branch("decayModeFindingOldDMs_2", &decayModeFindingOldDMs_2);
+    t->Branch("decayModeFindingNewDMs_2", &decayModeFindingNewDMs_2);
     t->Branch("decayMode_2", &decayMode_2);
 
     t->Branch("pzetavis", &pzetavis);

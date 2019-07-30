@@ -202,4 +202,3 @@ double TauTriggerSFs2017::getETauScaleFactor(double pt, double eta, double phi, 
   return sf;
 }
 
-

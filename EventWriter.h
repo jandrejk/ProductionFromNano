@@ -223,6 +223,7 @@ class EventWriter
   float neutralIsoPtSum_1;
   float puCorrPtSum_1;
   int decayModeFindingOldDMs_1;
+  int decayModeFindingNewDMs_1;
   int decayMode_1;
   float id_e_mva_nt_loose_1;
   float id_m_loose_1;
@@ -304,6 +305,7 @@ class EventWriter
   float neutralIsoPtSum_2;
   float puCorrPtSum_2;
   int decayModeFindingOldDMs_2;
+  int decayModeFindingNewDMs_2;
   int decayMode_2;
   //////////////////////////////////////////////////////////////////
 
