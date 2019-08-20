@@ -74,7 +74,7 @@
         "nevents": 146281428, 
         "nevents_from_DAS": 49750000, 
         "putag": "pileup", 
-        "xsec": 5765.4
+        "xsec": 6225.2
     }, 
     "DYJetsToLL_M_50_TuneCUETP8M1_13TeV_madgraphMLM_pythia8_RunIISummer16NanoAOD_01Jul2019_ext2_v2": {
         "fromDAS": true, 
