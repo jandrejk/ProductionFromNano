@@ -185,6 +185,14 @@ void HTauTauTreeFromNanoBase::initHTTTree(const TTree *tree, std::string prefix)
     HTTEvent::usePropertyFor["muonID"]             = PropertyEnum::mediumId;
     HTTEvent::usePropertyFor["tauIsolation"]       = PropertyEnum::rawMVAoldDM2017v2;
     HTTEvent::usePropertyFor["tauID"]              = PropertyEnum::idMVAoldDM2017v2;
+    
+    HTTEvent::usePropertyFor["tauIsolationDeepVSjet"]       = PropertyEnum::rawDeepTau2017v2VSjet;
+    HTTEvent::usePropertyFor["tauIDDeepVSjet"]              = PropertyEnum::idDeepTau2017v2VSjet;
+    HTTEvent::usePropertyFor["tauIsolationDeepVSmu"]        = PropertyEnum::rawDeepTau2017v2VSmu;
+    HTTEvent::usePropertyFor["tauIDDeepVSmu"]               = PropertyEnum::idDeepTau2017v2VSmu;
+    HTTEvent::usePropertyFor["tauIsolationDeepVSele"]       = PropertyEnum::rawDeepTau2017v2VSe;
+    HTTEvent::usePropertyFor["tauIDDeepVSele"]              = PropertyEnum::idDeepTau2017v2VSe;
+
 
     triggerBits_ = getTriggerSettings(); // Define Triggers and corresponding filters in TriggersEnum
 

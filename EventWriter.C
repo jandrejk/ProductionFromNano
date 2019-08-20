@@ -461,10 +461,14 @@ void EventWriter::fillLeg1Branches()
     byTightIsolationMVArun2017v2DBoldDMwLT2017_1   = (byIsolationMVArun2017v2DBoldDMwLT2017_1 & 0x10)>0;
     byVTightIsolationMVArun2017v2DBoldDMwLT2017_1  = (byIsolationMVArun2017v2DBoldDMwLT2017_1 & 0x20)>0;
     byVVTightIsolationMVArun2017v2DBoldDMwLT2017_1  = (byIsolationMVArun2017v2DBoldDMwLT2017_1 & 0x40)>0;
+    // std::cout<<"byIsolationMVArun2017v2DBoldDMwLTraw2017_1 : "<<byIsolationMVArun2017v2DBoldDMwLTraw2017_1 << std::endl;
+    // std::cout<<"byIsolationMVArun2017v2DBoldDMwLT2017_1 : "<<byIsolationMVArun2017v2DBoldDMwLT2017_1 << std::endl;
 
     // Tau ID based on DeepTauIDv2 against jets
-    byIsolationDeepTau2017v2VSjet_raw_1=leg1.getProperty(HTTEvent::usePropertyFor.at("tauIsolation")); // Raw value
-    byIsolationDeepTau2017v2VSjet_1=leg1.getProperty(HTTEvent::usePropertyFor.at("tauID"));    // Bitmask
+    byIsolationDeepTau2017v2VSjet_raw_1=leg1.getProperty(HTTEvent::usePropertyFor.at("tauIsolationDeepVSjet")); // Raw value
+    byIsolationDeepTau2017v2VSjet_1=leg1.getProperty(HTTEvent::usePropertyFor.at("tauIDDeepVSjet"));    // Bitmask
+    // std::cout<<"byIsolationDeepTau2017v2VSjet_raw_1 : "<<byIsolationDeepTau2017v2VSjet_raw_1 << std::endl;
+    // std::cout<<"byIsolationDeepTau2017v2VSjet_1 : "<<byIsolationDeepTau2017v2VSjet_1 << std::endl;
 
     byVVVLooseIsolationDeepTau2017v2VSjet_1 = (byIsolationDeepTau2017v2VSjet_1 & 0x1)>0;
     byVVLooseIsolationDeepTau2017v2VSjet_1  = (byIsolationDeepTau2017v2VSjet_1 & 0x2)>0;
@@ -476,8 +480,8 @@ void EventWriter::fillLeg1Branches()
     byVVTightIsolationDeepTau2017v2VSjet_1  = (byIsolationDeepTau2017v2VSjet_1 & 0x80)>0; //8*16     = 128
 
     // Tau ID based on DeepTauIDv2 against electrons
-    byIsolationDeepTau2017v2VSe_raw_1=leg1.getProperty(HTTEvent::usePropertyFor.at("tauIsolation")); // Raw value
-    byIsolationDeepTau2017v2VSe_1=leg1.getProperty(HTTEvent::usePropertyFor.at("tauID"));    // Bitmask
+    byIsolationDeepTau2017v2VSe_raw_1=leg1.getProperty(HTTEvent::usePropertyFor.at("tauIsolationDeepVSele")); // Raw value
+    byIsolationDeepTau2017v2VSe_1=leg1.getProperty(HTTEvent::usePropertyFor.at("tauIDDeepVSele"));    // Bitmask
 
     byVVVLooseIsolationDeepTau2017v2VSe_1 = (byIsolationDeepTau2017v2VSe_1 & 0x1)>0;
     byVVLooseIsolationDeepTau2017v2VSe_1  = (byIsolationDeepTau2017v2VSe_1 & 0x2)>0;
@@ -489,13 +493,13 @@ void EventWriter::fillLeg1Branches()
     byVVTightIsolationDeepTau2017v2VSe_1  = (byIsolationDeepTau2017v2VSe_1 & 0x80)>0; //8*16     = 128
 
     // Tau ID based on DeepTauIDv2 against muons
-    byIsolationDeepTau2017v2VSmu_raw_1=leg1.getProperty(HTTEvent::usePropertyFor.at("tauIsolation")); // Raw value
-    byIsolationDeepTau2017v2VSmu_1=leg1.getProperty(HTTEvent::usePropertyFor.at("tauID"));    // Bitmask
+    byIsolationDeepTau2017v2VSmu_raw_1=leg1.getProperty(HTTEvent::usePropertyFor.at("tauIsolationDeepVSmu")); // Raw value
+    byIsolationDeepTau2017v2VSmu_1=leg1.getProperty(HTTEvent::usePropertyFor.at("tauIDDeepVSmu"));    // Bitmask
 
-    byVLooseIsolationDeepTau2017v2VSmu_1   = (byIsolationDeepTau2017v2VSmu_1 & 0x4)>0;
-    byLooseIsolationDeepTau2017v2VSmu_1  = (byIsolationDeepTau2017v2VSmu_1 & 0x8)>0;
-    byMediumIsolationDeepTau2017v2VSmu_1   = (byIsolationDeepTau2017v2VSmu_1 & 0x10)>0;
-    byTightIsolationDeepTau2017v2VSmu_1  = (byIsolationDeepTau2017v2VSmu_1 & 0x20)>0;
+    byVLooseIsolationDeepTau2017v2VSmu_1   = (byIsolationDeepTau2017v2VSmu_1 & 0x1)>0;
+    byLooseIsolationDeepTau2017v2VSmu_1  = (byIsolationDeepTau2017v2VSmu_1 & 0x2)>0;
+    byMediumIsolationDeepTau2017v2VSmu_1   = (byIsolationDeepTau2017v2VSmu_1 & 0x4)>0;
+    byTightIsolationDeepTau2017v2VSmu_1  = (byIsolationDeepTau2017v2VSmu_1 & 0x8)>0;
    
     chargedIsoPtSum_1=leg1.getProperty(PropertyEnum::chargedIso);
     neutralIsoPtSum_1=leg1.getProperty(PropertyEnum::neutralIso);
@@ -563,11 +567,15 @@ void EventWriter::fillLeg2Branches()
     byTightIsolationMVArun2017v2DBoldDMwLT2017_2   = (byIsolationMVArun2017v2DBoldDMwLT2017_2 & 0x10)>0;
     byVTightIsolationMVArun2017v2DBoldDMwLT2017_2  = (byIsolationMVArun2017v2DBoldDMwLT2017_2 & 0x20)>0;
     byVVTightIsolationMVArun2017v2DBoldDMwLT2017_2  = (byIsolationMVArun2017v2DBoldDMwLT2017_2 & 0x40)>0;
+    // std::cout<<"byIsolationMVArun2017v2DBoldDMwLTraw2017_2 : "<<byIsolationMVArun2017v2DBoldDMwLTraw2017_2 << std::endl;
+    // std::cout<<"byIsolationMVArun2017v2DBoldDMwLT2017_2 : "<<byIsolationMVArun2017v2DBoldDMwLT2017_2 << std::endl;
 
     // Tau ID based on DeepTauIDv2 against jets
-    byIsolationDeepTau2017v2VSjet_raw_2=leg1.getProperty(HTTEvent::usePropertyFor.at("tauIsolation")); // Raw value
-    byIsolationDeepTau2017v2VSjet_2=leg1.getProperty(HTTEvent::usePropertyFor.at("tauID"));    // Bitmask
-
+    byIsolationDeepTau2017v2VSjet_raw_2=leg2.getProperty(HTTEvent::usePropertyFor.at("tauIsolationDeepVSjet")); // Raw value
+    byIsolationDeepTau2017v2VSjet_2=leg2.getProperty(HTTEvent::usePropertyFor.at("tauIDDeepVSjet"));    // Bitmask
+    // std::cout<<"byIsolationDeepTau2017v2VSjet_raw_2 : "<<byIsolationDeepTau2017v2VSjet_raw_2 << std::endl;
+    // std::cout<<"byIsolationDeepTau2017v2VSjet_2 : "<<byIsolationDeepTau2017v2VSjet_2 << std::endl;
+    
     byVVVLooseIsolationDeepTau2017v2VSjet_2 = (byIsolationDeepTau2017v2VSjet_2 & 0x1)>0;
     byVVLooseIsolationDeepTau2017v2VSjet_2  = (byIsolationDeepTau2017v2VSjet_2 & 0x2)>0;
     byVLooseIsolationDeepTau2017v2VSjet_2   = (byIsolationDeepTau2017v2VSjet_2 & 0x4)>0;
@@ -578,8 +586,8 @@ void EventWriter::fillLeg2Branches()
     byVVTightIsolationDeepTau2017v2VSjet_2  = (byIsolationDeepTau2017v2VSjet_2 & 0x80)>0; //8*16     = 128
 
     // Tau ID based on DeepTauIDv2 against electrons
-    byIsolationDeepTau2017v2VSe_raw_2=leg1.getProperty(HTTEvent::usePropertyFor.at("tauIsolation")); // Raw value
-    byIsolationDeepTau2017v2VSe_2=leg1.getProperty(HTTEvent::usePropertyFor.at("tauID"));    // Bitmask
+    byIsolationDeepTau2017v2VSe_raw_2=leg2.getProperty(HTTEvent::usePropertyFor.at("tauIsolationDeepVSele")); // Raw value
+    byIsolationDeepTau2017v2VSe_2=leg2.getProperty(HTTEvent::usePropertyFor.at("tauIDDeepVSele"));    // Bitmask
 
     byVVVLooseIsolationDeepTau2017v2VSe_2 = (byIsolationDeepTau2017v2VSe_2 & 0x1)>0;
     byVVLooseIsolationDeepTau2017v2VSe_2  = (byIsolationDeepTau2017v2VSe_2 & 0x2)>0;
@@ -591,13 +599,15 @@ void EventWriter::fillLeg2Branches()
     byVVTightIsolationDeepTau2017v2VSe_2  = (byIsolationDeepTau2017v2VSe_2 & 0x80)>0; //8*16     = 128
 
     // Tau ID based on DeepTauIDv2 against muons
-    byIsolationDeepTau2017v2VSmu_raw_2=leg1.getProperty(HTTEvent::usePropertyFor.at("tauIsolation")); // Raw value
-    byIsolationDeepTau2017v2VSmu_2=leg1.getProperty(HTTEvent::usePropertyFor.at("tauID"));    // Bitmask
-
-    byVLooseIsolationDeepTau2017v2VSmu_2   = (byIsolationDeepTau2017v2VSmu_2 & 0x4)>0;
-    byLooseIsolationDeepTau2017v2VSmu_2  = (byIsolationDeepTau2017v2VSmu_2 & 0x8)>0;
-    byMediumIsolationDeepTau2017v2VSmu_2   = (byIsolationDeepTau2017v2VSmu_2 & 0x10)>0;
-    byTightIsolationDeepTau2017v2VSmu_2  = (byIsolationDeepTau2017v2VSmu_2 & 0x20)>0;
+    byIsolationDeepTau2017v2VSmu_raw_2=leg2.getProperty(HTTEvent::usePropertyFor.at("tauIsolationDeepVSmu")); // Raw value
+    byIsolationDeepTau2017v2VSmu_2=leg2.getProperty(HTTEvent::usePropertyFor.at("tauIDDeepVSmu"));    // Bitmask
+    // std::cout<<"byIsolationDeepTau2017v2VSmu_raw_2 : "<<byIsolationDeepTau2017v2VSmu_raw_2 << std::endl;
+    // std::cout<<"byIsolationDeepTau2017v2VSmu_2 : "<<byIsolationDeepTau2017v2VSmu_2 << std::endl;
+    
+    byVLooseIsolationDeepTau2017v2VSmu_2   = (byIsolationDeepTau2017v2VSmu_2 & 0x1)>0;
+    byLooseIsolationDeepTau2017v2VSmu_2  = (byIsolationDeepTau2017v2VSmu_2 & 0x2)>0;
+    byMediumIsolationDeepTau2017v2VSmu_2   = (byIsolationDeepTau2017v2VSmu_2 & 0x4)>0;
+    byTightIsolationDeepTau2017v2VSmu_2  = (byIsolationDeepTau2017v2VSmu_2 & 0x8)>0;
 
     chargedIsoPtSum_2=leg2.getProperty(PropertyEnum::chargedIso);
     neutralIsoPtSum_2=leg2.getProperty(PropertyEnum::neutralIso);
@@ -824,6 +834,10 @@ void EventWriter::fillAdditionalLeptons( std::vector<HTTParticle> leptons, HTTPa
             addmuon_iso.push_back( leptons[i].getProperty( HTTEvent::usePropertyFor.at("muonIsolation") ) );
             addmuon_gen_match.push_back(leptons[i].getProperty(PropertyEnum::mc_match) );
 
+            addlepton_isoDeepTau.push_back( leptons[i].getProperty( HTTEvent::usePropertyFor.at("tauIsolationDeepVSmu") ) );
+            addlepton_tauIDDeepTau.push_back(  (int)leptons[i].getProperty(HTTEvent::usePropertyFor.at("tauIDDeepVSmu")) );
+
+
             addlepton_iso.push_back( leptons[i].getProperty( HTTEvent::usePropertyFor.at("muonIsolation") ) );
             addlepton_mvis.push_back( ( leg2P4 + leptons[i].getP4() ).M() );
 
@@ -841,6 +855,10 @@ void EventWriter::fillAdditionalLeptons( std::vector<HTTParticle> leptons, HTTPa
             addele_q.push_back(leptons[i].getProperty(PropertyEnum::charge));
             addele_iso.push_back( leptons[i].getProperty( HTTEvent::usePropertyFor.at("electronIsolation") ) );
             addele_gen_match.push_back(leptons[i].getProperty(PropertyEnum::mc_match) );
+
+            addlepton_isoDeepTau.push_back( leptons[i].getProperty( HTTEvent::usePropertyFor.at("tauIsolationDeepVSele") ) );
+            addlepton_tauIDDeepTau.push_back(  (int)leptons[i].getProperty(HTTEvent::usePropertyFor.at("tauIDDeepVSele")) );
+            
 
             addlepton_iso.push_back( leptons[i].getProperty( HTTEvent::usePropertyFor.at("electronIsolation") ) );
             addlepton_mvis.push_back( ( leg2P4 + leptons[i].getP4() ).M() );
@@ -883,6 +901,23 @@ void EventWriter::fillAdditionalLeptons( std::vector<HTTParticle> leptons, HTTPa
             addtau_byMediumIsolationMVArun2v1DBoldDMwLT.push_back( (bitmask & 0x8)>0 );
             addtau_byTightIsolationMVArun2v1DBoldDMwLT.push_back( (bitmask & 0x10)>0 );
             addtau_byVTightIsolationMVArun2v1DBoldDMwLT.push_back( (bitmask & 0x20)>0 );
+
+
+            // Tau ID based on DeepTauIDv2 against jets
+            bitmask=leptons[i].getProperty(HTTEvent::usePropertyFor.at("tauIDDeepVSjet"));    // Bitmask
+    
+            addtau_byVVVLooseIsolationDeepTau2017v2VSjet.push_back(  (bitmask & 0x1)>0 );
+            addtau_byVVLooseIsolationDeepTau2017v2VSjet.push_back( (bitmask & 0x2)>0 );
+            addtau_byVLooseIsolationDeepTau2017v2VSjet.push_back(  (bitmask & 0x4)>0 );
+            addtau_byLooseIsolationDeepTau2017v2VSjet.push_back( (bitmask & 0x8)>0 );
+            addtau_byMediumIsolationDeepTau2017v2VSjet.push_back(  (bitmask & 0x10)>0 );
+            addtau_byTightIsolationDeepTau2017v2VSjet.push_back( (bitmask & 0x20)>0 );
+            addtau_byVTightIsolationDeepTau2017v2VSjet.push_back( (bitmask & 0x40)>0 ); // 4*16 = 64   
+            addtau_byVVTightIsolationDeepTau2017v2VSjet.push_back( (bitmask & 0x80)>0 ); //8*16     = 128
+
+            addlepton_isoDeepTau.push_back( leptons[i].getProperty( HTTEvent::usePropertyFor.at("tauIsolationDeepVSjet") ) );
+            addlepton_tauIDDeepTau.push_back(  (int)leptons[i].getProperty(HTTEvent::usePropertyFor.at("tauIDDeepVSjet")) );
+                
 
             addlepton_iso.push_back( leptons[i].getProperty( HTTEvent::usePropertyFor.at("tauIsolation") ) );
             addlepton_mvis.push_back( ( leg1P4 + leptons[i].getP4() ).M() );
@@ -1393,6 +1428,8 @@ void EventWriter::setDefault(){
     addlepton_tauID.clear();
     addlepton_tauAntiEle.clear();
     addlepton_tauAntiMu.clear();
+    addlepton_isoDeepTau.clear();
+    addlepton_tauIDDeepTau.clear();
 
     //////////////////////////////////////////////////////////////////
     nadditionalMu = 0;
@@ -1430,6 +1467,15 @@ void EventWriter::setDefault(){
     addtau_byMediumIsolationMVArun2v1DBoldDMwLT.clear();
     addtau_byTightIsolationMVArun2v1DBoldDMwLT.clear();
     addtau_byVTightIsolationMVArun2v1DBoldDMwLT.clear();
+
+    addtau_byVVVLooseIsolationDeepTau2017v2VSjet.clear();
+    addtau_byVVLooseIsolationDeepTau2017v2VSjet.clear();
+    addtau_byVLooseIsolationDeepTau2017v2VSjet.clear();
+    addtau_byLooseIsolationDeepTau2017v2VSjet.clear();
+    addtau_byMediumIsolationDeepTau2017v2VSjet.clear();
+    addtau_byTightIsolationDeepTau2017v2VSjet.clear();
+    addtau_byVTightIsolationDeepTau2017v2VSjet.clear();
+    addtau_byVVTightIsolationDeepTau2017v2VSjet.clear();
 
     addtau_passesTauLepVetos.clear();
     addtau_decayMode.clear();
@@ -1499,6 +1545,9 @@ void EventWriter::initTree(TTree *t, vector< pair< string, pair<string,bool> > >
         t->Branch("addlepton_tauDM", &addlepton_tauDM);
         t->Branch("addlepton_tauAntiEle", &addlepton_tauAntiEle);
         t->Branch("addlepton_tauAntiMu", &addlepton_tauAntiMu);
+        t->Branch("addlepton_isoDeepTau", &addlepton_isoDeepTau);
+        t->Branch("addlepton_tauIDDeepTau", &addlepton_tauIDDeepTau);
+
 
         t->Branch("nadditionalMu", &nadditionalMu);
         t->Branch("addmuon_pt", &addmuon_pt);
@@ -1536,6 +1585,15 @@ void EventWriter::initTree(TTree *t, vector< pair< string, pair<string,bool> > >
         t->Branch("addtau_byTightIsolationMVArun2v1DBoldDMwLT", &addtau_byTightIsolationMVArun2v1DBoldDMwLT);
         t->Branch("addtau_byVTightIsolationMVArun2v1DBoldDMwLT", &addtau_byVTightIsolationMVArun2v1DBoldDMwLT);
       
+        t->Branch("addtau_byVVVLooseIsolationDeepTau2017v2VSjet", &addtau_byVVVLooseIsolationDeepTau2017v2VSjet);
+        t->Branch("addtau_byVVLooseIsolationDeepTau2017v2VSjet", &addtau_byVVLooseIsolationDeepTau2017v2VSjet);
+        t->Branch("addtau_byVLooseIsolationDeepTau2017v2VSjet", &addtau_byVLooseIsolationDeepTau2017v2VSjet);
+        t->Branch("addtau_byLooseIsolationDeepTau2017v2VSjet", &addtau_byLooseIsolationDeepTau2017v2VSjet);
+        t->Branch("addtau_byMediumIsolationDeepTau2017v2VSjet", &addtau_byMediumIsolationDeepTau2017v2VSjet);
+        t->Branch("addtau_byTightIsolationDeepTau2017v2VSjet", &addtau_byTightIsolationDeepTau2017v2VSjet);
+        t->Branch("addtau_byVTightIsolationDeepTau2017v2VSjet", &addtau_byVTightIsolationDeepTau2017v2VSjet);
+        t->Branch("addtau_byVVTightIsolationDeepTau2017v2VSjet", &addtau_byVVTightIsolationDeepTau2017v2VSjet);
+
         t->Branch("addtau_passesTauLepVetos", &addtau_passesTauLepVetos);
         t->Branch("addtau_decayMode", &addtau_decayMode);
         t->Branch("addtau_d0", &addtau_d0);

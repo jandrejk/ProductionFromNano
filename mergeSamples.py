@@ -123,13 +123,14 @@ class Merger():
                     self.log[m[0]][m[1]][m[2]]["status"] = "DONE"
 
     def mergeSamples(self):
-
+        print "hi"
         with open("stitchConfig.json","r") as FSO:
             stitch_config = json.load(FSO)
 
         cmd_list = {}
 
         mergedir = "/".join([self.outdir,self.version])
+        print "mergedir: {}".format(mergedir)
         if not os.path.exists(mergedir):
             os.makedirs(mergedir)
 

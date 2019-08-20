@@ -470,6 +470,10 @@ class EventWriter
   vector<int> addlepton_tauDM;
   vector<int> addlepton_tauAntiEle;
   vector<int> addlepton_tauAntiMu;
+
+  vector<double> addlepton_isoDeepTau;
+  vector<int> addlepton_tauIDDeepTau;
+  
   //////////////////////////////////////////////////////////////////
   int nadditionalMu;
   vector<double> addmuon_pt;
@@ -506,6 +510,15 @@ class EventWriter
   vector<int> addtau_byMediumIsolationMVArun2v1DBoldDMwLT;
   vector<int> addtau_byTightIsolationMVArun2v1DBoldDMwLT;
   vector<int> addtau_byVTightIsolationMVArun2v1DBoldDMwLT;
+
+  vector<int> addtau_byVVVLooseIsolationDeepTau2017v2VSjet;
+  vector<int> addtau_byVVLooseIsolationDeepTau2017v2VSjet;
+  vector<int> addtau_byVLooseIsolationDeepTau2017v2VSjet;
+  vector<int> addtau_byLooseIsolationDeepTau2017v2VSjet;
+  vector<int> addtau_byMediumIsolationDeepTau2017v2VSjet;
+  vector<int> addtau_byTightIsolationDeepTau2017v2VSjet;
+  vector<int> addtau_byVTightIsolationDeepTau2017v2VSjet;
+  vector<int> addtau_byVVTightIsolationDeepTau2017v2VSjet;
 
   vector<int> addtau_passesTauLepVetos;
   vector<int> addtau_decayMode;

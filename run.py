@@ -25,6 +25,7 @@ def main():
                                                                                                       'eeu','eed'], default = [''])
     parser.add_argument('-t', dest='submit', help='Where to submit the job',choices = ['condor','batch','local'], default = 'local')
     parser.add_argument('-y', dest='year', help='Which era are you prosessing. Relevent for the golden JSON file',choices = ["2016","2017","2018"])
+    
     parser.add_argument('-j', dest='jobs', help='If set to NJOBS > 0: Run NJOBS in parallel on heplx. Otherwise submit to batch.', type=int, default = 8)
     parser.add_argument('-o', dest='outdir', help='Where to write output when running on batch.', type=str, default = 'DPM://hephyse.oeaw.ac.at//dpm/oeaw.ac.at/home/cms/store/user/mspanrin/condor_production')
     parser.add_argument('-d', dest='debug', help='Debug', action = "store_true")
