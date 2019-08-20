@@ -35,7 +35,8 @@ def main():
     parser.add_argument('--event', dest='event', help='Debug', default = 0)
     parser.add_argument('--massfit', dest='massfit', help='Calculate massfit mass', choices=['svfit','fastmtt'], default='')
     parser.add_argument('--sync', dest='sync', help='Produce sync ntuple', action = "store_true")     
-    parser.add_argument('--aFC', dest='fileCombination', help='use automated file combination for job submission', action = "store_true")     
+    # useless this fileCombination below  
+    # parser.add_argument('--aFC', dest='fileCombination', help='use automated file combination for job submission', action = "store_true")     
 
 
     args = parser.parse_args()

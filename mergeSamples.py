@@ -25,6 +25,7 @@ def main():
     if not checkTokens(): sys.exit()
 
     M = Merger(version=args.version, channel = args.channel)
+    print "1"
     M.createSamples()
     if args.stitch: M.mergeSamples()
 
@@ -215,8 +216,8 @@ class Merger():
         
         samples = {}
         # xrdfs srm://hephyse.oeaw.ac.at/ ls /dpm/oeaw.ac.at/home/cms/store/user/jaandrej/
-        # print "gfal-ls {0}".format(self.indir) # does not work on heplx anymore 
-        print shlex.split( "xrdfs {redir} ls {path}".format(redir=self.hephy_redirectory,path=self.pathToCondorProductionNtuples) )
+        #print "gfal-ls {0}".format(self.indir) # does not work on heplx anymore 
+        #print shlex.split( "xrdfs {redir} ls {path}".format(redir=self.hephy_redirectory,path=self.pathToCondorProductionNtuples) )
         proc = sp.Popen( shlex.split( "xrdfs {redir} ls {path}".format(redir=self.hephy_redirectory,path=self.pathToCondorProductionNtuples) )  , stdout=sp.PIPE )
         (out, err) = proc.communicate()
         
