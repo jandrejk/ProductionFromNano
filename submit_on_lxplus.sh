@@ -28,7 +28,7 @@ git clone https://github.com/svfit/ClassicSVfit.git TauAnalysis/ClassicSVfit -b 
 git clone https://github.com/svfit/SVfitTF.git TauAnalysis/SVfitTF
 git clone https://github.com/cms-tau-pog/TauTriggerSFs TauAnalysisTools/TauTriggerSFs -b run2_SFs
 git clone https://github.com/CMS-HTT/RecoilCorrections.git  HTT-utilities/RecoilCorrections
-git clone https://github.com/jandrejk/ProductionFromNano.git WawTools/NanoAODTools -b SM2016
+git clone https://github.com/jandrejk/ProductionFromNano.git WawTools/NanoAODTools -b SM2016_nanoAODv5
 git clone https://github.com/cms-analysis/HiggsAnalysis-ZZMatrixElement ZZMatrixElement -b v2.2.0
 cd ZZMatrixElement/
 bash setup.sh -j 1
