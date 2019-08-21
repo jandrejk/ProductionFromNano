@@ -74,23 +74,26 @@ class Bookkeeping():
 
       if len( glob.glob( "samples/*/*/{0}.txt".format(sample) ) ) == 0: continue
 
-      if "mc" in glob.glob( "samples/*/*/{0}.txt".format(sample) )[0] :
-        N_max = 500000
-      else:
-        N_max = 2000000
-      with open( glob.glob( "samples/*/*/{0}.txt".format(sample) )[0], "r" ) as FSO:
-        buf = FSO.read()
+      # if "mc" in glob.glob( "samples/*/*/{0}.txt".format(sample) )[0] :
+      #   N_max = 500000
+      # else:
+      #   N_max = 2000000
+      # with open( glob.glob( "samples/*/*/{0}.txt".format(sample) )[0], "r" ) as FSO:
+      #   buf = FSO.read()
 
-      ntotal = 0
-      for l in buf.splitlines() :
-        ntotal += int(l.split(", ")[1])
-      ntotal = int(math.ceil(1.*ntotal / N_max))
+      # ntotal = 0
+      # for l in buf.splitlines() :
+      #   ntotal += int(l.split(", ")[1])
+      # ntotal = int(math.ceil(1.*ntotal / N_max))
         # ntotal = len(FSO.read().splitlines() )
 
-
+      
       for channel in self.log[sample]:
         for shift in self.log[sample][channel]:
 
+          all_dirs = glob.glob("out/{sample}/rundir_{channel}_{shift}_*".format(sample=sample,channel=channel,shift=shift))
+          ntotal = len(all_dirs) 
+          
           
 
           if not self.summary.get(sample,False): self.summary[sample] = {}
