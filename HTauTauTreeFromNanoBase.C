@@ -190,10 +190,10 @@ void HTauTauTreeFromNanoBase::initHTTTree(const TTree *tree, std::string prefix)
     HTTEvent::usePropertyFor["tauIsolationDeepVSjet"]       = PropertyEnum::rawDeepTau2017v2VSjet;
     HTTEvent::usePropertyFor["tauIDDeepVSjet"]              = PropertyEnum::idDeepTau2017v2VSjet;
     // anti-mu (against-mu) discriminator
-    HTTEvent::usePropertyFor["tauIsolationDeepVSmu"]        = PropertyEnum::rawDeepTau2017v2VSmu;
+    // HTTEvent::usePropertyFor["tauIsolationDeepVSmu"]        = PropertyEnum::rawDeepTau2017v2VSmu;
     HTTEvent::usePropertyFor["tauIDDeepVSmu"]               = PropertyEnum::idDeepTau2017v2VSmu;
     // anti-ele (against-ele) discriminator
-    HTTEvent::usePropertyFor["tauIsolationDeepVSele"]       = PropertyEnum::rawDeepTau2017v2VSe;
+    // HTTEvent::usePropertyFor["tauIsolationDeepVSele"]       = PropertyEnum::rawDeepTau2017v2VSe;
     HTTEvent::usePropertyFor["tauIDDeepVSele"]              = PropertyEnum::idDeepTau2017v2VSe;
 
 
