@@ -2,7 +2,7 @@
 	"BASIS_ntuple_DY":{
 		"data":false,
 		"stitching":true,
-		"NNLO_xsec":5765.4,
+		"NNLO_xsec":6225.2,
 		"samples":[
 			"DY1JetsToLL_M_50_TuneCUETP8M1_13TeV_madgraphMLM_pythia8_RunIISummer16NanoAOD_01Jul2019_v1",
 			"DY2JetsToLL_M_50_TuneCUETP8M1_13TeV_madgraphMLM_pythia8_RunIISummer16NanoAOD_01Jul2019_v2",
