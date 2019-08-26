@@ -67,8 +67,8 @@ bool HMuTauhTreeFromNano::pairSelection(unsigned int iPair)
     bool boolDiMuonVeto = diMuonVeto();
     bool boolDiLeptonVeto = boolDiElectronVeto || boolDiMuonVeto;
 
-    bool boolAntiEle = ( (int)httLeptonCollection[indexTauLeg].getProperty(PropertyEnum::idAntiEle) & 0x1) == 0x1;   //Vloose AntiEle Id
-    bool boolAntiMu  = ( (int)httLeptonCollection[indexTauLeg].getProperty(PropertyEnum::idAntiMu)  & 0x2) == 0x2;   //Tight AntiMu Id
+    bool boolAntiEle = ( (int)httLeptonCollection[indexTauLeg].getProperty(HTTEvent::usePropertyFor.at("tauIDDeepVSele") )  & 0x4) == 0x4;   //Vloose AntiEle Id
+    bool boolAntiMu  = ( (int)httLeptonCollection[indexTauLeg].getProperty(HTTEvent::usePropertyFor.at("tauIDDeepVSmu") )   & 0x8) == 0x8;   //Tight AntiMu Id
     bool boolAntiLeptonId = boolAntiEle && boolAntiMu;
 
     bool boolExtraElectronVeto = thirdLeptonVeto(indexMuonLeg, indexTauLeg, 11);

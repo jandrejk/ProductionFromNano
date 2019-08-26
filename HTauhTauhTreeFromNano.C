@@ -44,10 +44,10 @@ bool HTauhTauhTreeFromNano::pairSelection(unsigned int iPair){
 
   bool baselinePair = tau1P4.DeltaR(tau2P4) > 0.5;
 
-  bool boolAntiEleLeg1 = ( (int)httLeptonCollection[indexLeg1].getProperty(PropertyEnum::idAntiEle) & 0x1) == 0x1;   //Vloose AntiEle Id
-  bool boolAntiEleLeg2 = ( (int)httLeptonCollection[indexLeg2].getProperty(PropertyEnum::idAntiEle) & 0x1) == 0x1;   //Vloose AntiEle Id
-  bool boolAntiMuLeg1  = ( (int)httLeptonCollection[indexLeg1].getProperty(PropertyEnum::idAntiMu)  & 0x1) == 0x1;   //Loose AntiMu Id
-  bool boolAntiMuLeg2  = ( (int)httLeptonCollection[indexLeg2].getProperty(PropertyEnum::idAntiMu)  & 0x1) == 0x1;   //Loose AntiMu Id
+  bool boolAntiEleLeg1 = ( (int)httLeptonCollection[indexLeg1].getProperty(HTTEvent::usePropertyFor.at("tauIDDeepVSele") ) & 0x4) == 0x4;   //Vloose AntiEle Id
+  bool boolAntiEleLeg2 = ( (int)httLeptonCollection[indexLeg2].getProperty(HTTEvent::usePropertyFor.at("tauIDDeepVSele") ) & 0x4) == 0x4;   //Vloose AntiEle Id
+  bool boolAntiMuLeg1  = ( (int)httLeptonCollection[indexLeg1].getProperty(HTTEvent::usePropertyFor.at("tauIDDeepVSmu") )  & 0x1) == 0x1;   //VLoose AntiMu Id
+  bool boolAntiMuLeg2  = ( (int)httLeptonCollection[indexLeg2].getProperty(HTTEvent::usePropertyFor.at("tauIDDeepVSmu") )  & 0x1) == 0x1;   //VLoose AntiMu Id
   bool boolAntiLeptonId = boolAntiEleLeg1 && boolAntiMuLeg1 && boolAntiEleLeg2 && boolAntiMuLeg2;
 
 
@@ -88,8 +88,8 @@ unsigned int HTauhTauhTreeFromNano::bestPair(std::vector<unsigned int> &pairInde
       double pt_1_i = httLeptonCollection[indexLeg1].getP4().Pt();
       double pt_2_i = httLeptonCollection[indexLeg2].getP4().Pt();
       //MB: More isolated for MVAIso means higher value so inverted here to keep standard convention in comparison
-      double iso_1_i = -httLeptonCollection[indexLeg1].getProperty(PropertyEnum::rawMVAoldDM2017v2);
-      double iso_2_i = -httLeptonCollection[indexLeg2].getProperty(PropertyEnum::rawMVAoldDM2017v2);
+      double iso_1_i = -httLeptonCollection[indexLeg1].getProperty(HTTEvent::usePropertyFor.at("tauIsolationDeepVSjet")); // use deepTauID as iso criteria
+      double iso_2_i = -httLeptonCollection[indexLeg2].getProperty(HTTEvent::usePropertyFor.at("tauIsolationDeepVSjet")); // use deepTauID as iso criteria
 
       if(iso_1_i>iso_1) continue;
       if(iso_1_i==iso_1 && pt_1_i<pt_1) continue;
