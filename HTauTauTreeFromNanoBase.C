@@ -854,11 +854,21 @@ void HTauTauTreeFromNanoBase::fillLeptons()
     //Taus //////////////////////////////////////////////////////////////////////////////////
     for(unsigned int iTau=0; iTau<nTau; ++iTau)
     {
+
+        // if( Tau_decayMode[iTau] == 5 || Tau_decayMode[iTau] == 6) {
+        //     std::cout<<"event id "<<event<<std::endl;
+        //     std::cout<< "found DM 5/6 :" << Tau_decayMode[iTau] << std::endl;
+        // }
         if( std::abs(Tau_eta[iTau])>2.3 ) continue;
         // Until now it was fine to use only
         // oldDMs since the MVA-based and cutoff-based iso discriminants used oldDMs. with deepTauID newDMs is recommended and hence those events
         // that failed oldDMs but pass newDMs need to be kept and later need to be filtered according the iso discriminant used.
         if( Tau_idDecayMode[iTau]<0.5 and Tau_idDecayModeNewDMs[iTau]<0.5 ) continue; //oldDMs and (!) newDMs have to fail in order to continue with next tau
+        // std::cout<<"event " << event << " passed DM" << std::endl;
+        // std::cout<<"event DM  " << Tau_decayMode[iTau] << std::endl;
+        // if( Tau_decayMode[iTau] < 4 || Tau_decayMode[iTau] > 7 ) continue;
+        
+        // std::cout<<"found DM 5 or 6 " << Tau_decayMode[iTau] << std::endl;
         debugWayPoint("[fillLeptons] Tau passes eta cut and DMId");
 
         HTTParticle aLepton;

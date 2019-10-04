@@ -48,7 +48,7 @@ class Merger():
         with open(self.logpath,"r") as FSO:
             self.log = json.load(FSO)
 
-        self.outdir = "/afs/hephy.at/data/higgs01/"
+        self.outdir = "/afs/hephy.at/data/higgs02/"
         self.hephy_redirectory = "hephyse.oeaw.ac.at/"
         self.pathToCondorProductionNtuples = "/dpm/oeaw.ac.at/home/cms/store/user/mspanrin/condor_production"
         self.indir  = "srm://hephyse.oeaw.ac.at//dpm/oeaw.ac.at/home/cms/store/user/mspanrin/condor_production"
