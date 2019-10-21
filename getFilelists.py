@@ -15,7 +15,7 @@ def main():
     parser.add_argument('-l', dest='location', help='Get samples from local or DAS', choices=["das","private"], default = "das")
     parser.add_argument('-dbs', dest='dbs_instance', help='where are the  samples - storage site', choices=["global","phys01","phys02","phys03"],default="global")
     parser.add_argument('--tagMap', dest='update', help='update tagMapping.json', action = "store_true")
-    parser.add_argument('-coll', dest='collection', help='which sample collection to use', choices=["sample_collection","sample_collection_nanoAODv5"], default = "sample_collection")
+    parser.add_argument('-coll', dest='collection', help='which sample collection to use', choices=["sample_collection","sample_collection_nanoAODv5","sample_collection_DeepTauv2p1"], default = "sample_collection")
     args = parser.parse_args()
     
     if args.location == "private": 

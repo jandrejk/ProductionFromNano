@@ -430,9 +430,9 @@ public :
    Float_t         Tau_puCorr[6];   //[nTau]
    Float_t         Tau_rawAntiEle[6];   //[nTau]
    Float_t         Tau_rawAntiEle2018[6];   //[nTau]
-   Float_t         Tau_rawDeepTau2017v2VSe[6];   //[nTau]
-   Float_t         Tau_rawDeepTau2017v2VSjet[6];   //[nTau]
-   Float_t         Tau_rawDeepTau2017v2VSmu[6];   //[nTau]
+   Float_t         Tau_rawDeepTau2017v2p1VSe[6];   //[nTau]
+   Float_t         Tau_rawDeepTau2017v2p1VSjet[6];   //[nTau]
+   Float_t         Tau_rawDeepTau2017v2p1VSmu[6];   //[nTau]
    Float_t         Tau_rawIso[6];   //[nTau]
    Float_t         Tau_rawIsodR03[6];   //[nTau]
    Float_t         Tau_rawMVAnewDM2017v2[6];   //[nTau]
@@ -448,9 +448,9 @@ public :
    UChar_t         Tau_idAntiMu[6];   //[nTau]
    Bool_t          Tau_idDecayMode[6];   //[nTau]
    Bool_t          Tau_idDecayModeNewDMs[6];   //[nTau]
-   UChar_t         Tau_idDeepTau2017v2VSe[6];   //[nTau]
-   UChar_t         Tau_idDeepTau2017v2VSjet[6];   //[nTau]
-   UChar_t         Tau_idDeepTau2017v2VSmu[6];   //[nTau]
+   UChar_t         Tau_idDeepTau2017v2p1VSe[6];   //[nTau]
+   UChar_t         Tau_idDeepTau2017v2p1VSjet[6];   //[nTau]
+   UChar_t         Tau_idDeepTau2017v2p1VSmu[6];   //[nTau]
    UChar_t         Tau_idMVAnewDM2017v2[6];   //[nTau]
    UChar_t         Tau_idMVAoldDM2017v2[6];   //[nTau]
    UChar_t         Tau_idMVAoldDMdR032017v2[6];   //[nTau]
@@ -1818,9 +1818,9 @@ public :
    TBranch        *b_Tau_puCorr;   //!
    TBranch        *b_Tau_rawAntiEle;   //!
    TBranch        *b_Tau_rawAntiEle2018;   //!
-   TBranch        *b_Tau_rawDeepTau2017v2VSe;   //!
-   TBranch        *b_Tau_rawDeepTau2017v2VSjet;   //!
-   TBranch        *b_Tau_rawDeepTau2017v2VSmu;   //!
+   TBranch        *b_Tau_rawDeepTau2017v2p1VSe;   //!
+   TBranch        *b_Tau_rawDeepTau2017v2p1VSjet;   //!
+   TBranch        *b_Tau_rawDeepTau2017v2p1VSmu;   //!
    TBranch        *b_Tau_rawIso;   //!
    TBranch        *b_Tau_rawIsodR03;   //!
    TBranch        *b_Tau_rawMVAnewDM2017v2;   //!
@@ -1836,9 +1836,9 @@ public :
    TBranch        *b_Tau_idAntiMu;   //!
    TBranch        *b_Tau_idDecayMode;   //!
    TBranch        *b_Tau_idDecayModeNewDMs;   //!
-   TBranch        *b_Tau_idDeepTau2017v2VSe;   //!
-   TBranch        *b_Tau_idDeepTau2017v2VSjet;   //!
-   TBranch        *b_Tau_idDeepTau2017v2VSmu;   //!
+   TBranch        *b_Tau_idDeepTau2017v2p1VSe;   //!
+   TBranch        *b_Tau_idDeepTau2017v2p1VSjet;   //!
+   TBranch        *b_Tau_idDeepTau2017v2p1VSmu;   //!
    TBranch        *b_Tau_idMVAnewDM2017v2;   //!
    TBranch        *b_Tau_idMVAoldDM2017v2;   //!
    TBranch        *b_Tau_idMVAoldDMdR032017v2;   //!
@@ -3275,9 +3275,9 @@ void NanoEventsSkeleton::Init(TTree *tree)
    fChain->SetBranchAddress("Tau_puCorr", Tau_puCorr, &b_Tau_puCorr);
    fChain->SetBranchAddress("Tau_rawAntiEle", Tau_rawAntiEle, &b_Tau_rawAntiEle);
    fChain->SetBranchAddress("Tau_rawAntiEle2018", Tau_rawAntiEle2018, &b_Tau_rawAntiEle2018);
-   fChain->SetBranchAddress("Tau_rawDeepTau2017v2VSe", Tau_rawDeepTau2017v2VSe, &b_Tau_rawDeepTau2017v2VSe);
-   fChain->SetBranchAddress("Tau_rawDeepTau2017v2VSjet", Tau_rawDeepTau2017v2VSjet, &b_Tau_rawDeepTau2017v2VSjet);
-   fChain->SetBranchAddress("Tau_rawDeepTau2017v2VSmu", Tau_rawDeepTau2017v2VSmu, &b_Tau_rawDeepTau2017v2VSmu);
+   fChain->SetBranchAddress("Tau_rawDeepTau2017v2p1VSe", Tau_rawDeepTau2017v2p1VSe, &b_Tau_rawDeepTau2017v2p1VSe);
+   fChain->SetBranchAddress("Tau_rawDeepTau2017v2p1VSjet", Tau_rawDeepTau2017v2p1VSjet, &b_Tau_rawDeepTau2017v2p1VSjet);
+   fChain->SetBranchAddress("Tau_rawDeepTau2017v2p1VSmu", Tau_rawDeepTau2017v2p1VSmu, &b_Tau_rawDeepTau2017v2p1VSmu);
    fChain->SetBranchAddress("Tau_rawIso", Tau_rawIso, &b_Tau_rawIso);
    fChain->SetBranchAddress("Tau_rawIsodR03", Tau_rawIsodR03, &b_Tau_rawIsodR03);
    fChain->SetBranchAddress("Tau_rawMVAnewDM2017v2", Tau_rawMVAnewDM2017v2, &b_Tau_rawMVAnewDM2017v2);
@@ -3293,9 +3293,9 @@ void NanoEventsSkeleton::Init(TTree *tree)
    fChain->SetBranchAddress("Tau_idAntiMu", Tau_idAntiMu, &b_Tau_idAntiMu);
    fChain->SetBranchAddress("Tau_idDecayMode", Tau_idDecayMode, &b_Tau_idDecayMode);
    fChain->SetBranchAddress("Tau_idDecayModeNewDMs", Tau_idDecayModeNewDMs, &b_Tau_idDecayModeNewDMs);
-   fChain->SetBranchAddress("Tau_idDeepTau2017v2VSe", Tau_idDeepTau2017v2VSe, &b_Tau_idDeepTau2017v2VSe);
-   fChain->SetBranchAddress("Tau_idDeepTau2017v2VSjet", Tau_idDeepTau2017v2VSjet, &b_Tau_idDeepTau2017v2VSjet);
-   fChain->SetBranchAddress("Tau_idDeepTau2017v2VSmu", Tau_idDeepTau2017v2VSmu, &b_Tau_idDeepTau2017v2VSmu);
+   fChain->SetBranchAddress("Tau_idDeepTau2017v2p1VSe", Tau_idDeepTau2017v2p1VSe, &b_Tau_idDeepTau2017v2p1VSe);
+   fChain->SetBranchAddress("Tau_idDeepTau2017v2p1VSjet", Tau_idDeepTau2017v2p1VSjet, &b_Tau_idDeepTau2017v2p1VSjet);
+   fChain->SetBranchAddress("Tau_idDeepTau2017v2p1VSmu", Tau_idDeepTau2017v2p1VSmu, &b_Tau_idDeepTau2017v2p1VSmu);
    fChain->SetBranchAddress("Tau_idMVAnewDM2017v2", Tau_idMVAnewDM2017v2, &b_Tau_idMVAnewDM2017v2);
    fChain->SetBranchAddress("Tau_idMVAoldDM2017v2", Tau_idMVAoldDM2017v2, &b_Tau_idMVAoldDM2017v2);
    fChain->SetBranchAddress("Tau_idMVAoldDMdR032017v2", Tau_idMVAoldDMdR032017v2, &b_Tau_idMVAoldDMdR032017v2);
