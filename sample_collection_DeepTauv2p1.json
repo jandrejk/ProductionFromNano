@@ -1,0 +1,129 @@
+{
+    "mc":{
+        "run":{
+            "RunIISummer16NanoAOD":{
+                "creation":"21Oct2019",
+                "samples":{
+                    "signal":[
+                        "/GluGluHToTauTau_M125_13TeV_powheg_pythia8/RunIISummer16NanoAODv5_PUMoriond17_v1-DeepTauv2p1_TauPOG-v1/USER",
+                        "/VBFHToTauTau_M125_13TeV_powheg_pythia8/RunIISummer16NanoAODv5_PUMoriond17_v2-DeepTauv2p1_TauPOG-v1/USER"
+                    ],
+                    "dy":[
+                        "/DY1JetsToLL_M-50_TuneCUETP8M1_13TeV-madgraphMLM-pythia8/RunIISummer16NanoAODv5_PUMoriond17_v1-DeepTauv2p1_TauPOG-v1/USER",
+                        "/DY2JetsToLL_M-50_TuneCUETP8M1_13TeV-madgraphMLM-pythia8/RunIISummer16NanoAODv5_PUMoriond17_v2-DeepTauv2p1_TauPOG-v1/USER",
+                        "/DY3JetsToLL_M-50_TuneCUETP8M1_13TeV-madgraphMLM-pythia8/RunIISummer16NanoAODv5_PUMoriond17_v2-DeepTauv2p1_TauPOG-v1/USER",
+                        "/DY4JetsToLL_M-50_TuneCUETP8M1_13TeV-madgraphMLM-pythia8/RunIISummer16NanoAODv5_PUMoriond17_v2-DeepTauv2p1_TauPOG-v1/USER",
+                        "/DYJetsToLL_M-50_TuneCUETP8M1_13TeV-madgraphMLM-pythia8/RunIISummer16NanoAODv5_PUMoriond17_ext1_v2-DeepTauv2p1_TauPOG-v1/USER",
+                        "/DYJetsToLL_M-50_TuneCUETP8M1_13TeV-madgraphMLM-pythia8/RunIISummer16NanoAODv5_PUMoriond17_ext2_v2-DeepTauv2p1_TauPOG-v1/USER"
+                    ],
+                    "dy_lowmass":[
+                        "/DYJetsToLL_M-10to50_TuneCUETP8M1_13TeV-madgraphMLM-pythia8/RunIISummer16NanoAODv5_PUMoriond17_v2-DeepTauv2p1_TauPOG-v1/USER"
+                    ],
+                    "w":[
+                        "/W1JetsToLNu_TuneCUETP8M1_13TeV-madgraphMLM-pythia8/RunIISummer16NanoAODv5_PUMoriond17_v1-DeepTauv2p1_TauPOG-v1/USER",
+                        "/W2JetsToLNu_TuneCUETP8M1_13TeV-madgraphMLM-pythia8/RunIISummer16NanoAODv5_PUMoriond17_ext1_v2-DeepTauv2p1_TauPOG-v1/USER",
+                        "/W2JetsToLNu_TuneCUETP8M1_13TeV-madgraphMLM-pythia8/RunIISummer16NanoAODv5_PUMoriond17_v2-DeepTauv2p1_TauPOG-v1/USER",
+                        "/W3JetsToLNu_TuneCUETP8M1_13TeV-madgraphMLM-pythia8/RunIISummer16NanoAODv5_PUMoriond17_ext1_v2-DeepTauv2p1_TauPOG-v1/USER",
+                        "/W3JetsToLNu_TuneCUETP8M1_13TeV-madgraphMLM-pythia8/RunIISummer16NanoAODv5_PUMoriond17_v2-DeepTauv2p1_TauPOG-v1/USER",
+                        "/W4JetsToLNu_TuneCUETP8M1_13TeV-madgraphMLM-pythia8/RunIISummer16NanoAODv5_PUMoriond17_ext1_v2-DeepTauv2p1_TauPOG-v1/USER",
+                        "/W4JetsToLNu_TuneCUETP8M1_13TeV-madgraphMLM-pythia8/RunIISummer16NanoAODv5_PUMoriond17_ext2_v1-DeepTauv2p1_TauPOG-v1/USER",
+                        "/W4JetsToLNu_TuneCUETP8M1_13TeV-madgraphMLM-pythia8/RunIISummer16NanoAODv5_PUMoriond17_v2-DeepTauv2p1_TauPOG-v1/USER",
+                        "/WJetsToLNu_TuneCUETP8M1_13TeV-madgraphMLM-pythia8/RunIISummer16NanoAODv5_PUMoriond17_ext2_v2-DeepTauv2p1_TauPOG-v1/USER",
+                        "/WJetsToLNu_TuneCUETP8M1_13TeV-madgraphMLM-pythia8/RunIISummer16NanoAODv5_PUMoriond17_v2-DeepTauv2p1_TauPOG-v1/USER"
+                    ],
+                    "tt":[
+                        "/TT_TuneCUETP8M2T4_13TeV-powheg-pythia8/RunIISummer16NanoAODv5_PUMoriond17_v1-DeepTauv2p1_TauPOG-v1/USER"
+                    ],
+                    "st":[
+                        "/ST_t-channel_antitop_4f_inclusiveDecays_13TeV-powhegV2-madspin-pythia8_TuneCUETP8M1/RunIISummer16NanoAODv5_PUMoriond17_v1-DeepTauv2p1_TauPOG-v1/USER",
+                        "/ST_t-channel_top_4f_inclusiveDecays_13TeV-powhegV2-madspin-pythia8_TuneCUETP8M1/RunIISummer16NanoAODv5_PUMoriond17_v1-DeepTauv2p1_TauPOG-v1/USER",
+                        "/ST_tW_antitop_5f_inclusiveDecays_13TeV-powheg-pythia8_TuneCUETP8M1/RunIISummer16NanoAODv5_PUMoriond17_ext1_v1-DeepTauv2p1_TauPOG-v1/USER",
+                        "/ST_tW_top_5f_inclusiveDecays_13TeV-powheg-pythia8_TuneCUETP8M1/RunIISummer16NanoAODv5_PUMoriond17_ext1_v1-DeepTauv2p1_TauPOG-v1/USER"
+                    ],
+                    "diboson":[
+                        "/WW_TuneCUETP8M1_13TeV-pythia8/RunIISummer16NanoAODv5_PUMoriond17_ext1_v2-DeepTauv2p1_TauPOG-v1/USER",
+                        "/WW_TuneCUETP8M1_13TeV-pythia8/RunIISummer16NanoAODv5_PUMoriond17_v2-DeepTauv2p1_TauPOG-v1/USER",
+                        "/WZ_TuneCUETP8M1_13TeV-pythia8/RunIISummer16NanoAODv5_PUMoriond17_ext1_v2-DeepTauv2p1_TauPOG-v1/USER",
+                        "/WZ_TuneCUETP8M1_13TeV-pythia8/RunIISummer16NanoAODv5_PUMoriond17_v2-DeepTauv2p1_TauPOG-v1/USER",
+                        "/ZZ_TuneCUETP8M1_13TeV-pythia8/RunIISummer16NanoAODv5_PUMoriond17_ext1_v2-DeepTauv2p1_TauPOG-v1/USER",
+                        "/ZZ_TuneCUETP8M1_13TeV-pythia8/RunIISummer16NanoAODv5_PUMoriond17_v2-DeepTauv2p1_TauPOG-v1/USER"
+                    ],
+                    "ewk":[
+                    ]
+
+
+                }
+            }
+        }
+    },
+    "data":{
+        "run":{
+            "Run2016B":{
+                "creation":"21Oct2019",
+                "samples":{
+                    "Tau":["/Tau/Run2016B_17Jul2018_ver2_v1_NanoAODv5-DeepTauv2p1_TauPOG-v1/USER"],
+                    "SingleElectron":["/SingleElectron/Run2016B_17Jul2018_ver2_v1_NanoAODv5-DeepTauv2p1_TauPOG-v1/USER"],
+                    "SingleMuon":["/SingleMuon/Run2016B_17Jul2018_ver2_v1_NanoAODv5-DeepTauv2p1_TauPOG-v1/USER"]
+
+                }
+            },
+            "Run2016C":{
+                "creation":"21Oct2019",
+                "samples":{
+                    "Tau":["/Tau/Run2016C_17Jul2018_v1_NanoAODv5-DeepTauv2p1_TauPOG-v1/USER"],
+                    "SingleElectron":["/SingleElectron/Run2016C_17Jul2018_v1_NanoAODv5-DeepTauv2p1_TauPOG-v1/USER"],
+                    "SingleMuon":["/SingleMuon/Run2016C_17Jul2018_v1_NanoAODv5-DeepTauv2p1_TauPOG-v1/USER"]
+
+                }
+            },
+            "Run2016D":{
+                "creation":"21Oct2019",
+                "samples":{
+                    "Tau":["/Tau/Run2016D_17Jul2018_v1_NanoAODv5-DeepTauv2p1_TauPOG-v1/USER"],
+                    "SingleElectron":["/SingleElectron/Run2016D_17Jul2018_v1_NanoAODv5-DeepTauv2p1_TauPOG-v1/USER"],
+                    "SingleMuon":["/SingleMuon/Run2016D_17Jul2018_v1_NanoAODv5-DeepTauv2p1_TauPOG-v1/USER"]
+
+                }
+            },
+            "Run2016E":{
+                "creation":"21Oct2019",
+                "samples":{
+                    "Tau":["/Tau/Run2016E_17Jul2018_v1_NanoAODv5-DeepTauv2p1_TauPOG-v1/USER"],
+                    "SingleElectron":["/SingleElectron/Run2016E_17Jul2018_v1_NanoAODv5-DeepTauv2p1_TauPOG-v1/USER"],
+                    "SingleMuon":["/SingleMuon/Run2016E_17Jul2018_v1_NanoAODv5-DeepTauv2p1_TauPOG-v1/USER"]
+
+                }
+            },
+            "Run2016F":{
+                "creation":"21Oct2019",
+                "samples":{
+                    "Tau":["/Tau/Run2016F_17Jul2018_v1_NanoAODv5-DeepTauv2p1_TauPOG-v1/USER"],
+                    "SingleElectron":["/SingleElectron/Run2016F_17Jul2018_v1_NanoAODv5-DeepTauv2p1_TauPOG-v1/USER"],
+                    "SingleMuon":["/SingleMuon/Run2016F_17Jul2018_v1_NanoAODv5-DeepTauv2p1_TauPOG-v1/USER"]
+
+                }
+            },
+            "Run2016G":{
+                "creation":"21Oct2019",
+                "samples":{
+                    "Tau":["/Tau/Run2016G_17Jul2018_v1_NanoAODv5-DeepTauv2p1_TauPOG-v1/USER"],
+                    "SingleElectron":["/SingleElectron/Run2016G_17Jul2018_v1_NanoAODv5-DeepTauv2p1_TauPOG-v1/USER"],
+                    "SingleMuon":["/SingleMuon/Run2016G_17Jul2018_v1_NanoAODv5-DeepTauv2p1_TauPOG-v1/USER"]
+
+                }
+            },
+            "Run2016H":{
+                "creation":"21Oct2019",
+                "samples":{
+                    "Tau":["/Tau/Run2016H_17Jul2018_v1_NanoAODv5-DeepTauv2p1_TauPOG-v1/USER"],
+                    "SingleElectron":["/SingleElectron/Run2016H_17Jul2018_v1_NanoAODv5-DeepTauv2p1_TauPOG-v1/USER"],
+                    "SingleMuon":["/SingleMuon/Run2016H_17Jul2018_v1_NanoAODv5-DeepTauv2p1_TauPOG-v1/USER"]
+
+                }
+            }
+
+        }
+    }
+
+}
+
