@@ -27,7 +27,7 @@ def main():
     parser.add_argument('-y', dest='year', help='Which era are you prosessing. Relevent for the golden JSON file',choices = ["2016","2017","2018"])
     
     parser.add_argument('-j', dest='jobs', help='If set to NJOBS > 0: Run NJOBS in parallel on heplx. Otherwise submit to batch.', type=int, default = 8)
-    parser.add_argument('-o', dest='outdir', help='Where to write output when running on batch.', type=str, default = 'DPM://hephyse.oeaw.ac.at//dpm/oeaw.ac.at/home/cms/store/user/mspanrin/condor_production')
+    parser.add_argument('-o', dest='outdir', help='Where to write output when running on batch.', type=str, default = 'DPM://hephyse.oeaw.ac.at//dpm/oeaw.ac.at/home/cms/store/user/jaandrej/condor_production')
     parser.add_argument('-d', dest='debug', help='Debug', action = "store_true")
     parser.add_argument('-f', dest='force', help="Forces submission to batch when status in submit_log is 'NEW'", action = "store_true")
     # parser.add_argument('--cert', dest='cert', help='Cert when running over data.', type=str, choices=["Cert_271036-284044_13TeV_23Sep2016ReReco_Collisions16_JSON.txt", 

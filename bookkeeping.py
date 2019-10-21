@@ -67,7 +67,7 @@ class Bookkeeping():
     self.runningJobs = self.getRunningJobs()
     self.summary = {}
     self.failed_paths = []
-    self.outdir = "srm://hephyse.oeaw.ac.at//dpm/oeaw.ac.at/home/cms/store/user/mspanrin/condor_production"
+    self.outdir = "srm://hephyse.oeaw.ac.at//dpm/oeaw.ac.at/home/cms/store/user/jaandrej/condor_production"
 
     for sample in self.log:
       
